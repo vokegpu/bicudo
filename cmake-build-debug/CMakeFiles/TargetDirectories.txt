@@ -1,4 +1,0 @@
-/home/rina/Documents/vokegpu/bicudo/cmake-build-debug/CMakeFiles/bicudo.dir
-/home/rina/Documents/vokegpu/bicudo/cmake-build-debug/CMakeFiles/bicudoclient.dir
-/home/rina/Documents/vokegpu/bicudo/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/rina/Documents/vokegpu/bicudo/cmake-build-debug/CMakeFiles/rebuild_cache.dir
