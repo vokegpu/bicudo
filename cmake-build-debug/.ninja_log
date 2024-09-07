@@ -1,0 +1,5 @@
+# ninja log v6
+1	265	1725732739582710576	CMakeFiles/bicudoclient.dir/src/client/main.cpp.o	fd79ab60e6fd33f5
+1	298	1725732739582710576	CMakeFiles/bicudo.dir/src/bicudo/bicudo.cpp.o	2d986b9434061867
+298	328	1725732739879387552	/home/rina/Documents/vokegpu/bicudo/lib/linux/libbicudo.a	900ec433b21ed802
+1	117	1725732960397049530	/home/rina/Documents/vokegpu/bicudo/bin/linux/bicudoclient	998358040efef367
