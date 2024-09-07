@@ -11,21 +11,20 @@
 		"LSP":
 		{
     	"clangd":
-    {
+    	{
      		"initializationOptions":
      		{
      			"clangd.compile-commands-dir": "./cmake-build-debug"
      		}
      	}
-    },
-    "SublimeLinter.linters.clangtidy.compile_commands": "./cmake-build-debug",
+    }
 	},
 	"build_systems":
 	[
 		{
 			"name": "Linux Build-&-Test",
 			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja && cmake --build ./cmake-build-debug/ && cd ./bin/linux && ./bicudoclient"
+				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/ && cd ./bin/linux && ./bicudoclient"
 		}
 	]
 }
