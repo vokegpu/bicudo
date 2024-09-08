@@ -1,7 +1,7 @@
 #ifndef BICUDO_HPP
 #define BICUDO_HPP
 
-#include <iostream>
+#include "bicudo/util/log.hpp"
 #include <cstdint>
 
 namespace bicudo {

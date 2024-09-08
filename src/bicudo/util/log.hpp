@@ -2,42 +2,42 @@
 #define BICUDO_UTIL_LOG_HPP
 
 #include <iostream>
-#include <ostream>
+#include <sstream>
 
-#include <hip/hiprtc.h>
-#include <hip/hip_runtime.h>
+#include "bicudo/gpu/rocm.hpp"
 
 namespace bicudo {
   struct log {
   public:
-    static std::ostringstream buffer {};
-    static bool buffered {};
+    static std::ostringstream buffer;
+    static bool buffered;
   public:
-    bicudo::log() {
+    log() {
       bicudo::log::buffer << "[Bicudo] "; 
+      bicudo::log::buffered = true;
     }
 
-    ~bicudo::log() {
-      bicudo::buffer << '\n';
+    ~log() {
+      bicudo::log::buffer << '\n';
     }
 
     template<typename t>
-    bicudo::log &operator<<(t content) {
-      bicudo::log::buffer << content << std::endl;
+    bicudo::log &operator<<(const t &content) {
+      bicudo::log::buffer << content;
       return *this;
     }
 
-    void flush() {
+    static void flush() {
       if (bicudo::log::buffered) {
-        std::cout << bicudo::buffer << std::endl;
-        bicudo::buffer = {};
+        std::cout << bicudo::log::buffer.str() << std::endl;
+        bicudo::log::buffer = std::ostringstream {};
         bicudo::log::buffered = false;
       }
     }
-  }
+  };
 }
 
-#define hiprtc_validate(result, warning) result != HIP_SUCCESS && (bicudo::log() << "[GPU] " << warning)
-#define hip_validate(result, warning) result != hipSuccess && (bicudo::log() << "[GPU] " << warning)
+#define hiprtc_validate(result, warning) result != HIP_SUCCESS && &(bicudo::log() << "[GPU] " << warning)
+#define hip_validate(result, warning) result != hipSuccess && &(bicudo::log() << "[GPU] " << hipGetErrorName(result) << ": " << warning)
 
 #endif

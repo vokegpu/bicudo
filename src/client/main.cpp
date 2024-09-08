@@ -1,4 +1,6 @@
 #include <iostream>
+
+#include "bicudo/gpu/model.hpp"
 #include "bicudo/bicudo.hpp"
 
 #include <ekg/ekg.hpp>
@@ -8,23 +10,7 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 
-__global__ void meow(uint32_t *p_oi) {
-  // ...
-}
-
-__global__ void mu(uint32_t *p_oi) {
-  // ...
-}
-
 int32_t main(int32_t, char**) {
-  uint32_t number {};
-
-  bicudo::gpu::pipeline pipeline {};
-  bicudo::gpu_create_pipeline(
-    &pipeline,
-    &pipeline_create_info
-  );
-
   SDL_Init(SDL_INIT_VIDEO);
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -62,11 +48,62 @@ int32_t main(int32_t, char**) {
     &ekg_runtime_property
   );
 
+  SDL_Event sdl_event {};
+  bool running {true};
+
+  const char *p_shader_count {
+    R"(
+    extern "C"
+    __global__ void meow(uint32_t *p_to_count) {
+      if (threadIdx.x == 0) {
+        uint32_t &number {*p_to_count};
+        number++;
+      }
+    }
+    )"
+  };
+
+  uint32_t *p_number_device {};
+  uint32_t number_host {};
+
+  bicudo::gpu::pipeline_create_info pipeline_create_info {
+    .p_tag = "meow",
+    .kernel_list =
+    {
+      {
+        .p_tag = "meow?",
+        .p_src = p_shader_count,
+        .function_list =
+        {
+          {
+            .p_entry_point = "meow",
+            .grid = dim3(1, 1, 1),
+            .block = dim3(1, 1, 1),
+            .shared_mem_bytes = 0,
+            .stream = nullptr,
+            .buffer_list =
+            {
+              {
+                .size = sizeof(uint32_t),
+                .p_device = p_number_device,
+                .p_host = &number_host
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  bicudo::gpu::pipeline pipeline {};
+  bicudo::gpu_create_pipeline(
+    &pipeline,
+    &pipeline_create_info
+  );
+
   ekg::frame("oiii muuu", {20, 20}, {200, 200})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
-
-  uint32_t number {};
 
   ekg::button("couwnt in GPU:")
     ->set_task(
@@ -74,8 +111,19 @@ int32_t main(int32_t, char**) {
         .info = {
           .tag = "omg gpu kkkk"
         },
-        .function = [&number](ekg::info &info) {
-          bicudo::count(&number);
+        .function = [&pipeline](ekg::info &info) {
+          bicudo::gpu_dispatch(
+            &pipeline,
+            0,
+            0
+          );
+
+          bicudo::gpu_writeback(
+            &pipeline,
+            0,
+            0,
+            0
+          );
         }
       },
       ekg::action::activity
@@ -84,13 +132,10 @@ int32_t main(int32_t, char**) {
   ekg::slider<uint32_t>("meow-gpu", ekg::dock::fill)
     ->set_text_align(ekg::dock::left | ekg::dock::center)
     ->range<uint32_t>(0, 0, 0, 100)
-    ->range<uint32_t>(0).u32.transfer_ownership(&number);
+    ->range<uint32_t>(0).u32.transfer_ownership(&number_host);
 
   ekg::pop_group();
 
-  SDL_Event sdl_event {};
-
-  bool running {true};
   while (running) {
     while (SDL_PollEvent(&sdl_event)) {
       if (sdl_event.type == SDL_QUIT) {
@@ -108,6 +153,7 @@ int32_t main(int32_t, char**) {
     glViewport(0.0f, 0.0f, ekg::ui::width, ekg::ui::height);
 
     ekg::render();
+    bicudo::log::flush();
 
     SDL_GL_SwapWindow(p_sdl_win);
     SDL_Delay(16);

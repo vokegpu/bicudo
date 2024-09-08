@@ -1,8 +1,6 @@
 #include "bicudo/bicudo.hpp"
 
-#define __HIP_PLATFORM_AMD__
-#include <hip/hip_runtime.h>
-#include <hip/hiprtc.h>
+#include "bicudo/gpu/rocm.hpp"
 
 #include <vector>
 #include <iostream>
@@ -67,7 +65,6 @@ void bicudo::count(uint32_t *p_number) {
   assert_log(hipModuleLoadData(&module, kernel_binary.data()), hipSuccess, "idk");
   assert_log(hipModuleGetFunction(&kernel, module, "meow"), hipSuccess, "idk");
 
-  uint32_t p_number {};
   uint32_t *p_number_device {};
 
   assert_log(hipMalloc(&p_number_device, sizeof(uint32_t)), hipSuccess, "oi");

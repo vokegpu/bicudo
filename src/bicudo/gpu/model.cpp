@@ -1,17 +1,17 @@
 #include "model.hpp"
-#include "util/log.hpp"
+#include "bicudo/util/log.hpp"
 
-bicudo::result bicudo::dispatch(
+bicudo::result bicudo::gpu_dispatch(
   bicudo::gpu::pipeline *p_pipeline,
   uint64_t module_index,
-  uint64_t kernel_index,
+  uint64_t kernel_index
 ) {
   bicudo::gpu::kernel &kernel {p_pipeline->kernel_list.at(module_index)};
   bicudo::gpu::function &function {kernel.function_list.at(kernel_index)};
 
   void *p_configs[] {
     HIP_LAUNCH_PARAM_BUFFER_POINTER, function.argument_list.data(),
-    HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
+    HIP_LAUNCH_PARAM_BUFFER_SIZE, &function.mem_size,
     HIP_LAUNCH_PARAM_END
   };
 
@@ -36,26 +36,28 @@ bicudo::result bicudo::dispatch(
       << "[GPU] failed to dispatch computer kernel '"
       << kernel.p_tag
       << "':\n" 
-      << hiprtcGetErrorString(err) << std::endl;
+      << hipGetErrorName(err);
     return bicudo::types::FAILED;
   }
 
   return bicudo::types::SUCCESS;
 }
 
-bicudo::result bicudo::writeback(
+bicudo::result bicudo::gpu_writeback(
   bicudo::gpu::pipeline *p_pipeline,
   uint64_t module_index,
-  uint64_t kernel_index
+  uint64_t kernel_index,
+  uint64_t param_index
 ) {
   bicudo::gpu::kernel &kernel {p_pipeline->kernel_list.at(module_index)};
   bicudo::gpu::function &function {kernel.function_list.at(kernel_index)};
+  bicudo::gpu::buffer &buffer {function.buffer_list.at(param_index)};
 
   hip_validate(
     hipMemcpy(
-      function.p_data,
-      function.p_data,
-      sizeof(function.size),
+      buffer.p_host,
+      buffer.p_device,
+      buffer.size,
       hipMemcpyDeviceToHost
     ),
     "failed to copy memory"
@@ -64,7 +66,7 @@ bicudo::result bicudo::writeback(
   return bicudo::types::SUCCESS;
 }
 
-bicudo::result bicudo::create_pipeline(
+bicudo::result bicudo::gpu_create_pipeline(
   bicudo::gpu::pipeline *p_pipeline,
   bicudo::gpu::pipeline_create_info *p_pipeline_create_info
 ) {
@@ -75,7 +77,7 @@ bicudo::result bicudo::create_pipeline(
   for (bicudo::gpu::kernel &kernel : p_pipeline->kernel_list) {
     hiprtc_validate(
       hiprtcCreateProgram(
-        kernel.program,
+        &kernel.program,
         kernel.p_src,
         kernel.p_tag,
         0,
@@ -113,16 +115,16 @@ bicudo::result bicudo::create_pipeline(
         "failed to get program log"
       );
 
-      std::cout << "[GPU] failed to create program, more info:\n" << log << std::endl;
+      std::cout << "[GPU] failed to create program, more info:\n" << log;
       result = bicudo::types::FAILED;
       continue;
     }
 
-    uint64_t kernel_binary_size {};
+    size_t kernel_binary_size {};
     hiprtc_validate(
       hiprtcGetCodeSize(
         kernel.program,
-        kernel_binary_size
+        &kernel_binary_size
       ),
       "failed to get program code size"
     );
@@ -131,7 +133,7 @@ bicudo::result bicudo::create_pipeline(
     hiprtc_validate(
       hiprtcGetCode(
         kernel.program,
-        kernel_binary.data()
+        binary_list.data()
       ),
       "failed to get program code"
     );
@@ -142,7 +144,7 @@ bicudo::result bicudo::create_pipeline(
     );
 
     hip_validate(
-      hipModuleLoadData(kernel.module, binary_list.data()),
+      hipModuleLoadData(&kernel.module, binary_list.data()),
       "failed to load module data"
     );
 
@@ -159,7 +161,7 @@ bicudo::result bicudo::create_pipeline(
       for (bicudo::gpu::buffer &buffer : function.buffer_list) {
         hip_validate(
           hipMalloc(
-            &function.p_data,
+            &buffer.p_device,
             buffer.size
           ),
           "failed to allocate a-memory"
@@ -167,15 +169,15 @@ bicudo::result bicudo::create_pipeline(
 
         hip_validate(
           hipMemcpy(
-            function.p_data,
-            function.p_data,
-            sizeof(function.size),
+            buffer.p_host,
+            buffer.p_device,
+            buffer.size,
             hipMemcpyHostToDevice
           ),
           "failed to copy memory"
         );
 
-        function.argument_list.push_back(function.p_data);
+        function.argument_list.push_back(buffer.p_device);
         function.mem_size += buffer.size;
       }
     }
