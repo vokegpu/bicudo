@@ -35,6 +35,9 @@ int32_t main(int32_t, char**) {
   glewExperimental = GL_TRUE;
   glewInit();
 
+  SDL_GL_SetSwapInterval(true);
+  bicudo::set_framerate(144);
+
   ekg::runtime_property ekg_runtime_property {
     .p_font_path = "./whitneybook.otf",
     .p_font_path_emoji = "twemoji.ttf",
@@ -48,6 +51,8 @@ int32_t main(int32_t, char**) {
     &ekg_runtime_property
   );
 
+  ekg::theme().set_current_theme_scheme("dark-pinky");
+
   SDL_Event sdl_event {};
   bool running {true};
 
@@ -57,7 +62,7 @@ int32_t main(int32_t, char**) {
     __global__ void meow(uint32_t *p_to_count) {
       if (threadIdx.x == 0) {
         uint32_t &number {*p_to_count};
-        number++;
+        number += 2;
       }
     }
     )"
@@ -134,7 +139,16 @@ int32_t main(int32_t, char**) {
     ->range<uint32_t>(0, 0, 0, 100)
     ->range<uint32_t>(0).u32.transfer_ownership(&number_host);
 
+  ekg::label("Delta Time:", ekg::dock::next);
+  ekg::slider<float>("dt-ownership", ekg::dock::fill)
+    ->range<float>(0, 0.0f, 0.0f, 1.0f, 5)
+    ->range<float>(0).f32.transfer_ownership(&bicudo::dt)
+    ->set_text_align(ekg::dock::center | ekg::dock::left);
+
   ekg::pop_group();
+
+  uint64_t framerate_count {};
+  ekg::timing elapsed_frame_timing {};
 
   while (running) {
     while (SDL_PollEvent(&sdl_event)) {
@@ -145,7 +159,14 @@ int32_t main(int32_t, char**) {
       ekg::os::sdl_poll_event(sdl_event);
     }
 
-    ekg::ui::dt = 0.016f;
+    ekg::ui::dt = 1.0f / static_cast<float>(bicudo::current_framerate);
+    bicudo::dt = ekg::ui::dt;
+
+    if (ekg::reach(elapsed_frame_timing, 1000) && ekg::reset(elapsed_frame_timing)) {
+      bicudo::current_framerate = framerate_count;
+      framerate_count = 0;
+    }
+
     ekg::update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -155,8 +176,10 @@ int32_t main(int32_t, char**) {
     ekg::render();
     bicudo::log::flush();
 
+    framerate_count++;
+
     SDL_GL_SwapWindow(p_sdl_win);
-    SDL_Delay(16);
+    SDL_Delay(bicudo::cpu_interval_ms);
   }
 
   return 0;

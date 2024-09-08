@@ -1,10 +1,12 @@
 #include "bicudo/bicudo.hpp"
-
 #include "bicudo/gpu/rocm.hpp"
 
 #include <vector>
 #include <iostream>
 
+bicudo::application bicudo::app {};
+
+/**
 #define assert_log(result, expect, error) result != expect && std::cout << error << std::endl
 
 static constexpr auto kernel_source {
@@ -106,3 +108,4 @@ void bicudo::count(uint32_t *p_number) {
 
   std::cout << "bicudo muuuuuuuuuuuu" << p_number << std::endl;
 }
+**/

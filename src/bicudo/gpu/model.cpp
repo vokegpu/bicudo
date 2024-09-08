@@ -70,7 +70,9 @@ bicudo::result bicudo::gpu_create_pipeline(
   bicudo::gpu::pipeline *p_pipeline,
   bicudo::gpu::pipeline_create_info *p_pipeline_create_info
 ) {
+  p_pipeline->p_tag = p_pipeline_create_info->p_tag;
   p_pipeline->kernel_list = p_pipeline_create_info->kernel_list;
+
   bicudo::result result {bicudo::types::SUCCESS};
   std::vector<char> binary_list {};
 
