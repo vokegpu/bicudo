@@ -9,7 +9,7 @@ if (LINUX)
   file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
   file(GLOB ROCM_CXX_COMPILER_DIR "/opt/rocm/bin/hipcc")
 
-  set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+  # set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
   set(LIBRARY_OUTPUT_PATH "../lib/linux/")
   set(EXECUTABLE_OUTPUT_PATH "../bin/linux/")
   set(BICUDO_LINKED_LIBRARIES GL GLEW ${ROCM_NATIVE_LIBRARY_PATH})

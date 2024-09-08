@@ -21,7 +21,7 @@ R"(
 )"
 };
 
-void bicudo::init() {
+void bicudo::count(uint32_t *p_number) {
   hiprtcProgram program {};
 
   hiprtcCreateProgram(
@@ -67,11 +67,11 @@ void bicudo::init() {
   assert_log(hipModuleLoadData(&module, kernel_binary.data()), hipSuccess, "idk");
   assert_log(hipModuleGetFunction(&kernel, module, "meow"), hipSuccess, "idk");
 
-  uint32_t number_host {};
+  uint32_t p_number {};
   uint32_t *p_number_device {};
 
   assert_log(hipMalloc(&p_number_device, sizeof(uint32_t)), hipSuccess, "oi");
-  assert_log(hipMemcpy(p_number_device, &number_host, sizeof(uint32_t), hipMemcpyHostToDevice), hipSuccess, "oi");
+  assert_log(hipMemcpy(p_number_device, &p_number, sizeof(uint32_t), hipMemcpyHostToDevice), hipSuccess, "oi");
 
   struct {
     uint32_t *p_number;
@@ -105,7 +105,7 @@ void bicudo::init() {
     std::cout << "muu: " << hipGetErrorName(err) << std::endl;
   }
 
-  assert_log(hipMemcpy(&number_host, p_number_device, sizeof(uint32_t), hipMemcpyDeviceToHost), hipSuccess, "oi amo brigadeiro");
+  assert_log(hipMemcpy(&p_number, p_number_device, sizeof(uint32_t), hipMemcpyDeviceToHost), hipSuccess, "oi amo brigadeiro");
 
-  std::cout << "bicudo muuuuuuuuuuuu" << number_host << std::endl;
+  std::cout << "bicudo muuuuuuuuuuuu" << p_number << std::endl;
 }
