@@ -4,6 +4,9 @@
 /bin
 /lib
 
+# Sublime Text
+*.sublime-workspace
+
 # Prerequisites
 *.d
 
