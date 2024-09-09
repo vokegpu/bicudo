@@ -20,5 +20,5 @@ cmake -S . -B ./cmake-build-debug/ -G Ninja && cmake --build ./cmake-build-debug
 ```
 
 Outputs:
-`/bin/linux/bicudoclient` (the starter client)
+`/bin/linux/bicudoclient` (the starter client)  
 `/lib/linux/libbicudo.a` (the engine native library)
