@@ -226,12 +226,7 @@ namespace bicudo {
     float angular_acc {};
   };
 
-  bicudo::mat4 ortho(
-    float left,
-    float right,
-    float bottom,
-    float top
-  );
+  bicudo::mat4 ortho(float left, float right, float bottom, float top);
 }
 
 #endif

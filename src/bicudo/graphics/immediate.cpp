@@ -19,7 +19,7 @@ void bicudo::immediate_graphics::create() {
         out vec4 vRect;
 
         void main() {
-          gl_Position = uProjection * vec4((aPos * uRect.yw) + uRect.xy, 0.0f, 1.0f);
+          gl_Position = uProjection * vec4((aPos * uRect.zw) + uRect.xy, 0.0f, 1.0f);
           vRect = uRect;
           vUV = aPos;
         }
@@ -97,14 +97,13 @@ void bicudo::immediate_graphics::set_viewport(int32_t w, int32_t h) {
     0.0f
   );
 
-  glUseProgram(this->program);
-  glUniformMatrix4fv(
+  glProgramUniformMatrix4fv(
+    this->program,
     this->uniform["uProjection"],
     1,
     GL_FALSE,
     this->mat4x4_projection.data()
   );
-  glUseProgram(0);
 }
 
 void bicudo::immediate_graphics::invoke() {
