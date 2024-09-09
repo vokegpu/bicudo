@@ -5,9 +5,9 @@
 #include <cfloat>
 #include <cstdint>
 
-#define bicudo_min(a, b)            ((a) < (b) ? (b) : (a))
-#define bicudo_max(a, b)            ((a) > (b) ? (b) : (a))
-#define bicudo_clamp(val, min, max) ((val < min ? min : (val > max ? max : val)))
+#define bicudo_clamp_min(a, b)      ((a) < (b) ? (b) : (a))
+#define bicudo_clamp_max(a, b)      ((a) > (b) ? (b) : (a))
+#define bicudo_clamp(val, min, max) (val < min ? min : ((max < val) ? max : val))
 
 namespace bicudo {
   extern uint64_t framerate;
@@ -21,7 +21,7 @@ namespace bicudo {
     return fabsf(x - y) <= FLT_EPSILON * fmaxf(fabsf(x), fabsf(y));
   }
 
-  struct vec2 {
+  typedef struct vec2 {
   public:
     union {
       struct {
@@ -29,8 +29,16 @@ namespace bicudo {
         float y {};
       };
 
-      float data[2];
+      float buffer[2];
     };
+
+    inline float &operator[](std::size_t index) {
+      return this->buffer[index];
+    }
+
+    float *data() {
+      return this->buffer;
+    }
   public:
     inline vec2() = default;
 
@@ -127,7 +135,76 @@ namespace bicudo {
     inline bool operator!=(const bicudo::vec2 &r) {
       return !(*this == r);
     }
-  };
+  } vec2;
+
+  typedef struct vec4 {
+  public:
+    union {
+      struct {
+        float x {};
+        float y {};
+        float z {};
+        float w {};
+      };
+
+      float buffer[4];
+    };
+
+    inline float &operator[](std::size_t index) {
+      return this->buffer[index];
+    }
+
+    float *data() {
+      return this->buffer;
+    }
+  public:
+    inline vec4() = default;
+
+    inline vec4(float _x, float _y, float _z, float _w) {
+      this->x = _x;
+      this->y = _y;
+      this->z = _z;
+      this->w = _w;
+    }
+  } vec4;
+
+  typedef struct mat4 {
+  public:
+    union {
+      struct {
+        float _11 {}, _12 {}, _13 {}, _14 {};
+        float _21 {}, _22 {}, _23 {}, _24 {};
+        float _31 {}, _32 {}, _33 {}, _34 {};
+        float _41 {}, _42 {}, _43 {}, _44 {};
+      };
+
+      float buffer[16];
+    };
+
+    inline float &operator[](std::size_t index) {
+      return this->buffer[index];
+    }
+
+    float *data() {
+      return this->buffer;
+    }
+  public:
+    inline mat4(float identity = 1.0f) {
+      this->_11 = this->_22 = this->_33 = this->_44 = identity;
+    }
+
+    inline mat4(
+      float f11, float f12, float f13, float f14,
+      float f21, float f22, float f23, float f24,
+      float f31, float f32, float f33, float f34,
+      float f41, float f42, float f43, float f44
+    ) {
+      this->_11 = f11; this->_12 = f12; this->_13 = f13; this->_14 = f14;
+      this->_21 = f21; this->_22 = f22; this->_23 = f23; this->_24 = f24;
+      this->_31 = f31; this->_32 = f32; this->_33 = f33; this->_34 = f34;
+      this->_41 = f41; this->_42 = f42; this->_43 = f43; this->_44 = f44;
+    }
+  } mat4;
 
   struct placement {
   public:
@@ -148,6 +225,13 @@ namespace bicudo {
     float angular_velocity {};
     float angular_acc {};
   };
+
+  bicudo::mat4 ortho(
+    float left,
+    float right,
+    float bottom,
+    float top
+  );
 }
 
 #endif

@@ -139,16 +139,23 @@ int32_t main(int32_t, char**) {
     ->range<uint32_t>(0, 0, 0, 100)
     ->range<uint32_t>(0).u32.transfer_ownership(&number_host);
 
-  ekg::label("Delta Time:", ekg::dock::next);
+  ekg::label("DT, FPS:", ekg::dock::next);
   ekg::slider<float>("dt-ownership", ekg::dock::fill)
     ->range<float>(0, 0.0f, 0.0f, 1.0f, 5)
     ->range<float>(0).f32.transfer_ownership(&bicudo::dt)
-    ->set_text_align(ekg::dock::center | ekg::dock::left);
+    ->set_text_align(ekg::dock::center | ekg::dock::right);
+
+  ekg::slider<uint64_t>("framerate-ownership", ekg::dock::fill)
+    ->range<uint64_t>(0, 0, 0, 1000)
+    ->range<uint64_t>(0).u64.transfer_ownership(&bicudo::current_framerate)
+    ->set_text_align(ekg::dock::center | ekg::dock::right);
 
   ekg::pop_group();
 
   uint64_t framerate_count {};
   ekg::timing elapsed_frame_timing {};
+
+  bicudo::app.world_manager.on_create();
 
   while (running) {
     while (SDL_PollEvent(&sdl_event)) {
@@ -157,6 +164,7 @@ int32_t main(int32_t, char**) {
       }
 
       ekg::os::sdl_poll_event(sdl_event);
+      bicudo::app.world_manager.on_event(sdl_event);
     }
 
     ekg::ui::dt = 1.0f / static_cast<float>(bicudo::current_framerate);
@@ -167,12 +175,14 @@ int32_t main(int32_t, char**) {
       framerate_count = 0;
     }
 
+    bicudo::app.world_manager.on_update();
     ekg::update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.7f, 0.3f, 0.8f, 1.0f);
     glViewport(0.0f, 0.0f, ekg::ui::width, ekg::ui::height);
 
+    bicudo::app.world_manager.on_render();
     ekg::render();
     bicudo::log::flush();
 
