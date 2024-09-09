@@ -1,7 +1,7 @@
 # CMake
 
 /cmake-build-debug/
-/bin
+/bin/linux/bicudoclient
 /lib
 
 # Sublime Text
