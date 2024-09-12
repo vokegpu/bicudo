@@ -202,12 +202,11 @@ int32_t main(int32_t, char**) {
       ekg::os::sdl_poll_event(sdl_event);
 
       if (ekg::input::action("click-on-object") && bicudo::world::pick(p_picked_obj, {interact.x, interact.y})) {
-        drag.x = interact.x;
-        drag.y = interact.y;
+        drag.x = interact.x - p_picked_obj->placement.pos.x;
+        drag.y = interact.y - p_picked_obj->placement.pos.y;
       }
 
       if (p_picked_obj && ekg::input::action("drop-object")) {
-        p_picked_obj->placement.velocity = {};
         p_picked_obj = nullptr;
       }
     }
@@ -221,8 +220,8 @@ int32_t main(int32_t, char**) {
     }
 
     if (p_picked_obj) {
-      p_picked_obj->placement.velocity.x = (interact.x - drag.x) * bicudo::dt;
-      p_picked_obj->placement.velocity.y = (interact.y - drag.y) * bicudo::dt;
+      p_picked_obj->placement.pos.x = interact.x - drag.x;
+      p_picked_obj->placement.pos.y = interact.y - drag.y;
     }
 
     bicudo::update();

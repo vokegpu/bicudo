@@ -4,7 +4,6 @@
 void bicudo::world_physics_update_simulator(
   bicudo::world::physics::simulator *p_simulator
 ) {
-  bicudo::world::physics::collision_info_t collision_info {};
   bicudo::world::physics::support_info_t support_info {};
   bicudo::collided was_collided {};
 
@@ -26,7 +25,7 @@ void bicudo::world_physics_update_simulator(
         bicudo::world_physics_a_collide_with_b_check(
           p_a,
           p_b,
-          &collision_info,
+          &p_simulator->collision_info,
           &support_info
         )
       );
@@ -38,8 +37,8 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
-      num = collision_info.depth / (p_a->mass + p_b->mass) * 0.8f;
-      correction = collision_info.normal * num;
+      num = p_simulator->collision_info.depth / (p_a->mass + p_b->mass) * 0.8f;
+      correction = p_simulator->collision_info.normal * num;
 
       bicudo::move(
         p_a,
@@ -170,7 +169,7 @@ void bicudo::world_physics_find_axis_penetration(
     }
 
     if (*p_has_support_point && p_support_info->distance < best_dist) {
-      p_support_info->distance = best_dist;
+      best_dist = p_support_info->distance;
       best_edge = it_edges;
       support_point = p_support_info->point;
     }
@@ -181,7 +180,7 @@ void bicudo::world_physics_find_axis_penetration(
 
     p_collision_info->depth = best_dist;
     p_collision_info->normal = edge;
-    p_collision_info->start = p_support_info->point + edge * best_dist;
+    p_collision_info->start = p_support_info->point + (edge * best_dist);
 
     bicudo::world_physics_collision_info_update(
       p_collision_info

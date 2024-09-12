@@ -113,11 +113,11 @@ namespace bicudo {
     }
 
     inline float magnitude() {
-      return std::sqrt(this->x * this->x + this->y * this->y);
+      return std::sqrt(this->magnitude_no_sq());
     }
 
     inline float dot(const bicudo::vec2 &r) {
-      return (this->x * r.y - this->y * r.x);
+      return (this->x * r.x + this->y * r.y);
     }
 
     inline float distance(const bicudo::vec2 &r) {

@@ -6,11 +6,6 @@
 #include <vector>
 
 namespace bicudo::world::physics {
-  struct simulator {
-  public:
-    std::vector<bicudo::placement*> placement_list {};
-  };
-
   struct collision_info_t {
   public:
     float depth {};
@@ -24,6 +19,12 @@ namespace bicudo::world::physics {
     bicudo::vec2 point {};
     float projection {};
     float distance {};
+  };
+
+  struct simulator {
+  public:
+    std::vector<bicudo::placement*> placement_list {};
+    bicudo::world::physics::collision_info_t collision_info {};
   };
 }
 

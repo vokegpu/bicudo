@@ -38,5 +38,18 @@ void bicudo::world_manager::on_render() {
     this->immediate.draw(rect, color);
   }
 
+  rect.z = 10.0f;
+  rect.w = 10.0f;
+
+  rect.x = this->simulator.collision_info.start.x;
+  rect.y = this->simulator.collision_info.start.y;
+
+  this->immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f});
+
+  rect.x = this->simulator.collision_info.end.x;
+  rect.y = this->simulator.collision_info.end.y;
+
+  this->immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f});
+  
   this->immediate.revoke();
 }
