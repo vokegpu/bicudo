@@ -155,7 +155,36 @@ int32_t main(int32_t, char**) {
   uint64_t framerate_count {};
   ekg::timing elapsed_frame_timing {};
 
-  bicudo::app.world_manager.on_create();
+  bicudo::object *p_cow {new bicudo::object({
+    .p_tag = "vakinha",
+    .mass = 2.0f,
+    .friction = 1.0f,
+    .restitution = 0.2f,
+    .inertia = 20.0f,
+    .pos = {20, 20},
+    .size = {144, 144}
+  })};
+
+  bicudo::object *p_cow_2 {new bicudo::object({
+    .p_tag = "gatinho",
+    .mass = 2.0f,
+    .friction = 1.0f,
+    .restitution = 0.2f,
+    .inertia = 20.0f,
+    .pos = {200, 20},
+    .size = {144, 144}
+  })}; 
+
+  bicudo::object *p_picked_obj {nullptr};
+  ekg::vec4 &interact {ekg::input::interact()};
+  bicudo::vec2 drag {};
+
+  bicudo::init();
+  bicudo::world::insert(p_cow);
+  bicudo::world::insert(p_cow_2);
+
+  ekg::input::bind("click-on-object", "mouse-1");
+  ekg::input::bind("drop-object", "mouse-1-up");
 
   while (running) {
     while (SDL_PollEvent(&sdl_event)) {
@@ -163,8 +192,20 @@ int32_t main(int32_t, char**) {
         running = false;
       }
 
+      if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+        bicudo::viewport(sdl_event.window.data1, sdl_event.window.data2);
+      }
+
       ekg::os::sdl_poll_event(sdl_event);
-      bicudo::app.world_manager.on_event(sdl_event);
+
+      if (ekg::input::action("click-on-object") && bicudo::world::pick(p_picked_obj, {interact.x, interact.y})) {
+        drag.x = interact.x - p_picked_obj->placement.pos.x;
+        drag.y = interact.y - p_picked_obj->placement.pos.y;
+      }
+
+      if (p_picked_obj != nullptr && ekg::input::action("drop-object")) {
+        p_picked_obj = nullptr;
+      }
     }
 
     ekg::ui::dt = 1.0f / static_cast<float>(bicudo::current_framerate);
@@ -175,16 +216,22 @@ int32_t main(int32_t, char**) {
       framerate_count = 0;
     }
 
-    bicudo::app.world_manager.on_update();
+    if (p_picked_obj != nullptr) {
+      p_picked_obj->placement.pos.x = interact.x - drag.x;
+      p_picked_obj->placement.pos.y = interact.y - drag.y;
+    }
+
+    bicudo::update();
     ekg::update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.7f, 0.3f, 0.8f, 1.0f);
     glViewport(0.0f, 0.0f, ekg::ui::width, ekg::ui::height);
 
-    bicudo::app.world_manager.on_render();
-    ekg::render();
+    bicudo::render();
     bicudo::log::flush();
+
+    ekg::render();
 
     framerate_count++;
 

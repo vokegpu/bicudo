@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <cfloat>
+#include <vector>
 #include <cstdint>
 
 #define bicudo_clamp_min(a, b)      ((a) < (b) ? (b) : (a))
@@ -61,6 +62,12 @@ namespace bicudo {
       };
     }
 
+    inline bicudo::vec2 &operator+=(float val) {
+      this->x -= val;
+      this->y -= val;
+      return *this;
+    }
+
     inline bicudo::vec2 operator-(const bicudo::vec2 &r) {
       return bicudo::vec2 {
         this->x - r.x,
@@ -75,11 +82,23 @@ namespace bicudo {
       };
     }
 
+    inline bicudo::vec2 &operator-=(float val) {
+      this->x -= val;
+      this->y -= val;
+      return *this;
+    }
+
     inline bicudo::vec2 operator*(float scalar) {
       return bicudo::vec2 {
         this->x * scalar,
         this->y * scalar
       };
+    }
+
+    inline bicudo::vec2 &operator*=(float scalar) {
+      this->x *= scalar;
+      this->y *= scalar;;
+      return *this;
     }
 
     inline float magnitude_no_sq() {
@@ -92,6 +111,10 @@ namespace bicudo {
 
     inline float dot(const bicudo::vec2 &r) {
       return (this->x * r.y - this->y * r.x);
+    }
+
+    inline float distance(const bicudo::vec2 &r) {
+      return (*this - r).magnitude();
     }
 
     inline bicudo::vec2 normalize() {
@@ -208,6 +231,8 @@ namespace bicudo {
 
   struct placement {
   public:
+    const char *p_tag {};
+
     float mass {};
     float friction {};
     float restitution {};
@@ -224,9 +249,18 @@ namespace bicudo {
     float angle {};
     float angular_velocity {};
     float angular_acc {};
+
+    std::vector<bicudo::vec2> vertices {};
+    std::vector<bicudo::vec2> edges {};
+
+    bool was_collided {};
   };
 
+  void splash_vertices(bicudo::vec2 *p_vertices, bicudo::vec2 &pos, bicudo::vec2 &size);
+  void splash_edges_normalized(bicudo::vec2 *p_edges, bicudo::vec2 *p_vertices);
+
   bicudo::mat4 ortho(float left, float right, float bottom, float top);
+  bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
 }
 
 #endif

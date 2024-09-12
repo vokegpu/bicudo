@@ -10,8 +10,10 @@ namespace bicudo {
     bicudo::placement placement {};
     bicudo::id id {};
   public:
-    virtual void low_latency_update() {};
-    // virtual void update() {};
+    object(bicudo::placement);
+
+    virtual void on_low_latency_update() {};
+    virtual void on_update();
   };
 }
 

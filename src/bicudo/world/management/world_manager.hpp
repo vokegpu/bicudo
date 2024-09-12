@@ -6,7 +6,6 @@
 #include "bicudo/world/physics/simulator.hpp"
 #include "bicudo/graphics/immediate.hpp"
 
-#include <SDL2/SDL.h>
 #include <vector>
 
 namespace bicudo {
@@ -20,7 +19,6 @@ namespace bicudo {
   public:
     void push_back_object(bicudo::object *p_obj);
     void on_create();
-    void on_event(SDL_Event &sdl_event);
     void on_update();
     void on_render();
   };

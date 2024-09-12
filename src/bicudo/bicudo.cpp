@@ -6,6 +6,43 @@
 
 bicudo::application bicudo::app {};
 
+void bicudo::init() {
+  bicudo::app.world_manager.on_create();
+}
+
+void bicudo::update() {
+  bicudo::app.world_manager.on_update();
+}
+
+void bicudo::render() {
+  bicudo::app.world_manager.on_render();
+}
+
+void bicudo::viewport(int32_t w, int32_t h) {
+  bicudo::app.world_manager.immediate.set_viewport(w, h);
+}
+
+void bicudo::world::insert(bicudo::object *p_obj) {
+  bicudo::app.world_manager.push_back_object(p_obj);
+}
+
+bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, const bicudo::vec2 &pos) {
+  bicudo::vec4 rect {};
+  for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
+    rect.x = p_objs->placement.pos.x;
+    rect.y = p_objs->placement.pos.y;
+    rect.z = p_objs->placement.size.x;
+    rect.w = p_objs->placement.size.y;
+
+    if (bicudo::vec4_collide_with_vec2(rect, pos)) {
+      p_obj = p_objs;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
 #define assert_log(result, expect, error) result != expect && std::cout << error << std::endl
 

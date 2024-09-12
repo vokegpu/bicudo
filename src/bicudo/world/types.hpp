@@ -5,6 +5,7 @@
 
 namespace bicudo {
   typedef uint64_t id;
+  typedef bool collided;
 }
 
 #endif

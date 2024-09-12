@@ -29,7 +29,7 @@ namespace bicudo {
 
     static void flush() {
       if (bicudo::log::buffered) {
-        std::cout << bicudo::log::buffer.str() << std::endl;
+        std::cout << bicudo::log::buffer.str();
         bicudo::log::buffer = std::ostringstream {};
         bicudo::log::buffered = false;
       }
@@ -37,7 +37,7 @@ namespace bicudo {
   };
 }
 
-#define hiprtc_validate(result, warning) result != HIP_SUCCESS && &(bicudo::log() << "[GPU] " << warning)
+#define hiprtc_validate(result, warning) result != HIPRTC_SUCCESS  && &(bicudo::log() << "[GPU] " << warning)
 #define hip_validate(result, warning) result != hipSuccess && &(bicudo::log() << "[GPU] " << hipGetErrorName(result) << ": " << warning)
 
 #endif
