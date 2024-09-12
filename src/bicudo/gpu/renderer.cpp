@@ -1,11 +1,12 @@
 #include "renderer.hpp"
 #include "bicudo/util/log.hpp"
 
+void bicudo::gpu::uniform::registry(std::string_view key) {
+  this->program_location_map[key] = glGetUniformLocation(this->linked_program, key.data());
+}
+
 uint32_t &bicudo::gpu::uniform::operator[](std::string_view key) {
-  uint32_t &location {this->program_location_map[key]};
-  return (
-    location = glGetUniformLocation(this->linked_program, key.data())
-  );
+  return this->program_location_map[key];
 }
 
 bicudo::result bicudo::gpu_compile_shader_program(

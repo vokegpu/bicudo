@@ -154,25 +154,28 @@ int32_t main(int32_t, char**) {
 
   uint64_t framerate_count {};
   ekg::timing elapsed_frame_timing {};
+  bicudo::vec2 gravity {};
 
   bicudo::object *p_cow {new bicudo::object({
     .p_tag = "vakinha",
-    .mass = 2.0f,
+    .mass = 1.0f,
     .friction = 1.0f,
     .restitution = 0.2f,
     .inertia = 20.0f,
     .pos = {20, 20},
-    .size = {144, 144}
+    .size = {144, 144},
+    .acc = gravity
   })};
 
   bicudo::object *p_cow_2 {new bicudo::object({
     .p_tag = "gatinho",
-    .mass = 2.0f,
+    .mass = 1.0f,
     .friction = 1.0f,
     .restitution = 0.2f,
     .inertia = 20.0f,
     .pos = {200, 20},
-    .size = {144, 144}
+    .size = {144, 144},
+    .acc = gravity
   })}; 
 
   bicudo::object *p_picked_obj {nullptr};
@@ -199,11 +202,12 @@ int32_t main(int32_t, char**) {
       ekg::os::sdl_poll_event(sdl_event);
 
       if (ekg::input::action("click-on-object") && bicudo::world::pick(p_picked_obj, {interact.x, interact.y})) {
-        drag.x = interact.x - p_picked_obj->placement.pos.x;
-        drag.y = interact.y - p_picked_obj->placement.pos.y;
+        drag.x = interact.x;
+        drag.y = interact.y;
       }
 
-      if (p_picked_obj != nullptr && ekg::input::action("drop-object")) {
+      if (p_picked_obj && ekg::input::action("drop-object")) {
+        p_picked_obj->placement.velocity = {};
         p_picked_obj = nullptr;
       }
     }
@@ -216,9 +220,9 @@ int32_t main(int32_t, char**) {
       framerate_count = 0;
     }
 
-    if (p_picked_obj != nullptr) {
-      p_picked_obj->placement.pos.x = interact.x - drag.x;
-      p_picked_obj->placement.pos.y = interact.y - drag.y;
+    if (p_picked_obj) {
+      p_picked_obj->placement.velocity.x = (interact.x - drag.x) * bicudo::dt;
+      p_picked_obj->placement.velocity.y = (interact.y - drag.y) * bicudo::dt;
     }
 
     bicudo::update();

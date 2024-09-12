@@ -33,4 +33,7 @@ void bicudo::object::on_update() {
     this->placement.edges.data(),
     this->placement.vertices.data()
   );
+
+  this->placement.velocity += this->placement.acc * bicudo::dt;
+  bicudo::move(&this->placement, this->placement.velocity);
 }

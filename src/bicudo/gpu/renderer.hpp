@@ -31,6 +31,7 @@ namespace bicudo::gpu {
     uint32_t linked_program {};
     std::unordered_map<std::string_view, uint32_t> program_location_map {};
   public:
+    void registry(std::string_view key);
     uint32_t &operator[](std::string_view uniform);
   };
 }

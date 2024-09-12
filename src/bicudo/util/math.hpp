@@ -62,10 +62,14 @@ namespace bicudo {
       };
     }
 
-    inline bicudo::vec2 &operator+=(float val) {
-      this->x -= val;
-      this->y -= val;
-      return *this;
+    inline void operator+=(float val) {
+      this->x += val;
+      this->y += val;
+    }
+
+    inline void operator+=(const bicudo::vec2 &r) {
+      this->x += r.x;
+      this->y += r.y;
     }
 
     inline bicudo::vec2 operator-(const bicudo::vec2 &r) {
@@ -82,10 +86,14 @@ namespace bicudo {
       };
     }
 
-    inline bicudo::vec2 &operator-=(float val) {
+    inline void operator-=(float val) {
       this->x -= val;
       this->y -= val;
-      return *this;
+    }
+
+    inline void operator-=(const bicudo::vec2 &r) {
+      this->x -= r.x;
+      this->y -= r.y;
     }
 
     inline bicudo::vec2 operator*(float scalar) {
@@ -95,10 +103,9 @@ namespace bicudo {
       };
     }
 
-    inline bicudo::vec2 &operator*=(float scalar) {
+    inline void operator*=(float scalar) {
       this->x *= scalar;
-      this->y *= scalar;;
-      return *this;
+      this->y *= scalar;
     }
 
     inline float magnitude_no_sq() {
@@ -261,6 +268,7 @@ namespace bicudo {
 
   bicudo::mat4 ortho(float left, float right, float bottom, float top);
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
+  void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
 }
 
 #endif

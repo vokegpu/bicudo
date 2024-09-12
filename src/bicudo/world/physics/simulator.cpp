@@ -4,9 +4,12 @@
 void bicudo::world_physics_update_simulator(
   bicudo::world::physics::simulator *p_simulator
 ) {
-  bicudo::world::physics::collision_info_t collide_info {};
+  bicudo::world::physics::collision_info_t collision_info {};
   bicudo::world::physics::support_info_t support_info {};
   bicudo::collided was_collided {};
+
+  float num {};
+  bicudo::vec2 correction {};
 
   uint64_t placement_size {p_simulator->placement_list.size()};
   for (uint64_t it_a {}; it_a < placement_size; it_a++) {
@@ -23,13 +26,30 @@ void bicudo::world_physics_update_simulator(
         bicudo::world_physics_a_collide_with_b_check(
           p_a,
           p_b,
-          &collide_info,
+          &collision_info,
           &support_info
         )
       );
 
       p_a->was_collided = was_collided;
       p_b->was_collided = was_collided;
+
+      if (!was_collided) {
+        continue;
+      }
+
+      num = collision_info.depth / (p_a->mass + p_b->mass) * 0.8f;
+      correction = collision_info.normal * num;
+
+      bicudo::move(
+        p_a,
+        correction * -p_a->mass
+      );
+
+      bicudo::move(
+        p_b,
+        correction * p_b->mass
+      );
     }
   }    
 }

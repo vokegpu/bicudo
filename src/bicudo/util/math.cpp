@@ -53,3 +53,15 @@ bool bicudo::vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2
     (vec2.y > vec4.y && vec2.y < vec4.y + vec4.w)
   );
 }
+
+void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
+  for (bicudo::vec2 &vertex : p_placement->vertices) {
+    vertex += dir;
+    p_placement->min.x = bicudo_clamp_max(p_placement->min.x, vertex.x);
+    p_placement->min.y = bicudo_clamp_max(p_placement->min.y, vertex.y);
+    p_placement->max.x = bicudo_clamp_max(p_placement->max.x, vertex.x);
+    p_placement->max.y = bicudo_clamp_max(p_placement->max.y, vertex.y);
+  }
+
+  p_placement->pos += dir;
+}

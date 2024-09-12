@@ -52,6 +52,10 @@ void bicudo::immediate_graphics::create() {
   );
 
   this->uniform.linked_program = this->program;
+  this->uniform.registry("uSamplerEnabled");
+  this->uniform.registry("uColor");
+  this->uniform.registry("uRect");
+  this->uniform.registry("uProjection");
 
   this->draw_call.polygon_type = GL_TRIANGLES;
   this->draw_call.index_type = GL_UNSIGNED_BYTE;
