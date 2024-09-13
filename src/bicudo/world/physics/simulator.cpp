@@ -19,6 +19,9 @@ void bicudo::world_physics_update_simulator(
   bicudo::vec2 c1 {};
   bicudo::vec2 c2 {};
 
+  float c1_cross {};
+  float c2_cross {};
+
   bicudo::vec2 v1 {};
   bicudo::vec2 v2 {};
   bicudo::vec2 vdiff {};
@@ -39,6 +42,8 @@ void bicudo::world_physics_update_simulator(
       if (it_a == it_b) {
         continue;
       }
+
+      p_simulator->collision_info = {};
 
       bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
       bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
@@ -76,13 +81,10 @@ void bicudo::world_physics_update_simulator(
         correction * p_b->mass
       );
 
-      
-      /*
-       angular x (rotate-matrix not done yet)
-
+      total_mass = p_a->mass + p_b->mass;
       n = p_simulator->collision_info.normal;
-      start = p_simulator->collision_info.start * (p_b->masss / (p_a->mass + p_b->mass));
-      end = p_simulator->collision_info.end * (p_a->masss / (p_a->mass + p_b->mass));
+      start = p_simulator->collision_info.start * (p_b->mass / total_mass);
+      end = p_simulator->collision_info.end * (p_a->mass / total_mass);
       p = start + end;
 
       c1.x = p_a->pos.x + (p_a->size.x / 2);
@@ -93,13 +95,13 @@ void bicudo::world_physics_update_simulator(
       c2.y = p_b->pos.y + (p_b->size.y / 2);
       c2 = p - c2;
 
-      v1 = p_a->velocity + {-1.0f * p_a->angular_velocity};
-      */
+      v1 = (
+        p_a->velocity + bicudo::vec2(-1.0f * p_a->angular_velocity * c1.y, p_a->angular_velocity * c1.x)
+      );
 
-      total_mass = p_a->mass + p_b->mass;
-      n = p_simulator->collision_info.normal;
-      v1 = p_a->velocity;
-      v2 = p_b->velocity;
+      v2 = (
+        p_b->velocity + bicudo::vec2(-1.0f * p_b->angular_velocity * c2.y, p_b->angular_velocity * c2.x)
+      );
 
       vdiff = v2 - v1;
       vdiff_dot = vdiff.dot(n);
@@ -110,23 +112,34 @@ void bicudo::world_physics_update_simulator(
 
       restitution = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
       friction = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
+    
+      c1_cross = c1.cross(n);
+      c2_cross = c2.cross(n);
 
       jn = (
-        (-(1.0f + restitution) * vdiff_dot) / (total_mass)
+        (-(1.0f + restitution) * vdiff_dot)
+        /
+        (total_mass + c1_cross * c1_cross * p_a->inertia + c2_cross * c2_cross * p_b->inertia)
       );
 
       impulse = n * jn;
 
-      p_a->velocity -= impulse * p_a->mass;         
+      p_a->velocity -= impulse * p_a->mass;
       p_b->velocity += impulse * p_b->mass;
 
-      tangent = vdiff - n * vdiff_dot;
+      p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
+      p_b->angular_velocity += c2_cross * jn * p_b->inertia;
+
+      tangent = vdiff - n * vdiff.dot(n);
       tangent = tangent.normalize() * -1.0f;
+
+      c1_cross = c1.cross(tangent);
+      c2_cross = c2.cross(tangent);
 
       jt = (
         (-(1.0f + restitution) * vdiff.dot(tangent) * friction)
         /
-        (total_mass)
+        (total_mass + c1_cross * c1_cross + p_a->mass + c2_cross * c2_cross * p_b->inertia)
       );
 
       jt = jt > jn ? jn : jt;
@@ -134,6 +147,9 @@ void bicudo::world_physics_update_simulator(
 
       p_a->velocity -= impulse * p_a->mass;
       p_b->velocity += impulse * p_b->mass;
+
+      p_a->angular_velocity -= c1_cross * jt * p_a->inertia;
+      p_b->angular_velocity += c2_cross * jt * p_b->inertia;
     }
   }
 }

@@ -37,6 +37,11 @@ void bicudo::world_manager::on_render() {
 
     color.x = p_objs->placement.was_collided;
     this->immediate.draw(rect, color, p_objs->placement.angle);
+
+    this->immediate.draw({p_objs->placement.vertices[0].x, p_objs->placement.vertices[0].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+    this->immediate.draw({p_objs->placement.vertices[1].x, p_objs->placement.vertices[1].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+    this->immediate.draw({p_objs->placement.vertices[2].x, p_objs->placement.vertices[2].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+    this->immediate.draw({p_objs->placement.vertices[3].x, p_objs->placement.vertices[3].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
   }
 
   rect.z = 10.0f;

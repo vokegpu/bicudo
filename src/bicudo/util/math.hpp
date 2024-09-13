@@ -9,6 +9,7 @@
 #define bicudo_clamp_min(a, b)      ((a) < (b) ? (b) : (a))
 #define bicudo_clamp_max(a, b)      ((a) > (b) ? (b) : (a))
 #define bicudo_clamp(val, min, max) (val < min ? min : ((max < val) ? max : val))
+#define bicudo_deg2rad(x)           ((x) * 0.0174533f)
 
 namespace bicudo {
   extern uint64_t framerate;
@@ -120,6 +121,10 @@ namespace bicudo {
       return (this->x * r.x + this->y * r.y);
     }
 
+    inline float cross(const bicudo::vec2 &r) {
+      return (this->x * r.y - this->y * r.x);
+    }
+
     inline float distance(const bicudo::vec2 &r) {
       return (*this - r).magnitude();
     }
@@ -137,6 +142,8 @@ namespace bicudo {
     }
 
     inline bicudo::vec2 rotate(float a) {
+      a = bicudo_deg2rad(a);
+
       return bicudo::vec2 {
         this->x * cosf(a) - this->y * sinf(a),
         this->x * sinf(a) + this->y * cosf(a)
@@ -282,25 +289,25 @@ namespace bicudo {
       bicudo::mat4 &b {r};
       bicudo::mat4 result {};
 
-      result[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
-      result[1]  = a[1] * b[0]  + a[5] * b[1]  + a[9]  * b[2]  + a[13] * b[3];
-      result[2]  = a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3];
-      result[3]  = a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3];
+      result[0]  = a[0] * b[0] + a[4] * b[1] + a[8]  * b[2] + a[12] * b[3];
+      result[1]  = a[1] * b[0] + a[5] * b[1] + a[9]  * b[2] + a[13] * b[3];
+      result[2]  = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3];
+      result[3]  = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3];
 
-      result[4]  = a[0] * b[4]  + a[4] * b[5]  + a[8]  * b[6]  + a[12] * b[7];
-      result[5]  = a[1] * b[4]  + a[5] * b[5]  + a[9]  * b[6]  + a[13] * b[7];
-      result[6]  = a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7];
-      result[7]  = a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7];
+      result[4]  = a[0] * b[4] + a[4] * b[5] + a[8]  * b[6] + a[12] * b[7];
+      result[5]  = a[1] * b[4] + a[5] * b[5] + a[9]  * b[6] + a[13] * b[7];
+      result[6]  = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7];
+      result[7]  = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7];
 
-      result[8]  = a[0] * b[8]  + a[4] * b[9]  + a[8]  * b[10] + a[12] * b[11];
-      result[9]  = a[1] * b[8]  + a[5] * b[9]  + a[9]  * b[10] + a[13] * b[11];
-      result[10] = a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11];
-      result[11] = a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11];
+      result[8]  = a[0] * b[8] + a[4] * b[9] + a[8]  * b[10]+ a[12] * b[11];
+      result[9]  = a[1] * b[8] + a[5] * b[9] + a[9]  * b[10]+ a[13] * b[11];
+      result[10] = a[2] * b[8] + a[6] * b[9] + a[10] * b[10]+ a[14] * b[11];
+      result[11] = a[3] * b[8] + a[7] * b[9] + a[11] * b[10]+ a[15] * b[11];
 
-      result[12] = a[0] * b[12] + a[4] * b[13] + a[8]  * b[14] + a[12] * b[15];
-      result[13] = a[1] * b[12] + a[5] * b[13] + a[9]  * b[14] + a[13] * b[15];
-      result[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
-      result[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
+      result[12] = a[0] * b[12]+ a[4] * b[13]+ a[8]  * b[14]+ a[12] * b[15];
+      result[13] = a[1] * b[12]+ a[5] * b[13]+ a[9]  * b[14]+ a[13] * b[15];
+      result[14] = a[2] * b[12]+ a[6] * b[13]+ a[10] * b[14]+ a[14] * b[15];
+      result[15] = a[3] * b[12]+ a[7] * b[13]+ a[11] * b[14]+ a[15] * b[15];
 
       return result;
     }

@@ -56,6 +56,7 @@ bicudo::mat4 bicudo::ortho(float left, float right, float bottom, float top) {
  **/
 bicudo::mat4 bicudo::rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle) {
   axis = axis.normalize();
+  angle = bicudo_deg2rad(angle);
 
   float s {std::sin(angle)};
   float c {std::cos(angle)};
@@ -88,10 +89,15 @@ bool bicudo::vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2
 }
 
 void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
+  p_placement->min.x = 99999.0f;
+  p_placement->min.y = 99999.0f;
+  p_placement->max.x = -99999.0f;
+  p_placement->max.y = -99999.0f;
+
   for (bicudo::vec2 &vertex : p_placement->vertices) {
     vertex += dir;
-    p_placement->min.x = bicudo_clamp_max(p_placement->min.x, vertex.x);
-    p_placement->min.y = bicudo_clamp_max(p_placement->min.y, vertex.y);
+    p_placement->min.x = bicudo_clamp_min(p_placement->min.x, vertex.x);
+    p_placement->min.y = bicudo_clamp_min(p_placement->min.y, vertex.y);
     p_placement->max.x = bicudo_clamp_max(p_placement->max.x, vertex.x);
     p_placement->max.y = bicudo_clamp_max(p_placement->max.y, vertex.y);
   }
@@ -101,8 +107,8 @@ void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
 
 void bicudo::rotate(bicudo::placement *p_placement, float angle_dir) {
   bicudo::vec2 center {
-    p_placement->pos.x + (p_placement->pos.x / 2),
-    p_placement->pos.y + (p_placement->pos.y / 2)
+    p_placement->pos.x + (p_placement->size.x / 2),
+    p_placement->pos.y + (p_placement->size.y / 2)
   };
 
   p_placement->angle += angle_dir;

@@ -182,7 +182,7 @@ int32_t main(int32_t, char**) {
     .mass = 1.0f,
     .friction = 1.0f,
     .restitution = 0.2f,
-    .inertia = 20.0f,
+    .inertia = 0.6f,
     .pos = {20, 20},
     .size = {144, 144},
     .acc = gravity
@@ -193,7 +193,7 @@ int32_t main(int32_t, char**) {
     .mass = 1.0f,
     .friction = 1.0f,
     .restitution = 0.2f,
-    .inertia = 20.0f,
+    .inertia = 0.6f,
     .pos = {200, 20},
     .size = {144, 144},
     .acc = gravity
@@ -202,9 +202,9 @@ int32_t main(int32_t, char**) {
   bicudo::object *p_terrain_bottom {new bicudo::object({
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
-    .friction = 1.0f,
-    .restitution = 0.2f,
-    .inertia = 20.0f,
+    .friction = 0.2f,
+    .restitution = 0.0f,
+    .inertia = 0.0f,
     .pos = {200, 800},
     .size = {1280, 50},
     .acc = {0.0f, 0.0f}
@@ -213,9 +213,9 @@ int32_t main(int32_t, char**) {
   bicudo::object *p_terrain_top {new bicudo::object({
     .p_tag = "terrain-top",
     .mass = 0.0f,
-    .friction = 1.0f,
-    .restitution = 0.2f,
-    .inertia = 20.0f,
+    .friction = 0.2f,
+    .restitution = 0.0f,
+    .inertia = 0.0f,
     .pos = {200, 200},
     .size = {1280, 50},
     .acc = {0.0f, 0.0f}
@@ -224,9 +224,9 @@ int32_t main(int32_t, char**) {
   bicudo::object *p_terrain_left {new bicudo::object({
     .p_tag = "terrain-left",
     .mass = 0.0f,
-    .friction = 1.0f,
-    .restitution = 0.2f,
-    .inertia = 20.0f,
+    .friction = 0.2f,
+    .restitution = 0.0f,
+    .inertia = 0.0f,
     .pos = {200, 200},
     .size = {50, 1280},
     .acc = {0.0f, 0.0f}
@@ -235,9 +235,9 @@ int32_t main(int32_t, char**) {
   bicudo::object *p_terrain_right {new bicudo::object({
     .p_tag = "terrain-right",
     .mass = 0.0f,
-    .friction = 1.0f,
-    .restitution = 0.2f,
-    .inertia = 20.0f,
+    .friction = 0.2f,
+    .restitution = 0.0f,
+    .inertia = 0.0f,
     .pos = {900, 200},
     .size = {50, 1280},
     .acc = {0.0f, 0.0f}
