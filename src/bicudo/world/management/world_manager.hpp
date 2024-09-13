@@ -14,6 +14,7 @@ namespace bicudo {
     bicudo::id highest_object_id {};
     bicudo::world::physics::simulator simulator {};
     bicudo::immediate_graphics immediate {};
+    bicudo::vec2 gravity {};
   public:
     std::vector<bicudo::object*> loaded_object_list {};
   public:

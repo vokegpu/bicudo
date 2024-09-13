@@ -13,6 +13,7 @@ void bicudo::world_manager::on_create() {
 
 void bicudo::world_manager::on_update() {
   for (bicudo::object *&p_objs : this->loaded_object_list) {
+    p_objs->placement.acc.y = (gravity.y * (p_objs->placement.mass >= 1.0f)); // enable it
     p_objs->on_update();
   }
 

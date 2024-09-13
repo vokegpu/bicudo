@@ -10,6 +10,28 @@ void bicudo::world_physics_update_simulator(
   float num {};
   bicudo::vec2 correction {};
 
+  bicudo::vec2 n {};
+  bicudo::vec2 start {};
+  bicudo::vec2 end {};
+  bicudo::vec2 p {};
+  float total_mass {};
+
+  bicudo::vec2 c1 {};
+  bicudo::vec2 c2 {};
+
+  bicudo::vec2 v1 {};
+  bicudo::vec2 v2 {};
+  bicudo::vec2 vdiff {};
+  float vdiff_dot {};
+
+  float restitution {};
+  float friction {};
+  float jn {};
+  float jt {};
+
+  bicudo::vec2 impulse {};
+  bicudo::vec2 tangent {};
+
   uint64_t placement_size {p_simulator->placement_list.size()};
   for (uint64_t it_a {}; it_a < placement_size; it_a++) {
     /* stupid */
@@ -20,6 +42,10 @@ void bicudo::world_physics_update_simulator(
 
       bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
       bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
+
+      if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
+        continue;
+      }
 
       was_collided = (
         bicudo::world_physics_a_collide_with_b_check(
@@ -49,8 +75,67 @@ void bicudo::world_physics_update_simulator(
         p_b,
         correction * p_b->mass
       );
+
+      
+      /*
+       angular x (rotate-matrix not done yet)
+
+      n = p_simulator->collision_info.normal;
+      start = p_simulator->collision_info.start * (p_b->masss / (p_a->mass + p_b->mass));
+      end = p_simulator->collision_info.end * (p_a->masss / (p_a->mass + p_b->mass));
+      p = start + end;
+
+      c1.x = p_a->pos.x + (p_a->size.x / 2);
+      c1.y = p_a->pos.y + (p_a->size.y / 2);
+      c1 = p - c1;
+    
+      c2.x = p_b->pos.x + (p_b->size.x / 2);
+      c2.y = p_b->pos.y + (p_b->size.y / 2);
+      c2 = p - c2;
+
+      v1 = p_a->velocity + {-1.0f * p_a->angular_velocity};
+      */
+
+      total_mass = p_a->mass + p_b->mass;
+      n = p_simulator->collision_info.normal;
+      v1 = p_a->velocity;
+      v2 = p_b->velocity;
+
+      vdiff = v2 - v1;
+      vdiff_dot = vdiff.dot(n);
+
+      if (vdiff_dot > 0.0f) {
+        continue;
+      }
+
+      restitution = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
+      friction = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
+
+      jn = (
+        (-(1.0f + restitution) * vdiff_dot) / (total_mass)
+      );
+
+      impulse = n * jn;
+
+      p_a->velocity -= impulse * p_a->mass;          
+      p_b->velocity += impulse * p_b->mass;
+
+      tangent = vdiff - n * vdiff_dot;
+      tangent = tangent.normalize() * -1.0f;
+
+      jt = (
+        (-(1.0f + restitution) * vdiff.dot(tangent) * friction)
+        /
+        (total_mass)
+      );
+
+      jt = jt > jn ? jn : jt;
+      impulse = tangent * jt;
+
+      p_a->velocity -= impulse * p_a->mass;
+      p_b->velocity += impulse * p_b->mass;
     }
-  }    
+  }
 }
 
 bicudo::collided bicudo::world_physics_a_collide_with_b_check(
