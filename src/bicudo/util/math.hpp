@@ -167,6 +167,48 @@ namespace bicudo {
     }
   } vec2;
 
+  typedef struct vec3 {
+  public:
+    union {
+      struct {
+        float x {};
+        float y {};
+        float z {};
+      };
+
+      float buffer[3];
+    };
+
+    inline float &operator[](std::size_t index) {
+      return this->buffer[index];
+    }
+
+    float *data() {
+      return this->buffer;
+    }
+  public:
+    inline vec3() = default;
+
+    inline vec3(float _x, float _y, float _z) {
+      this->x = _x;
+      this->y = _y;
+      this->z = _z;
+    }
+
+    inline bicudo::vec3 normalize() {
+      float len {std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z)};
+      if (len > 0) {
+        len = 1.0f / len;
+      }
+
+      return bicudo::vec3 {
+        this->x * len,
+        this->y * len,
+        this->z * len
+      };
+    }
+  } vec3;
+
   typedef struct vec4 {
   public:
     union {
@@ -234,6 +276,34 @@ namespace bicudo {
       this->_31 = f31; this->_32 = f32; this->_33 = f33; this->_34 = f34;
       this->_41 = f41; this->_42 = f42; this->_43 = f43; this->_44 = f44;
     }
+
+    inline bicudo::mat4 operator*(bicudo::mat4 &r) {
+      bicudo::mat4 &a {*this};
+      bicudo::mat4 &b {r};
+      bicudo::mat4 result {};
+
+      result[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
+      result[1]  = a[1] * b[0]  + a[5] * b[1]  + a[9]  * b[2]  + a[13] * b[3];
+      result[2]  = a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3];
+      result[3]  = a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3];
+
+      result[4]  = a[0] * b[4]  + a[4] * b[5]  + a[8]  * b[6]  + a[12] * b[7];
+      result[5]  = a[1] * b[4]  + a[5] * b[5]  + a[9]  * b[6]  + a[13] * b[7];
+      result[6]  = a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7];
+      result[7]  = a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7];
+
+      result[8]  = a[0] * b[8]  + a[4] * b[9]  + a[8]  * b[10] + a[12] * b[11];
+      result[9]  = a[1] * b[8]  + a[5] * b[9]  + a[9]  * b[10] + a[13] * b[11];
+      result[10] = a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11];
+      result[11] = a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11];
+
+      result[12] = a[0] * b[12] + a[4] * b[13] + a[8]  * b[14] + a[12] * b[15];
+      result[13] = a[1] * b[12] + a[5] * b[13] + a[9]  * b[14] + a[13] * b[15];
+      result[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
+      result[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
+
+      return result;
+    }
   } mat4;
 
   struct placement {
@@ -267,8 +337,12 @@ namespace bicudo {
   void splash_edges_normalized(bicudo::vec2 *p_edges, bicudo::vec2 *p_vertices);
 
   bicudo::mat4 ortho(float left, float right, float bottom, float top);
+  bicudo::mat4 rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle);
+  bicudo::mat4 translate(bicudo::mat4 mat, bicudo::vec2 pos);
+
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
   void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
+  void rotate(bicudo::placement *p_placement, float angle_dir);
 }
 
 #endif

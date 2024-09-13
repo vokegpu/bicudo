@@ -12,6 +12,7 @@ void bicudo::immediate_graphics::create() {
 
         layout (location = 0) in vec2 aPos; 
 
+        uniform mat4 uRotate;
         uniform vec4 uRect;
         uniform mat4 uProjection;
 
@@ -19,7 +20,7 @@ void bicudo::immediate_graphics::create() {
         out vec4 vRect;
 
         void main() {
-          gl_Position = uProjection * vec4((aPos * uRect.zw) + uRect.xy, 0.0f, 1.0f);
+          gl_Position = uProjection * (uRotate * vec4((aPos * uRect.zw) + uRect.xy, 0.0f, 1.0f));
           vRect = uRect;
           vUV = aPos;
         }
@@ -55,6 +56,7 @@ void bicudo::immediate_graphics::create() {
   this->uniform.registry("uSamplerEnabled");
   this->uniform.registry("uColor");
   this->uniform.registry("uRect");
+  this->uniform.registry("uRotate");
   this->uniform.registry("uProjection");
 
   this->draw_call.polygon_type = GL_TRIANGLES;
@@ -122,8 +124,28 @@ void bicudo::immediate_graphics::invoke() {
 void bicudo::immediate_graphics::draw(
   bicudo::vec4 rect,
   bicudo::vec4 color,
-  uint32_t bind_texture 
+  float angle,
+  uint32_t bind_texture
 ) {
+  this->mat4x4_rotate = bicudo::mat4(1.0f);
+
+  if (!bicudo::assert_float(angle, 0.0f)) {
+    bicudo::vec2 center {
+      rect.x + (rect.z / 2), rect.y + (rect.w / 2)
+    };
+
+    this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, center);
+    this->mat4x4_rotate = bicudo::rotate(this->mat4x4_rotate, {0.0f, 0.0f, 1.0f}, angle);
+    this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, -center);
+  }
+
+  glUniformMatrix4fv(
+    this->uniform["uRotate"],
+    1,
+    GL_FALSE,
+    this->mat4x4_rotate.data()
+  );
+
   glUniform4fv(
     this->uniform["uRect"],
     1,

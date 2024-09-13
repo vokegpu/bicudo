@@ -274,7 +274,7 @@ int32_t main(int32_t, char**) {
       );
     }
 
-    ekg::ui::dt = 1.0f / static_cast<float>(bicudo::current_framerate);
+    ekg::ui::dt = (1.0f / static_cast<float>(bicudo::current_framerate));
     bicudo::dt = ekg::ui::dt;
 
     if (ekg::reach(elapsed_frame_timing, 1000) && ekg::reset(elapsed_frame_timing)) {

@@ -11,6 +11,7 @@ namespace bicudo {
     bicudo::gpu::uniform uniform {};
     bicudo::gpu::draw_call draw_call {};
     bicudo::mat4 mat4x4_projection {};
+    bicudo::mat4 mat4x4_rotate {};
   public:
     void create();
     void set_viewport(int32_t w, int32_t h);
@@ -23,6 +24,7 @@ namespace bicudo {
     void draw(
       bicudo::vec4 rect,
       bicudo::vec4 color,
+      float angle,
       uint32_t bind_texture = 0
     );
   };

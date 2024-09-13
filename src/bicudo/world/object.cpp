@@ -29,11 +29,9 @@ void bicudo::object::on_update() {
     this->placement.size
   );
 
-  bicudo::splash_edges_normalized(
-    this->placement.edges.data(),
-    this->placement.vertices.data()
-  );
-
   this->placement.velocity += this->placement.acc * bicudo::dt;
   bicudo::move(&this->placement, this->placement.velocity);
+
+  this->placement.angular_velocity += this->placement.angular_acc * bicudo::dt;
+  bicudo::rotate(&this->placement, this->placement.angular_velocity);
 }

@@ -117,7 +117,7 @@ void bicudo::world_physics_update_simulator(
 
       impulse = n * jn;
 
-      p_a->velocity -= impulse * p_a->mass;          
+      p_a->velocity -= impulse * p_a->mass;         
       p_b->velocity += impulse * p_b->mass;
 
       tangent = vdiff - n * vdiff_dot;

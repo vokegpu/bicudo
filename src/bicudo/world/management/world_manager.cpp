@@ -36,7 +36,7 @@ void bicudo::world_manager::on_render() {
     rect.w = p_objs->placement.size.y;
 
     color.x = p_objs->placement.was_collided;
-    this->immediate.draw(rect, color);
+    this->immediate.draw(rect, color, p_objs->placement.angle);
   }
 
   rect.z = 10.0f;
@@ -45,12 +45,12 @@ void bicudo::world_manager::on_render() {
   rect.x = this->simulator.collision_info.start.x;
   rect.y = this->simulator.collision_info.start.y;
 
-  this->immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f});
+  this->immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f}, 0.0f);
 
   rect.x = this->simulator.collision_info.end.x;
   rect.y = this->simulator.collision_info.end.y;
 
-  this->immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f});
+  this->immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f}, 0.0f);
   
   this->immediate.revoke();
 }
