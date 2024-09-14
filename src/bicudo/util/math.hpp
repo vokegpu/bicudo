@@ -131,7 +131,7 @@ namespace bicudo {
 
     inline bicudo::vec2 normalize() {
       float len {this->magnitude()};
-      if (len > 0) {
+      if (len > 0.0f) {
         len = 1.0f / len;
       }
 
@@ -142,8 +142,6 @@ namespace bicudo {
     }
 
     inline bicudo::vec2 rotate(float a) {
-      a = bicudo_deg2rad(a);
-
       return bicudo::vec2 {
         this->x * cosf(a) - this->y * sinf(a),
         this->x * sinf(a) + this->y * cosf(a)
@@ -350,6 +348,7 @@ namespace bicudo {
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
   void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
   void rotate(bicudo::placement *p_placement, float angle_dir);
+  void mass(bicudo::placement *p_placement, float mass);
 }
 
 #endif

@@ -135,7 +135,7 @@ void bicudo::immediate_graphics::draw(
     };
 
     this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, center);
-    this->mat4x4_rotate = bicudo::rotate(this->mat4x4_rotate, {0.0f, 0.0f, 1.0f}, angle);
+    this->mat4x4_rotate = bicudo::rotate(this->mat4x4_rotate, {0.0f, 0.0f, 1.0f}, -angle);
     this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, -center);
   }
 

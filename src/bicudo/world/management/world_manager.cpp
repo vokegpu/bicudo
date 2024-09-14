@@ -13,7 +13,7 @@ void bicudo::world_manager::on_create() {
 
 void bicudo::world_manager::on_update() {
   for (bicudo::object *&p_objs : this->loaded_object_list) {
-    p_objs->placement.acc.y = (gravity.y * (p_objs->placement.mass >= 1.0f)); // enable it
+    p_objs->placement.acc.y = (gravity.y * (!bicudo::assert_float(p_objs->placement.mass, 0.0f))); // enable it
     p_objs->on_update();
   }
 
@@ -42,6 +42,7 @@ void bicudo::world_manager::on_render() {
     this->immediate.draw({p_objs->placement.vertices[1].x, p_objs->placement.vertices[1].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
     this->immediate.draw({p_objs->placement.vertices[2].x, p_objs->placement.vertices[2].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
     this->immediate.draw({p_objs->placement.vertices[3].x, p_objs->placement.vertices[3].y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+    this->immediate.draw({rect.x + p_objs->placement.size.x / 2, rect.y + p_objs->placement.size.y / 2, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
   }
 
   rect.z = 10.0f;

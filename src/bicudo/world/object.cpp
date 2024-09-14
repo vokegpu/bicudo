@@ -3,10 +3,7 @@
 
 bicudo::object::object(bicudo::placement placement) {
   this->placement = placement;
-
-  if (this->placement.mass > 0) {
-    this->placement.mass = 1.0f / this->placement.mass;
-  }
+  bicudo::mass(&this->placement, placement.mass);
 
   this->placement.vertices.resize(4);
   bicudo::splash_vertices(

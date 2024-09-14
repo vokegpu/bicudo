@@ -56,7 +56,6 @@ bicudo::mat4 bicudo::ortho(float left, float right, float bottom, float top) {
  **/
 bicudo::mat4 bicudo::rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle) {
   axis = axis.normalize();
-  angle = bicudo_deg2rad(angle);
 
   float s {std::sin(angle)};
   float c {std::cos(angle)};
@@ -121,4 +120,15 @@ void bicudo::rotate(bicudo::placement *p_placement, float angle_dir) {
     p_placement->edges.data(),
     p_placement->vertices.data()
   );
+}
+
+void bicudo::mass(bicudo::placement *p_placement, float mass) {
+  if (bicudo::assert_float(mass, 0.0f)) {
+    p_placement->inertia = 0.0f;
+    p_placement->mass = 0.0f;
+  } else {
+    p_placement->mass = 1.0f / mass;
+    p_placement->inertia = p_placement->mass * p_placement->size.magnitude() / 12;
+    p_placement->inertia = 1.0f / p_placement->inertia;
+  }
 }

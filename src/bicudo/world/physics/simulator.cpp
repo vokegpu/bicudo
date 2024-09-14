@@ -43,14 +43,14 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
-      p_simulator->collision_info = {};
-
       bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
       bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
 
       if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
         continue;
       }
+
+      support_info = {};
 
       was_collided = (
         bicudo::world_physics_a_collide_with_b_check(
@@ -68,7 +68,8 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
-      num = p_simulator->collision_info.depth / (p_a->mass + p_b->mass) * 0.8f;
+      total_mass = p_a->mass + p_b->mass;
+      num = p_simulator->collision_info.depth / (total_mass);
       correction = p_simulator->collision_info.normal * num;
 
       bicudo::move(
@@ -81,9 +82,8 @@ void bicudo::world_physics_update_simulator(
         correction * p_b->mass
       );
 
-      total_mass = p_a->mass + p_b->mass;
       n = p_simulator->collision_info.normal;
-      start = p_simulator->collision_info.start * (p_b->mass / total_mass);
+      start = p_simulator->collision_info.start * (p_b->mass / total_mass) * 0.8f;
       end = p_simulator->collision_info.end * (p_a->mass / total_mass);
       p = start + end;
 
@@ -110,8 +110,8 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
-      restitution = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
-      friction = p_a->restitution < p_b->restitution ? p_a->restitution : p_b->restitution;
+      restitution = std::min(p_a->restitution, p_b->restitution);
+      friction = std::min(p_a->friction, p_b->friction);
     
       c1_cross = c1.cross(n);
       c2_cross = c2.cross(n);
@@ -130,7 +130,7 @@ void bicudo::world_physics_update_simulator(
       p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
       p_b->angular_velocity += c2_cross * jn * p_b->inertia;
 
-      tangent = vdiff - n * vdiff.dot(n);
+      tangent = vdiff - n * vdiff_dot;
       tangent = tangent.normalize() * -1.0f;
 
       c1_cross = c1.cross(tangent);
@@ -139,7 +139,7 @@ void bicudo::world_physics_update_simulator(
       jt = (
         (-(1.0f + restitution) * vdiff.dot(tangent) * friction)
         /
-        (total_mass + c1_cross * c1_cross + p_a->mass + c2_cross * c2_cross * p_b->inertia)
+        (total_mass + c1_cross * c1_cross + p_a->inertia + c2_cross * c2_cross * p_b->inertia)
       );
 
       jt = jt > jn ? jn : jt;
@@ -281,7 +281,7 @@ void bicudo::world_physics_find_axis_penetration(
 
     p_collision_info->depth = best_dist;
     p_collision_info->normal = edge;
-    p_collision_info->start = p_support_info->point + (edge * best_dist);
+    p_collision_info->start = support_point + (edge * best_dist);
 
     bicudo::world_physics_collision_info_update(
       p_collision_info

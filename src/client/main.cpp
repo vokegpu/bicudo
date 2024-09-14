@@ -109,7 +109,7 @@ int32_t main(int32_t, char**) {
     &pipeline_create_info
   );
 
-  ekg::frame("oiii muuu", {20, 20}, {200, 200})
+  ekg::frame("oiii muuu", {20, 20}, {400, 200})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
 
@@ -145,11 +145,11 @@ int32_t main(int32_t, char**) {
   ekg::vec3 background_color {0.34f, 0.03f, 0.9f};
   ekg::label("Background Color:", ekg::dock::next);
   ekg::slider<float>("bg-clear-color-ownership", ekg::dock::fill)
-    ->range<float>(0, 0.0f, 0.0f, 1.0f, 3)
+    ->range<float>(0, 0.0f, 0.0f, 1.0f, 2)
     ->range<float>(0).f32.transfer_ownership(&background_color.x)
-    ->range<float>(1, 0.0f, 0.0f, 1.0f, 3)
+    ->range<float>(1, 0.0f, 0.0f, 1.0f, 2)
     ->range<float>(1).f32.transfer_ownership(&background_color.y)
-    ->range<float>(2, 0.0f, 0.0f, 1.0f, 3)
+    ->range<float>(2, 0.0f, 0.0f, 1.0f, 2)
     ->range<float>(2).f32.transfer_ownership(&background_color.z)
     ->set_text_align(ekg::dock::center | ekg::dock::right);
 
@@ -167,7 +167,7 @@ int32_t main(int32_t, char**) {
 
   ekg::label("Gravity:", ekg::dock::next);
   ekg::slider<float>("gravity-ownership", ekg::dock::fill)
-    ->range<float>(0, 0.0f, 0.0f, 2.0f)
+    ->range<float>(0, 9.0f, 0.0f, 20.0f)
     ->range<float>(0).f32.transfer_ownership(&bicudo::app.world_manager.gravity.y)
     ->set_text_align(ekg::dock::center | ekg::dock::right);
 
@@ -179,10 +179,9 @@ int32_t main(int32_t, char**) {
 
   bicudo::object *p_cow {new bicudo::object({
     .p_tag = "vakinha",
-    .mass = 1.0f,
-    .friction = 1.0f,
+    .mass = 20.0f,
+    .friction = 0.0001f,
     .restitution = 0.2f,
-    .inertia = 0.6f,
     .pos = {20, 20},
     .size = {144, 144},
     .acc = gravity
@@ -190,10 +189,9 @@ int32_t main(int32_t, char**) {
 
   bicudo::object *p_cow_2 {new bicudo::object({
     .p_tag = "gatinho",
-    .mass = 1.0f,
-    .friction = 1.0f,
+    .mass = 20.0f,
+    .friction = 0.0001f,
     .restitution = 0.2f,
-    .inertia = 0.6f,
     .pos = {200, 20},
     .size = {144, 144},
     .acc = gravity
@@ -203,7 +201,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
     .friction = 0.2f,
-    .restitution = 0.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 800},
     .size = {1280, 50},
@@ -214,7 +212,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-top",
     .mass = 0.0f,
     .friction = 0.2f,
-    .restitution = 0.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {1280, 50},
@@ -225,7 +223,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-left",
     .mass = 0.0f,
     .friction = 0.2f,
-    .restitution = 0.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {50, 1280},
@@ -236,7 +234,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-right",
     .mass = 0.0f,
     .friction = 0.2f,
-    .restitution = 0.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {900, 200},
     .size = {50, 1280},
