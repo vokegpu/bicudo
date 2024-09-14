@@ -50,6 +50,7 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
+      p_simulator->collision_info = {};
       support_info = {};
 
       was_collided = (
@@ -130,7 +131,7 @@ void bicudo::world_physics_update_simulator(
       p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
       p_b->angular_velocity += c2_cross * jn * p_b->inertia;
 
-      tangent = vdiff - n * vdiff_dot;
+      tangent = vdiff - n * vdiff.dot(n);
       tangent = tangent.normalize() * -1.0f;
 
       c1_cross = c1.cross(tangent);

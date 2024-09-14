@@ -57,6 +57,5 @@ void bicudo::world_manager::on_render() {
   rect.y = this->simulator.collision_info.end.y;
 
   this->immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f}, 0.0f);
-  
   this->immediate.revoke();
 }
