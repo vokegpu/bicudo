@@ -6,8 +6,10 @@ set(BICUDO_VERSIION 0.1.0)
 file(GLOB ROCM_NATIVE_LIBRARY_PATH "/opt/rocm/lib/libamdhip64.so")
 file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
 
-if(LINUX)
+if(LINUX OR ANDROID)
   set(LIBRARY_OUTPUT_PATH "../lib/linux/")
+elseif(WIN32)
+  set(LIBRARY_OUTPUT_PATH "../lib/windows/")
 endif()
 
 file(GLOB_RECURSE BICUDO_SRC_FILES "./src/*.cpp")
