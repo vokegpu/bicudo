@@ -68,9 +68,10 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
 
+      n = p_simulator->collision_info.normal;
       total_mass = p_a->mass + p_b->mass;
       num = p_simulator->collision_info.depth / total_mass * 0.8f;
-      correction = p_simulator->collision_info.normal * num;
+      correction = n * num;
 
       bicudo::move(
         p_a,
@@ -82,7 +83,6 @@ void bicudo::world_physics_update_simulator(
         correction * p_b->mass
       );
 
-      n = p_simulator->collision_info.normal;
       start = p_simulator->collision_info.start * (p_b->mass / total_mass);
       end = p_simulator->collision_info.end * (p_a->mass / total_mass);
       p = start + end;
@@ -109,9 +109,6 @@ void bicudo::world_physics_update_simulator(
       if (vdiff_dot > 0.0f) {
         continue;
       }
-
-      //p_a->inertia = 0.0001f;
-      //p_b->inertia = 0.0001f;
 
       restitution = std::min(p_a->restitution, p_b->restitution);
       friction = std::min(p_a->friction, p_b->friction);

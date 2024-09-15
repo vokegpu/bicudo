@@ -171,6 +171,7 @@ int32_t main(int32_t, char**) {
     ->range<float>(0).f32.transfer_ownership(&bicudo::app.world_manager.gravity.y)
     ->set_text_align(ekg::dock::center | ekg::dock::right);
 
+  ekg::scrollbar("scrollbar-meow");
   ekg::pop_group();
 
   bicudo::app.world_manager.gravity.x = 0.0f;
@@ -254,6 +255,18 @@ int32_t main(int32_t, char**) {
   bicudo::world::insert(p_terrain_bottom);
   bicudo::world::insert(p_terrain_left);
   bicudo::world::insert(p_terrain_right);
+
+  for (uint64_t it {}; it < 0; it++) {
+    bicudo::world::insert(new bicudo::object({
+    .p_tag = "miau",
+    .mass = bicudo_clamp_min(std::rand() % 200, 1),
+    .friction = bicudo_clamp_min((std::rand() % 100) / 100, 0.0000001f),
+    .restitution = bicudo_clamp_min((std::rand() % 100) / 100, 0.0000001f),
+    .pos = {std::rand() % 800, std::rand() % 100},
+    .size = {bicudo_clamp_min(std::rand() % 200, 10.0f), bicudo_clamp_min(std::rand() % 200, 10.0f)},
+    .acc = gravity
+    }));
+  }
 
   ekg::input::bind("click-on-object", "mouse-1");
   ekg::input::bind("drop-object", "mouse-1-up");

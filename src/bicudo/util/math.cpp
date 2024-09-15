@@ -135,8 +135,8 @@ void bicudo::mass(bicudo::placement *p_placement, float mass) {
     p_placement->inertia = 0.0f;
     p_placement->mass = 0.0f;
   } else {
-    p_placement->mass = 1.0f / mass;
-    p_placement->inertia = p_placement->mass * p_placement->size.magnitude_no_sq() / 12;
+    p_placement->mass = mass;
+    p_placement->inertia = (1.0f / mass) * p_placement->size.magnitude_no_sq() / 12;
     p_placement->inertia = 1.0f / p_placement->inertia;
   }
 }

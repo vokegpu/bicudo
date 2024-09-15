@@ -12,6 +12,7 @@ namespace bicudo {
     bicudo::gpu::draw_call draw_call {};
     bicudo::mat4 mat4x4_projection {};
     bicudo::mat4 mat4x4_rotate {};
+    bicudo::vec4 viewport {};
   public:
     void create();
     void set_viewport(int32_t w, int32_t h);

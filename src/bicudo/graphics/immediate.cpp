@@ -103,6 +103,11 @@ void bicudo::immediate_graphics::set_viewport(int32_t w, int32_t h) {
     0.0f
   );
 
+  this->viewport.x = 0.0f;
+  this->viewport.y = 0.0f;
+  this->viewport.z = static_cast<float>(w);
+  this->viewport.w = static_cast<float>(h);
+
   glProgramUniformMatrix4fv(
     this->program,
     this->uniform["uProjection"],
