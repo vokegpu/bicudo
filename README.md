@@ -1,6 +1,6 @@
 # Bicudo
 
-Bicudo is an useless physics engine being develop to process SAT and Newton's laws under GPU via HIP / ROCm.
+Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via HIP / ROCm (or CPU-side only). The project uses a client OpenGL 4 based to test the library, but you are able to build the library only and uses on your application. It only requires ROCM.
 
 # Building
 
