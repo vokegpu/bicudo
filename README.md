@@ -4,7 +4,7 @@ Bicudo is a physics engine library being develop to process SAT and Newton's law
 
 # Bicudo Building
 
-Bicudo library requires only [ROCm/HIP](https://github.com/ROCm/HIP) libary.
+Bicudo library requires only [ROCm/HIP](https://github.com/ROCm/HIP) library.
 
 ```sh
 cmake -S . -B ./cmake-build-debug -G Ninja && cmake --build ./cmake-build-debug
@@ -14,7 +14,7 @@ Outputs: `/lib/windows/libbicudo.a`, `/lib/linux/libbicudo.a`
 
 # Meow Building
 
-Meow is the graphical application used to test and showcase the Bicudo engine. But it is not necessary, you can skip if you want.
+Meow is the graphical application used to test and showcase the Bicudo engine. It is not necessary, you can skip if you want.
 
 For building Meow you must download all these libraries:  
 [EKG GUI Library](https://github.com/vokegpu/ekg-ui-library)  
