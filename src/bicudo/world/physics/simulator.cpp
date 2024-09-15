@@ -70,7 +70,7 @@ void bicudo::world_physics_update_simulator(
 
       n = p_simulator->collision_info.normal;
       total_mass = p_a->mass + p_b->mass;
-      num = p_simulator->collision_info.depth / total_mass * 0.8f;
+      num = p_simulator->collision_info.depth / total_mass * 1.0f;
       correction = n * num;
 
       bicudo::move(

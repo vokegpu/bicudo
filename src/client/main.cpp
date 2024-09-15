@@ -39,7 +39,7 @@ int32_t main(int32_t, char**) {
   glewInit();
 
   SDL_GL_SetSwapInterval(true);
-  bicudo::set_framerate(144);
+  bicudo::set_framerate(60);
 
   ekg::runtime_property ekg_runtime_property {
     .p_font_path = "./whitneybook.otf",
@@ -256,7 +256,7 @@ int32_t main(int32_t, char**) {
   bicudo::world::insert(p_terrain_left);
   bicudo::world::insert(p_terrain_right);
 
-  for (uint64_t it {}; it < 0; it++) {
+  for (uint64_t it {}; it < 30; it++) {
     bicudo::world::insert(new bicudo::object({
     .p_tag = "miau",
     .mass = bicudo_clamp_min(std::rand() % 200, 1),
@@ -287,7 +287,7 @@ int32_t main(int32_t, char**) {
       );
     }
 
-    ekg::ui::dt = (1.0f / static_cast<float>(bicudo::current_framerate));
+    ekg::ui::dt = 0.016f;
     bicudo::dt = ekg::ui::dt;
 
     if (ekg::reach(elapsed_frame_timing, 1000) && ekg::reset(elapsed_frame_timing)) {
