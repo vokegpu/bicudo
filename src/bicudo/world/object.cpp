@@ -20,9 +20,34 @@ bicudo::object::object(bicudo::placement placement) {
 }
 
 void bicudo::object::on_update() {
+  this->placement.min.x = 99999.0f;
+  this->placement.min.y = 99999.0f;
+  this->placement.max.x = -99999.0f;
+  this->placement.max.y = -99999.0f;
+
   this->placement.velocity += this->placement.acc * bicudo::dt;
-  bicudo::move(&this->placement, this->placement.velocity);
+  this->placement.pos += this->placement.velocity;
 
   this->placement.angular_velocity += this->placement.angular_acc * bicudo::dt;
-  bicudo::rotate(&this->placement, this->placement.angular_velocity);
+  this->placement.angle += this->placement.angular_velocity;
+
+  bicudo::vec2 center {
+    this->placement.pos.x + (this->placement.size.x / 2),
+    this->placement.pos.y + (this->placement.size.y / 2)
+  };
+
+  for (bicudo::vec2 &vertex : this->placement.vertices) {
+    vertex += this->placement.velocity;
+    vertex = vertex.rotate(this->placement.angular_velocity, center);
+
+    this->placement.min.x = std::min(this->placement.min.x, vertex.x);
+    this->placement.min.y = std::min(this->placement.min.y, vertex.y);
+    this->placement.max.x = std::max(this->placement.max.x, vertex.x);
+    this->placement.max.y = std::max(this->placement.max.y, vertex.y);
+  }
+
+  bicudo::splash_edges_normalized(
+    this->placement.edges.data(),
+    this->placement.vertices.data()
+  );
 }

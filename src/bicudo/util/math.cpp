@@ -1,4 +1,5 @@
 #include "math.hpp"
+#include <iostream>
 
 uint64_t bicudo::framerate {75};
 uint64_t bicudo::current_framerate {1};
@@ -79,6 +80,12 @@ bicudo::mat4 bicudo::translate(bicudo::mat4 mat, bicudo::vec2 pos) {
   return mat * translate;
 }
 
+bool bicudo::aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2) {
+  return (
+    vec2.x > min.x && vec2.y > min.y && vec2.x < max.x && vec2.y < max.y
+  );
+}
+
 bool bicudo::vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2) {
   return (
     (vec2.x > vec4.x && vec2.x < vec4.x + vec4.z)
@@ -95,11 +102,17 @@ void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
 
   for (bicudo::vec2 &vertex : p_placement->vertices) {
     vertex += dir;
-    p_placement->min.x = bicudo_clamp_min(p_placement->min.x, vertex.x);
-    p_placement->min.y = bicudo_clamp_min(p_placement->min.y, vertex.y);
-    p_placement->max.x = bicudo_clamp_max(p_placement->max.x, vertex.x);
-    p_placement->max.y = bicudo_clamp_max(p_placement->max.y, vertex.y);
+
+    p_placement->min.x = std::min(p_placement->min.x, vertex.x);
+    p_placement->min.y = std::min(p_placement->min.y, vertex.y);
+    p_placement->max.x = std::max(p_placement->max.x, vertex.x);
+    p_placement->max.y = std::max(p_placement->max.y, vertex.y);
   }
+
+  bicudo::splash_edges_normalized(
+    p_placement->edges.data(),
+    p_placement->vertices.data()
+  );
 
   p_placement->pos += dir;
 }
@@ -110,16 +123,11 @@ void bicudo::rotate(bicudo::placement *p_placement, float angle_dir) {
     p_placement->pos.y + (p_placement->size.y / 2)
   };
 
-  p_placement->angle += angle_dir;
-
   for (bicudo::vec2 &vertex : p_placement->vertices) {
     vertex = vertex.rotate(angle_dir, center);
   }
 
-  bicudo::splash_edges_normalized(
-    p_placement->edges.data(),
-    p_placement->vertices.data()
-  );
+  p_placement->angle += angle_dir;
 }
 
 void bicudo::mass(bicudo::placement *p_placement, float mass) {
@@ -128,7 +136,7 @@ void bicudo::mass(bicudo::placement *p_placement, float mass) {
     p_placement->mass = 0.0f;
   } else {
     p_placement->mass = 1.0f / mass;
-    p_placement->inertia = p_placement->mass * p_placement->size.magnitude() / 12;
+    p_placement->inertia = p_placement->mass * p_placement->size.magnitude_no_sq() / 12;
     p_placement->inertia = 1.0f / p_placement->inertia;
   }
 }

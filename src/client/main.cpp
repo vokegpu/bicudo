@@ -173,13 +173,15 @@ int32_t main(int32_t, char**) {
 
   ekg::pop_group();
 
+  bicudo::app.world_manager.gravity.x = 0.0f;
+
   uint64_t framerate_count {};
   ekg::timing elapsed_frame_timing {};
   bicudo::vec2 gravity {};
 
   bicudo::object *p_cow {new bicudo::object({
     .p_tag = "vakinha",
-    .mass = 20.0f,
+    .mass = 2000.0f,
     .friction = 0.0001f,
     .restitution = 0.2f,
     .pos = {20, 20},
@@ -193,7 +195,7 @@ int32_t main(int32_t, char**) {
     .friction = 0.0001f,
     .restitution = 0.2f,
     .pos = {200, 20},
-    .size = {144, 144},
+    .size = {400, 50},
     .acc = gravity
   })};
 

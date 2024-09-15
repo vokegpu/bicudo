@@ -114,7 +114,7 @@ namespace bicudo {
     }
 
     inline float magnitude() {
-      return std::sqrt(this->magnitude_no_sq());
+      return sqrtf(this->magnitude_no_sq());
     }
 
     inline float dot(const bicudo::vec2 &r) {
@@ -345,6 +345,7 @@ namespace bicudo {
   bicudo::mat4 rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle);
   bicudo::mat4 translate(bicudo::mat4 mat, bicudo::vec2 pos);
 
+  bool aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
   void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
   void rotate(bicudo::placement *p_placement, float angle_dir);

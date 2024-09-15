@@ -27,14 +27,8 @@ void bicudo::world::insert(bicudo::object *p_obj) {
 }
 
 bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, const bicudo::vec2 &pos) {
-  bicudo::vec4 rect {};
   for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
-    rect.x = p_objs->placement.pos.x;
-    rect.y = p_objs->placement.pos.y;
-    rect.z = p_objs->placement.size.x;
-    rect.w = p_objs->placement.size.y;
-
-    if (bicudo::vec4_collide_with_vec2(rect, pos)) {
+    if (bicudo::aabb_collide_with_vec2(p_objs->placement.min, p_objs->placement.max, pos)) {
       p_obj = p_objs;
       return true;
     }
