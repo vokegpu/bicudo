@@ -22,9 +22,19 @@
 	"build_systems":
 	[
 		{
-			"name": "Linux Build-&-Test",
+			"name": "Linux Build Bicudo",
 			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/ && cd ./bin/linux && ./bicudoclient"
+				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/"
+		},
+		{
+			"name": "Linux Build Bicudo & Meow",
+			"shell_cmd":
+				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/ && cd ./meow/ && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/"
+		},
+		{
+			"name": "Linux Build-Run Bicudo & Meow",
+			"shell_cmd":
+				"cd $folder && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/ && cd ./meow/ && cmake -S . -B ./cmake-build-debug/ -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build-debug/ && cd ./bin/ && ./meow"
 		}
 	]
 }

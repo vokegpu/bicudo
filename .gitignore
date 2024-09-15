@@ -1,7 +1,8 @@
 # CMake
 
 /cmake-build-debug/
-/bin/linux/bicudoclient
+/meow/cmake-build-debug/
+/meow/bin/meow
 /lib
 
 # Sublime Text
