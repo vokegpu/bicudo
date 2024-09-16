@@ -1,6 +1,6 @@
 # Bicudo
 
-Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via ROCm/HIP (or CPU-side only). The project uses a client called Meow OpenGL-4 based to test the library, but you are able to build the library to use on your application. It only requires ROCm/HIP.
+Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via ROCm/HIP (or CPU-side only). The project uses a client called Meow OpenGL-4 based to test the library, but you are able to build the library to use in your application. It only requires ROCm/HIP.
 
 # Bicudo Building
 
