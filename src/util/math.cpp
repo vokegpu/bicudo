@@ -108,6 +108,14 @@ bool bicudo::vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2
   );
 }
 
+bool bicudo::vec4_collide_with_vec4(const bicudo::vec4 &a, const bicudo::vec4 &b) {
+  return (
+    (a.x < b.x + b.z && a.x + a.z > b.x)
+    &&
+    (a.y < b.y + b.w && a.y + a.w > b.y)
+  );
+}
+
 void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
   p_placement->min.x = 99999.0f;
   p_placement->min.y = 99999.0f;

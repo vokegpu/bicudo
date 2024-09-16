@@ -29,15 +29,24 @@ void meow::render() {
   bicudo::vec4 rect {};
   bicudo::vec4 color(0.3f, 0.5f, 0.675f, 1.0f);
 
-  for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
-    rect.x = p_objs->placement.pos.x + camera.placement.pos.x;
-    rect.y = p_objs->placement.pos.y + camera.placement.pos.y;
+  meow::app.rendering_placements_count = 0;
 
+  for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
+    rect.x = p_objs->placement.pos.x;
+    rect.y = p_objs->placement.pos.y;
     rect.z = p_objs->placement.size.x;
     rect.w = p_objs->placement.size.y;
 
+    if (!bicudo::vec4_collide_with_vec4(rect, camera.rect)) {
+      continue;
+    }
+
+    rect.x = p_objs->placement.pos.x - camera.placement.pos.x;
+    rect.y = p_objs->placement.pos.y - camera.placement.pos.y;
+
     color.x = p_objs->placement.was_collided;
     meow::app.immediate.draw(rect, color, p_objs->placement.angle);
+    meow::app.rendering_placements_count++;
 
     /*
     meow::app.immediate.draw({p_objs->placement.min.x, p_objs->placement.min.y, 10.0f, 10.0f}, {0.0f, 1.0f, 1.0f, 1.0f}, 0.0f);
@@ -224,6 +233,14 @@ int32_t main(int32_t, char**) {
     ->range<float>(0).f32.transfer_ownership(&bicudo::app.world_manager.gravity.y)
     ->set_text_align(ekg::dock::center | ekg::dock::right);
 
+  ekg::label("Objects:", ekg::dock::next);
+  ekg::slider<uint64_t>("objects-ownership", ekg::dock::fill)
+    ->range<uint64_t>(0, 0, 0, 10000)
+    ->range<uint64_t>(0).u64.transfer_ownership(&meow::app.rendering_placements_count)
+    ->set_text_align(ekg::dock::center | ekg::dock::left);
+
+  ekg::ui::label *p_position {ekg::label("", ekg::dock::next | ekg::dock::fill)};
+
   ekg::scrollbar("scrollbar-meow");
   ekg::pop_group();
 
@@ -351,6 +368,14 @@ int32_t main(int32_t, char**) {
     if (ekg::reach(elapsed_frame_timing, 1000) && ekg::reset(elapsed_frame_timing)) {
       bicudo::current_framerate = framerate_count;
       framerate_count = 0;
+
+      std::string position {"("};
+      position += std::to_string(bicudo::app.world_manager.camera.placement.pos.x);
+      position += ", ";
+      position += std::to_string(bicudo::app.world_manager.camera.placement.pos.y);
+      position += ")";
+
+      p_position->set_value(position);
     }
 
     meow::tools_update_picked_camera(

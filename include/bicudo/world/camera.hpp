@@ -10,6 +10,7 @@ namespace bicudo {
   public:
     bicudo::placement placement {};
     float smooth_amount {0.2f};
+    bicudo::vec4 rect {};
   public:
     void create();
     void set_viewport(int32_t w, int32_t h);

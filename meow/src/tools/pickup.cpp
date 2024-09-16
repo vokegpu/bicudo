@@ -33,11 +33,9 @@ void meow::tools_update_picked_camera(
   ekg::vec4 &interact {ekg::input::interact()};
 
   p_pickup_info->p_placement->velocity = {
-    ((interact.x - p_pickup_info->delta.x) - (p_pickup_info->prev_pos.x - p_pickup_info->delta.x)),
-    ((interact.y - p_pickup_info->delta.y) - (p_pickup_info->prev_pos.y - p_pickup_info->delta.y))
+    -((interact.x - p_pickup_info->delta.x) - (p_pickup_info->prev_pos.x - p_pickup_info->delta.x)),
+    -((interact.y - p_pickup_info->delta.y) - (p_pickup_info->prev_pos.y - p_pickup_info->delta.y))
   };
-
-  p_pickup_info->p_placement->pos += p_pickup_info->p_placement->velocity;
 
   p_pickup_info->prev_pos.x = interact.x;
   p_pickup_info->prev_pos.y = interact.y;

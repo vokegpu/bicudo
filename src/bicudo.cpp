@@ -28,7 +28,7 @@ void bicudo::world::insert(bicudo::object *p_obj) {
 
 bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, bicudo::vec2 pos) {
   bicudo::vec2 &cam {bicudo::app.world_manager.camera.placement.pos};
-  pos -= cam;
+  pos += cam;
 
   for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
     if (bicudo::aabb_collide_with_vec2(p_objs->placement.min, p_objs->placement.max, pos)) {

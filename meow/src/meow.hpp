@@ -10,6 +10,7 @@ namespace meow {
     meow::immediate_graphics immediate {};
     meow::tools::pickup_info_t object_pickup_info {};
     meow::tools::pickup_info_t camera_pickup_info {};
+    uint64_t rendering_placements_count {};
   } app;
 
   void init();
