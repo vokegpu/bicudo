@@ -10,6 +10,7 @@
 #define bicudo_clamp_max(a, b)      ((a) > (b) ? (b) : (a))
 #define bicudo_clamp(val, min, max) (val < min ? min : ((max < val) ? max : val))
 #define bicudo_deg2rad(x)           ((x) * 0.0174533f)
+#define bicudo_lerp(a, b, t)        ((a) - (b - a ) * (t)) // buu???????? repeated code omg!!!11 rp it
 
 namespace bicudo {
   extern uint64_t framerate;
@@ -344,6 +345,14 @@ namespace bicudo {
   bicudo::mat4 ortho(float left, float right, float bottom, float top);
   bicudo::mat4 rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle);
   bicudo::mat4 translate(bicudo::mat4 mat, bicudo::vec2 pos);
+
+  template<typename t>
+  t lerp(t a, t b, t dt) {
+    return a + (b - a) * dt;
+  };
+
+  bicudo::vec2 lerp(const bicudo::vec2 &a, const bicudo::vec2 &b, float dt);
+  bicudo::vec2 lerp(const bicudo::vec2 &pos, float, float t);
 
   bool aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);

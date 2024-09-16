@@ -20,4 +20,6 @@ void bicudo::world_manager::on_update() {
   bicudo::world_physics_update_simulator(
     &this->simulator
   );
+
+  this->camera.on_update();
 }

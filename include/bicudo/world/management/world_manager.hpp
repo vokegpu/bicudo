@@ -3,6 +3,7 @@
 
 #include "bicudo/world/types.hpp"
 #include "bicudo/world/object.hpp"
+#include "bicudo/world/camera.hpp"
 #include "bicudo/world/physics/simulator.hpp"
 
 #include <vector>
@@ -13,6 +14,7 @@ namespace bicudo {
     bicudo::id highest_object_id {};
     bicudo::world::physics::simulator simulator {};
     bicudo::vec2 gravity {};
+    bicudo::camera camera {};
   public:
     std::vector<bicudo::object*> loaded_object_list {};
   public:

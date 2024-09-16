@@ -15,17 +15,23 @@ meow::application meow::app {};
 
 void meow::init() {
   meow::app.immediate.create();
+
+  ekg::input::bind("click-on-object", "mouse-1");
+  ekg::input::bind("drop-object", "mouse-1-up");
+  ekg::input::bind("click-on-camera", "mouse-2");
+  ekg::input::bind("drop-camera", "mouse-2-up");
 }
 
 void meow::render() {
+  bicudo::camera &camera {bicudo::world::camera()};
   meow::app.immediate.invoke();
 
   bicudo::vec4 rect {};
   bicudo::vec4 color(0.3f, 0.5f, 0.675f, 1.0f);
 
   for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
-    rect.x = p_objs->placement.pos.x;
-    rect.y = p_objs->placement.pos.y;
+    rect.x = p_objs->placement.pos.x + camera.placement.pos.x;
+    rect.y = p_objs->placement.pos.y + camera.placement.pos.y;
 
     rect.z = p_objs->placement.size.x;
     rect.w = p_objs->placement.size.y;
@@ -86,7 +92,7 @@ int32_t main(int32_t, char**) {
   glewInit();
 
   SDL_GL_SetSwapInterval(true);
-  bicudo::set_framerate(60);
+  bicudo::set_framerate(144);
 
   ekg::runtime_property ekg_runtime_property {
     .p_font_path = "./whitneybook.otf",
@@ -306,17 +312,14 @@ int32_t main(int32_t, char**) {
   for (uint64_t it {}; it < 30; it++) {
     bicudo::world::insert(new bicudo::object({
     .p_tag = "miau",
-    .mass = bicudo_clamp_min(std::rand() % 200, 1),
-    .friction = bicudo_clamp_min((std::rand() % 100) / 100, 0.0000001f),
-    .restitution = bicudo_clamp_min((std::rand() % 100) / 100, 0.0000001f),
-    .pos = {std::rand() % 800, std::rand() % 100},
-    .size = {bicudo_clamp_min(std::rand() % 200, 10.0f), bicudo_clamp_min(std::rand() % 200, 10.0f)},
+    .mass = bicudo_clamp_min(static_cast<float>(std::rand() % 200), 1),
+    .friction = bicudo_clamp_min(static_cast<float>((std::rand() % 100) / 100), 0.0000001f),
+    .restitution = bicudo_clamp_min(static_cast<float>((std::rand() % 100) / 100), 0.0000001f),
+    .pos = {static_cast<float>(std::rand() % 800), static_cast<float>(std::rand() % 100)},
+    .size = {bicudo_clamp_min(static_cast<float>(std::rand() % 200), 10.0f), bicudo_clamp_min(static_cast<float>(std::rand() % 200), 10.0f)},
     .acc = gravity
     }));
   }
-
-  ekg::input::bind("click-on-object", "mouse-1");
-  ekg::input::bind("drop-object", "mouse-1-up");
 
   meow::init();
 
@@ -332,8 +335,13 @@ int32_t main(int32_t, char**) {
       }
 
       ekg::os::sdl_poll_event(sdl_event);
+
+      meow::tools_pick_camera(
+        &meow::app.camera_pickup_info
+      );
+
       meow::tools_pick_object_from_world(
-        &meow::app.pickup_info
+        &meow::app.object_pickup_info
       );
     }
 
@@ -345,8 +353,12 @@ int32_t main(int32_t, char**) {
       framerate_count = 0;
     }
 
+    meow::tools_update_picked_camera(
+      &meow::app.camera_pickup_info
+    );
+
     meow::tools_update_picked_object(
-      &meow::app.pickup_info
+      &meow::app.object_pickup_info
     );
 
     bicudo::update();

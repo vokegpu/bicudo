@@ -15,14 +15,21 @@ void bicudo::update() {
 }
 
 void bicudo::viewport(int32_t w, int32_t h) {
-  
+  bicudo::app.world_manager.camera.set_viewport(w, h);
+}
+
+bicudo::camera &bicudo::world::camera() {
+  return bicudo::app.world_manager.camera;
 }
 
 void bicudo::world::insert(bicudo::object *p_obj) {
   bicudo::app.world_manager.push_back_object(p_obj);
 }
 
-bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, const bicudo::vec2 &pos) {
+bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, bicudo::vec2 pos) {
+  bicudo::vec2 &cam {bicudo::app.world_manager.camera.placement.pos};
+  pos -= cam;
+
   for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
     if (bicudo::aabb_collide_with_vec2(p_objs->placement.min, p_objs->placement.max, pos)) {
       p_obj = p_objs;

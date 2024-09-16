@@ -16,8 +16,9 @@ namespace bicudo {
   void viewport(int32_t w, int32_t h);
 
   namespace world {
+    bicudo::camera &camera();
     void insert(bicudo::object *p_obj);
-    bicudo::collided pick(bicudo::object *&p_obj, const bicudo::vec2 &pos);
+    bicudo::collided pick(bicudo::object *&p_obj, bicudo::vec2 pos);
   }
 
   void count(uint32_t *p_number);

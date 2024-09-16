@@ -80,6 +80,20 @@ bicudo::mat4 bicudo::translate(bicudo::mat4 mat, bicudo::vec2 pos) {
   return mat * translate;
 }
 
+bicudo::vec2 bicudo::lerp(const bicudo::vec2 &a, float t, float dt) {
+  return bicudo::vec2 {
+    bicudo::lerp<float>(a.x, t, dt),
+    bicudo::lerp<float>(a.y, t, dt)
+  };
+}
+
+bicudo::vec2 bicudo::lerp(const bicudo::vec2 &a, const bicudo::vec2 &b, float dt) {
+  return bicudo::vec2 {
+    bicudo::lerp<float>(a.x, a.x, dt),
+    bicudo::lerp<float>(a.y, a.y, dt)
+  };
+}
+
 bool bicudo::aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2) {
   return (
     vec2.x > min.x && vec2.y > min.y && vec2.x < max.x && vec2.y < max.y

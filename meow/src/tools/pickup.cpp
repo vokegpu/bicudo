@@ -3,12 +3,52 @@
 #include "bicudo/bicudo.hpp"
 #include <ekg/ekg.hpp>
 
+void meow::tools_pick_camera(
+  meow::tools::pickup_info_t *p_pickup_info
+) {
+  ekg::vec4 &interact {ekg::input::interact()};
+  if (!p_pickup_info->p_placement && ekg::hovered.id == 0 && ekg::input::action("click-on-camera")) {
+    p_pickup_info->p_placement = &bicudo::world::camera().placement;
+
+    p_pickup_info->delta.x = interact.x - p_pickup_info->p_placement->min.x;
+    p_pickup_info->delta.y = interact.y - p_pickup_info->p_placement->min.y;
+
+    p_pickup_info->pick_pos.x = p_pickup_info->p_placement->pos.x;
+    p_pickup_info->pick_pos.y = p_pickup_info->p_placement->pos.y;
+
+    p_pickup_info->prev_pos.x = interact.x;
+    p_pickup_info->prev_pos.y = interact.y;
+  } else if (ekg::input::action("drop-camera")) {
+    p_pickup_info->p_placement = nullptr;
+  }
+}
+
+void meow::tools_update_picked_camera(
+  meow::tools::pickup_info_t *p_pickup_info
+) {
+  if (!p_pickup_info->p_placement) {
+    return;
+  }
+
+  ekg::vec4 &interact {ekg::input::interact()};
+
+  p_pickup_info->p_placement->velocity = {
+    ((interact.x - p_pickup_info->delta.x) - (p_pickup_info->prev_pos.x - p_pickup_info->delta.x)),
+    ((interact.y - p_pickup_info->delta.y) - (p_pickup_info->prev_pos.y - p_pickup_info->delta.y))
+  };
+
+  p_pickup_info->p_placement->pos += p_pickup_info->p_placement->velocity;
+
+  p_pickup_info->prev_pos.x = interact.x;
+  p_pickup_info->prev_pos.y = interact.y;
+}
+
 bicudo::collided meow::tools_pick_object_from_world(
   tools::pickup_info_t *p_pickup_info
 ) {
   ekg::vec4 &interact {ekg::input::interact()};
 
-  if (!p_pickup_info->p_obj && ekg::hovered.id == 0 && ekg::input::action("click-on-object") && bicudo::world::pick(p_pickup_info->p_obj, {interact.x, interact.y})) {
+  if (!p_pickup_info->p_obj && ekg::hovered.id == 0 && ekg::input::action("click-on-object") && bicudo::world::pick(p_pickup_info->p_obj, bicudo::vec2(interact.x, interact.y))) {
     p_pickup_info->delta.x = interact.x - p_pickup_info->p_obj->placement.min.x;
     p_pickup_info->delta.y = interact.y - p_pickup_info->p_obj->placement.min.y;
 
