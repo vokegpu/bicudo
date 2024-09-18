@@ -10,7 +10,7 @@ void meow::tools_pick_camera(
   bicudo::camera &camera {bicudo::world::camera()};
   ekg::vec4 &interact {ekg::input::interact()};
 
-  if (ekg::input::action("zoom-camera")) {
+  if (ekg::hovered.id == 0 && ekg::input::action("zoom-camera")) {
     bicudo::app.world_manager.camera.zoom = bicudo_clamp_min(
       bicudo::app.world_manager.camera.zoom + interact.w * 0.1f,
       0.000001f

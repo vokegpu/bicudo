@@ -1,4 +1,5 @@
 #include "bicudo/world/camera.hpp"
+#include "bicudo/bicudo.hpp"
 
 bicudo::vec2 bicudo::camera::display {};
 
@@ -18,6 +19,6 @@ void bicudo::camera::on_update() {
 
   this->rect.x = this->placement.pos.x;
   this->rect.y = this->placement.pos.y;
-  this->rect.z = bicudo::camera::display.x;
-  this->rect.w = bicudo::camera::display.y;
+  this->rect.z = bicudo::camera::display.x / bicudo::app.world_manager.camera.zoom;
+  this->rect.w = bicudo::camera::display.y / bicudo::app.world_manager.camera.zoom;
 }

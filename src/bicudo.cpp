@@ -27,21 +27,10 @@ void bicudo::world::insert(bicudo::object *p_obj) {
 }
 
 bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, bicudo::vec2 pos) {
-  float vx {bicudo::app.world_manager.camera.rect.x};
-  float vy {bicudo::app.world_manager.camera.rect.y};
-  float vwidth {bicudo::app.world_manager.camera.rect.z};
-  float vheight {bicudo::app.world_manager.camera.rect.w};
-
   bicudo::vec2 &cam {bicudo::app.world_manager.camera.placement.pos};
-  bicudo::vec2 ndc {
-    ((2.0f * (pos.x - vx)) / vwidth) - 1.0f,
-    1.0f - ((2.0f * (pos.y - vy)) / vheight) 
-  };
+  float &zoom {bicudo::app.world_manager.camera.zoom};
 
-  ndc = (ndc / bicudo::app.world_manager.camera.zoom);
-  pos = (ndc * bicudo::vec2(vwidth, vheight)) + cam;
-
-  std::cout << pos.x << " muuu " << pos.y << std::endl;
+  pos = (pos / zoom) + cam;
 
   for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
     if (bicudo::aabb_collide_with_vec2(p_objs->placement.min, p_objs->placement.max, pos)) {
