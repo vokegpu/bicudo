@@ -20,6 +20,7 @@ void meow::init() {
   ekg::input::bind("drop-object", "mouse-1-up");
   ekg::input::bind("click-on-camera", "mouse-2");
   ekg::input::bind("drop-camera", "mouse-2-up");
+  ekg::input::bind("zoom-camera", "mouse-wheel");
 }
 
 void meow::render() {
@@ -66,13 +67,13 @@ void meow::render() {
     rect.z = 10.0f;
     rect.w = 10.0f;
 
-    rect.x = bicudo::app.world_manager.simulator.collision_info.start.x - camera.placement.pos.x;
-    rect.y = bicudo::app.world_manager.simulator.collision_info.start.y - camera.placement.pos.y;
+    rect.x = bicudo::app.world_manager.simulator.collision_info.start.x ;
+    rect.y = bicudo::app.world_manager.simulator.collision_info.start.y;
 
     meow::app.immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f}, 0.0f);
 
-    rect.x = bicudo::app.world_manager.simulator.collision_info.end.x - camera.placement.pos.x;
-    rect.y = bicudo::app.world_manager.simulator.collision_info.end.y - camera.placement.pos.y;
+    rect.x = bicudo::app.world_manager.simulator.collision_info.end.x;
+    rect.y = bicudo::app.world_manager.simulator.collision_info.end.y;
 
     meow::app.immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f}, 0.0f);
   }
@@ -97,6 +98,15 @@ int32_t main(int32_t, char**) {
       SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     )
   };
+
+  SDL_DisplayMode sdl_display_mode {};
+  SDL_GetDisplayMode(0, 0, &sdl_display_mode);
+
+  SDL_SetWindowSize(
+    p_sdl_win,
+    sdl_display_mode.w - MEOW_INITIAL_WINDOW_OFFSET,
+    sdl_display_mode.h - MEOW_INITIAL_WINDOW_OFFSET
+  );
 
   SDL_GLContext sdl_gl_context {
     SDL_GL_CreateContext(p_sdl_win)
@@ -176,7 +186,7 @@ int32_t main(int32_t, char**) {
     &pipeline_create_info
   );
 
-  ekg::frame("oiii muuu", {20, 20}, {400, 400})
+  ekg::frame("oiii muuu", {static_cast<float>(sdl_display_mode.w) - 500, 20}, {400, 400})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
 

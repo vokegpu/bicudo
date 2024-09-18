@@ -72,6 +72,19 @@ bicudo::mat4 bicudo::rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle) {
   return mat * rotate;
 }
 
+bicudo::mat4 bicudo::scale(bicudo::mat4 mat, bicudo::vec3 scale3f) {
+  bicudo::mat4 scale {
+    bicudo::mat4 {
+      scale3f.x, 0.0f,      0.0f,      0.0f,
+      0.0f,      scale3f.y, 0.0f,      0.0f,
+      0.0f,      0.0f,      scale3f.y, 0.0f,
+      0.0f,      0.0f,      0.0f,      1.0f
+    }
+  };
+
+  return mat * scale;
+}
+
 bicudo::mat4 bicudo::translate(bicudo::mat4 mat, bicudo::vec2 pos) {
   bicudo::mat4 translate {1.0f};
   translate[12] = pos.x;

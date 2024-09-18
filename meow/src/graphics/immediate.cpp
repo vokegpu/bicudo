@@ -1,4 +1,6 @@
 #include "immediate.hpp"
+#include "bicudo/bicudo.hpp"
+#include <iostream>
 
 void meow::immediate_graphics::create() {
   meow::gpu_compile_shader_program(
@@ -106,6 +108,15 @@ void meow::immediate_graphics::set_viewport(int32_t w, int32_t h) {
   this->viewport.y = 0.0f;
   this->viewport.z = static_cast<float>(w);
   this->viewport.w = static_cast<float>(h);
+
+  bicudo::camera &camera {bicudo::app.world_manager.camera};
+
+  bicudo::vec2 center {this->viewport.z / 2, this->viewport.w / 2};
+  bicudo::vec2 delta {(center / this->prev_zoom) + camera.placement.pos};
+  camera.placement.pos = delta - (center / camera.zoom);
+
+  this->mat4x4_projection = bicudo::scale(this->mat4x4_projection, {camera.zoom, camera.zoom, 1.0f});
+  this->prev_zoom = camera.zoom;
 
   glProgramUniformMatrix4fv(
     this->program,

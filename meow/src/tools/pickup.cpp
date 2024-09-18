@@ -2,13 +2,28 @@
 
 #include "bicudo/bicudo.hpp"
 #include <ekg/ekg.hpp>
+#include "meow.hpp"
 
 void meow::tools_pick_camera(
   meow::tools::pickup_info_t *p_pickup_info
 ) {
+  bicudo::camera &camera {bicudo::world::camera()};
   ekg::vec4 &interact {ekg::input::interact()};
+
+  if (ekg::input::action("zoom-camera")) {
+    bicudo::app.world_manager.camera.zoom = bicudo_clamp_min(
+      bicudo::app.world_manager.camera.zoom + interact.w * 0.1f,
+      0.000001f
+    );
+
+    meow::app.immediate.set_viewport(
+      meow::app.immediate.viewport.z,
+      meow::app.immediate.viewport.w
+    );
+  }
+
   if (!p_pickup_info->p_placement && ekg::hovered.id == 0 && ekg::input::action("click-on-camera")) {
-    p_pickup_info->p_placement = &bicudo::world::camera().placement;
+    p_pickup_info->p_placement = &camera.placement;
 
     p_pickup_info->delta.x = interact.x - p_pickup_info->p_placement->min.x;
     p_pickup_info->delta.y = interact.y - p_pickup_info->p_placement->min.y;
@@ -18,6 +33,8 @@ void meow::tools_pick_camera(
 
     p_pickup_info->prev_pos.x = interact.x;
     p_pickup_info->prev_pos.y = interact.y;
+
+    meow::app.immediate.latest_pos_clicked = {interact.x, interact.y};
   } else if (ekg::input::action("drop-camera")) {
     p_pickup_info->p_placement = nullptr;
   }

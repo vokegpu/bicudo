@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 17)
 set(BICUDO_VERSIION 0.1.0)
 
-file(GLOB ROCM_NATIVE_LIBRARY_PATH "/opt/rocm/lib/libamdhip64.so")
 file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
 
 if(LINUX OR ANDROID)

@@ -24,6 +24,72 @@ namespace bicudo {
     return fabsf(x - y) <= FLT_EPSILON * fmaxf(fabsf(x), fabsf(y));
   }
 
+  typedef struct mat4 {
+  public:
+    union {
+      struct {
+        float _11 {}, _12 {}, _13 {}, _14 {};
+        float _21 {}, _22 {}, _23 {}, _24 {};
+        float _31 {}, _32 {}, _33 {}, _34 {};
+        float _41 {}, _42 {}, _43 {}, _44 {};
+      };
+
+      float buffer[16];
+    };
+
+    inline float &operator[](std::size_t index) {
+      return this->buffer[index];
+    }
+
+    float *data() {
+      return this->buffer;
+    }
+  public:
+    inline mat4(float identity = 1.0f) {
+      this->_11 = this->_22 = this->_33 = this->_44 = identity;
+    }
+
+    inline mat4(
+      float f11, float f12, float f13, float f14,
+      float f21, float f22, float f23, float f24,
+      float f31, float f32, float f33, float f34,
+      float f41, float f42, float f43, float f44
+    ) {
+      this->_11 = f11; this->_12 = f12; this->_13 = f13; this->_14 = f14;
+      this->_21 = f21; this->_22 = f22; this->_23 = f23; this->_24 = f24;
+      this->_31 = f31; this->_32 = f32; this->_33 = f33; this->_34 = f34;
+      this->_41 = f41; this->_42 = f42; this->_43 = f43; this->_44 = f44;
+    }
+
+    inline bicudo::mat4 operator*(bicudo::mat4 &r) {
+      bicudo::mat4 &a {*this};
+      bicudo::mat4 &b {r};
+      bicudo::mat4 result {};
+
+      result[0]  = a[0] * b[0] + a[4] * b[1] + a[8]  * b[2] + a[12] * b[3];
+      result[1]  = a[1] * b[0] + a[5] * b[1] + a[9]  * b[2] + a[13] * b[3];
+      result[2]  = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3];
+      result[3]  = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3];
+
+      result[4]  = a[0] * b[4] + a[4] * b[5] + a[8]  * b[6] + a[12] * b[7];
+      result[5]  = a[1] * b[4] + a[5] * b[5] + a[9]  * b[6] + a[13] * b[7];
+      result[6]  = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7];
+      result[7]  = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7];
+
+      result[8]  = a[0] * b[8] + a[4] * b[9] + a[8]  * b[10]+ a[12] * b[11];
+      result[9]  = a[1] * b[8] + a[5] * b[9] + a[9]  * b[10]+ a[13] * b[11];
+      result[10] = a[2] * b[8] + a[6] * b[9] + a[10] * b[10]+ a[14] * b[11];
+      result[11] = a[3] * b[8] + a[7] * b[9] + a[11] * b[10]+ a[15] * b[11];
+
+      result[12] = a[0] * b[12]+ a[4] * b[13]+ a[8]  * b[14]+ a[12] * b[15];
+      result[13] = a[1] * b[12]+ a[5] * b[13]+ a[9]  * b[14]+ a[13] * b[15];
+      result[14] = a[2] * b[12]+ a[6] * b[13]+ a[10] * b[14]+ a[14] * b[15];
+      result[15] = a[3] * b[12]+ a[7] * b[13]+ a[11] * b[14]+ a[15] * b[15];
+
+      return result;
+    }
+  } mat4;
+
   typedef struct vec2 {
   public:
     union {
@@ -48,6 +114,20 @@ namespace bicudo {
     inline vec2(float _x, float _y) {
       this->x = _x;
       this->y = _y;
+    }
+
+    inline bicudo::vec2 operator/(float divisor) {
+      return bicudo::vec2 {
+        this->x / divisor,
+        this->y / divisor
+      };
+    }
+
+    inline bicudo::vec2 operator/(const bicudo::vec2 &r) {
+      return bicudo::vec2 {
+        this->x / r.x,
+        this->y / r.y
+      };
     }
 
     inline bicudo::vec2 operator+(const bicudo::vec2 &r) {
@@ -102,6 +182,13 @@ namespace bicudo {
       return bicudo::vec2 {
         this->x * scalar,
         this->y * scalar
+      };
+    }
+
+    inline bicudo::vec2 operator*(bicudo::vec2 scalar2f) {
+      return bicudo::vec2 {
+        this->x * scalar2f.x,
+        this->y * scalar2f.y
       };
     }
 
@@ -244,73 +331,16 @@ namespace bicudo {
       this->z = _z;
       this->w = _w;
     }
-  } vec4;
 
-  typedef struct mat4 {
-  public:
-    union {
-      struct {
-        float _11 {}, _12 {}, _13 {}, _14 {};
-        float _21 {}, _22 {}, _23 {}, _24 {};
-        float _31 {}, _32 {}, _33 {}, _34 {};
-        float _41 {}, _42 {}, _43 {}, _44 {};
+    inline bicudo::vec4 operator*(bicudo::mat4 r) {
+      return bicudo::vec4 {
+        r[0]  * this->x + r[1]  * this->y + r[2]  * this->z + r[3]  * this->w,
+        r[4]  * this->x + r[5]  * this->y + r[6]  * this->z + r[7]  * this->w,
+        r[8]  * this->x + r[9]  * this->y + r[10] * this->z + r[11] * this->w,
+        r[12] * this->x + r[13] * this->y + r[14] * this->z + r[15] * this->w
       };
-
-      float buffer[16];
-    };
-
-    inline float &operator[](std::size_t index) {
-      return this->buffer[index];
     }
-
-    float *data() {
-      return this->buffer;
-    }
-  public:
-    inline mat4(float identity = 1.0f) {
-      this->_11 = this->_22 = this->_33 = this->_44 = identity;
-    }
-
-    inline mat4(
-      float f11, float f12, float f13, float f14,
-      float f21, float f22, float f23, float f24,
-      float f31, float f32, float f33, float f34,
-      float f41, float f42, float f43, float f44
-    ) {
-      this->_11 = f11; this->_12 = f12; this->_13 = f13; this->_14 = f14;
-      this->_21 = f21; this->_22 = f22; this->_23 = f23; this->_24 = f24;
-      this->_31 = f31; this->_32 = f32; this->_33 = f33; this->_34 = f34;
-      this->_41 = f41; this->_42 = f42; this->_43 = f43; this->_44 = f44;
-    }
-
-    inline bicudo::mat4 operator*(bicudo::mat4 &r) {
-      bicudo::mat4 &a {*this};
-      bicudo::mat4 &b {r};
-      bicudo::mat4 result {};
-
-      result[0]  = a[0] * b[0] + a[4] * b[1] + a[8]  * b[2] + a[12] * b[3];
-      result[1]  = a[1] * b[0] + a[5] * b[1] + a[9]  * b[2] + a[13] * b[3];
-      result[2]  = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3];
-      result[3]  = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3];
-
-      result[4]  = a[0] * b[4] + a[4] * b[5] + a[8]  * b[6] + a[12] * b[7];
-      result[5]  = a[1] * b[4] + a[5] * b[5] + a[9]  * b[6] + a[13] * b[7];
-      result[6]  = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7];
-      result[7]  = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7];
-
-      result[8]  = a[0] * b[8] + a[4] * b[9] + a[8]  * b[10]+ a[12] * b[11];
-      result[9]  = a[1] * b[8] + a[5] * b[9] + a[9]  * b[10]+ a[13] * b[11];
-      result[10] = a[2] * b[8] + a[6] * b[9] + a[10] * b[10]+ a[14] * b[11];
-      result[11] = a[3] * b[8] + a[7] * b[9] + a[11] * b[10]+ a[15] * b[11];
-
-      result[12] = a[0] * b[12]+ a[4] * b[13]+ a[8]  * b[14]+ a[12] * b[15];
-      result[13] = a[1] * b[12]+ a[5] * b[13]+ a[9]  * b[14]+ a[13] * b[15];
-      result[14] = a[2] * b[12]+ a[6] * b[13]+ a[10] * b[14]+ a[14] * b[15];
-      result[15] = a[3] * b[12]+ a[7] * b[13]+ a[11] * b[14]+ a[15] * b[15];
-
-      return result;
-    }
-  } mat4;
+   } vec4;
 
   struct placement {
   public:
@@ -344,6 +374,7 @@ namespace bicudo {
 
   bicudo::mat4 ortho(float left, float right, float bottom, float top);
   bicudo::mat4 rotate(bicudo::mat4 mat, bicudo::vec3 axis, float angle);
+  bicudo::mat4 scale(bicudo::mat4 mat, bicudo::vec3 scale3f);
   bicudo::mat4 translate(bicudo::mat4 mat, bicudo::vec2 pos);
 
   template<typename t>

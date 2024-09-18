@@ -4,6 +4,8 @@
 #include "tools/pickup.hpp"
 #include "graphics/immediate.hpp"
 
+#define MEOW_INITIAL_WINDOW_OFFSET 89
+
 namespace meow {
   struct settings {
   public:

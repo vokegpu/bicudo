@@ -3,11 +3,13 @@
 
 #include "bicudo/util/log.hpp"
 #include "bicudo/world/management/world_manager.hpp"
+#include "bicudo/gpu/model.hpp"
 #include <cstdint>
 
 namespace bicudo {
   extern struct application {
   public:
+    bicudo::gpu::pipeline pipeline {};
     bicudo::world_manager world_manager {};
   } app;
 
