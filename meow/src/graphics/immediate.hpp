@@ -15,7 +15,7 @@ namespace meow {
     bicudo::mat4 mat4x4_projection {};
     bicudo::vec2 latest_pos_clicked {};
     bicudo::vec4 viewport {};
-    float prev_zoom {1.0f};
+    float current_zoom {1.0f};
   public:
     void create();
     void set_viewport(int32_t w, int32_t h);

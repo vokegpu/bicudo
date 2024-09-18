@@ -1,4 +1,5 @@
 #include "bicudo/util/math.hpp"
+#include "bicudo/bicudo.hpp"
 #include <iostream>
 
 uint64_t bicudo::framerate {75};
@@ -174,4 +175,9 @@ void bicudo::mass(bicudo::placement *p_placement, float mass) {
     p_placement->inertia = (1.0f / mass) * p_placement->size.magnitude_no_sq() / 12;
     p_placement->inertia = 1.0f / p_placement->inertia;
   }
+}
+
+void bicudo::to_local_camera(bicudo::vec2 *p_vec) {
+  p_vec->x /= bicudo::app.world_manager.camera.zoom;
+  p_vec->y /= bicudo::app.world_manager.camera.zoom;
 }

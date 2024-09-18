@@ -392,6 +392,7 @@ namespace bicudo {
   void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
   void rotate(bicudo::placement *p_placement, float angle_dir);
   void mass(bicudo::placement *p_placement, float mass);
+  void to_local_camera(bicudo::vec2 *p_vec);
 }
 
 #endif
