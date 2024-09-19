@@ -8,14 +8,15 @@ void bicudo::world_physics_init(
     R"(
       extern "C"
       __global__ void detect_collision(
-        float *p_4f_rect_a/*,
-        float *p_4f_rect_b,
+        float *p_nf_rect_a/*,
+        float *p_nf_rect_b,
         float *p_1f_depth,
         float *p_2f_normal,
         float *p_2f_start,
         float *p_2f_end*/
       ) {
-
+        p_nf_rect_a[0] = 5.0f;
+        p_nf_rect_a[1] = 10.0f;
       }
     )"
   };
@@ -64,6 +65,25 @@ void bicudo::world_physics_init(
   if (result == bicudo::FAILED) {
     bicudo::log() << "Failed to world physics service compile the following pipeline: " << p_simulator->pipeline.p_tag;
   }
+
+  bicudo::gpu_dispatch(
+    &p_simulator->pipeline,
+    0,
+    0
+  );
+
+  bicudo::gpu_writeback(
+    &p_simulator->pipeline,
+    0,
+    0,
+    0
+  );
+
+  bicudo::float32 *p_a_rect_resources {
+    p_simulator->host_detect_collision_memory.rect_a.resources
+  };
+
+  bicudo::log() << p_a_rect_resources[0] << " mu " << p_a_rect_resources[1];
 }
 
 void bicudo::world_physics_update_simulator(
