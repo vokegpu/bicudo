@@ -1,4 +1,70 @@
 #include "bicudo/world/physics/simulator.hpp"
+#include "bicudo/util/log.hpp"
+
+void bicudo::world_physics_init(
+  bicudo::world::physics::simulator *p_simulator
+) {
+  const char *p_kernel_source_detect_collision {
+    R"(
+      extern "C"
+      __global__ void detect_collision(
+        float *p_4f_rect_a/*,
+        float *p_4f_rect_b,
+        float *p_1f_depth,
+        float *p_2f_normal,
+        float *p_2f_start,
+        float *p_2f_end*/
+      ) {
+
+      }
+    )"
+  };
+
+  uint64_t float32_size {
+    sizeof(float)
+  };
+
+  bicudo::gpu::pipeline_create_info pipeline_create_info {
+    .p_tag = "world-physics-pipeline",
+    .kernel_list = {
+      {
+        .p_tag = "detect-collision",
+        .p_src = p_kernel_source_detect_collision,
+        .function_list = {
+          {
+            .p_entry_point = "detect_collision",
+            .grid = dim3(1, 1, 1),
+            .block = dim3(1, 1, 1),
+            .shared_mem_bytes = 0,
+            .stream = nullptr,
+            .buffer_list = {
+              {
+                .size = (
+                  bicudo::gpu::rect_resources_size
+                  *
+                  float32_size
+                ),
+                .p_device = p_simulator->device_detect_collision_memory.rect_a.resources,
+                .p_host = p_simulator->host_detect_collision_memory.rect_a.resources
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  bicudo::result result {
+    bicudo::gpu_create_pipeline(
+      &p_simulator->pipeline,
+      &pipeline_create_info
+    )
+  };
+
+  if (result == bicudo::FAILED) {
+    bicudo::log() << "Failed to world physics service compile the following pipeline: " << p_simulator->pipeline.p_tag;
+  }
+}
 
 void bicudo::world_physics_update_simulator(
   bicudo::world::physics::simulator *p_simulator

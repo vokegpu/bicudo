@@ -7,6 +7,7 @@
 bicudo::application bicudo::app {};
 
 void bicudo::init() {
+  bicudo::log() << "Initializing Bicudo physics service!";
   bicudo::app.world_manager.on_create();
 }
 

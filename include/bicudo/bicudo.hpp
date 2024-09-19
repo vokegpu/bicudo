@@ -9,7 +9,6 @@
 namespace bicudo {
   extern struct application {
   public:
-    bicudo::gpu::pipeline pipeline {};
     bicudo::world_manager world_manager {};
   } app;
 

@@ -14,6 +14,8 @@
 meow::application meow::app {};
 
 void meow::init() {
+  bicudo::log() << "Initializing Meow renderer and GUI bindings!";
+
   meow::app.immediate.create();
 
   ekg::input::bind("click-on-object", "mouse-1");
@@ -186,7 +188,7 @@ int32_t main(int32_t, char**) {
     &pipeline_create_info
   );
 
-  ekg::frame("oiii muuu", {20, static_cast<float>(sdl_display_mode.h) - 500}, {400, 400})
+  ekg::frame("oiii muuu", {20, static_cast<float>(sdl_display_mode.h) - 700}, {400, 600})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
 
@@ -263,6 +265,12 @@ int32_t main(int32_t, char**) {
 
   ekg::checkbox("Show Vertices", false, ekg::dock::next | ekg::dock::fill)
     ->transfer_ownership(&meow::app.settings.show_vertices);
+
+  ekg::ui::textbox *p_terminal {
+    ekg::textbox("terminal", "\0", ekg::dock::fill | ekg::dock::next)
+      ->set_scaled_height(8)
+      ->set_typing_state(ekg::state::disable)
+  };
 
   ekg::ui::label *p_position {ekg::label("", ekg::dock::next | ekg::dock::fill)};
 
@@ -418,11 +426,22 @@ int32_t main(int32_t, char**) {
     glClearColor(background_color.x, background_color.y, background_color.z, 1.0f);
     glViewport(0.0f, 0.0f, ekg::ui::width, ekg::ui::height);
 
-    bicudo::log::flush();
     meow::render();
     ekg::render();
 
     framerate_count++;
+
+    if (bicudo::log::buffered) {
+      if (p_terminal->p_value->size() >= 100000) {
+        p_terminal->p_value->erase(
+          p_terminal->p_value->begin(),
+          p_terminal->p_value->end() - 10000
+        );
+      }
+
+      ekg::utf_decode(bicudo::log::buffer.str(), p_terminal->get_value());
+      bicudo::log::flush();
+    }
 
     SDL_GL_SwapWindow(p_sdl_win);
     SDL_Delay(bicudo::cpu_interval_ms);

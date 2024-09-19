@@ -8,7 +8,9 @@ void bicudo::world_manager::push_back_object(bicudo::object *p_obj) {
 }
 
 void bicudo::world_manager::on_create() {
-
+  bicudo::world_physics_init(
+    &this->simulator
+  );
 }
 
 void bicudo::world_manager::on_update() {

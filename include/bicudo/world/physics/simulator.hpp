@@ -3,6 +3,8 @@
 
 #include "bicudo/util/math.hpp"
 #include "bicudo/world/types.hpp"
+#include "bicudo/gpu/model.hpp"
+#include "bicudo/gpu/algebra_linear.hpp"
 #include <vector>
 
 namespace bicudo::world::physics {
@@ -14,7 +16,18 @@ namespace bicudo::world::physics {
     bicudo::vec2 end {};
   };
 
+  struct detect_collision_memory {
+  public:
+    bicudo::gpu::rect_t rect_a {};
+    bicudo::gpu::rect_t rect_b {};
+    bicudo::gpu::collision_info_t collision_info {};
+  };
+
   struct simulator {
+  public:
+    bicudo::gpu::pipeline pipeline {};
+    bicudo::world::physics::detect_collision_memory host_detect_collision_memory {};
+    bicudo::world::physics::detect_collision_memory device_detect_collision_memory {};
   public:
     std::vector<bicudo::placement*> placement_list {};
     bicudo::world::physics::collision_info_t collision_info {};
@@ -22,6 +35,11 @@ namespace bicudo::world::physics {
 }
 
 namespace bicudo {
+
+  void world_physics_init(
+    bicudo::world::physics::simulator *p_simulator
+  );
+
   void world_physics_update_simulator(
     bicudo::world::physics::simulator *p_simulator
   );
