@@ -3,7 +3,6 @@
 void bicudo::world_physics_update_simulator(
   bicudo::world::physics::simulator *p_simulator
 ) {
-  bicudo::world::physics::support_info_t support_info {};
   bicudo::collided was_collided {};
 
   float num {};
@@ -50,14 +49,12 @@ void bicudo::world_physics_update_simulator(
       }
 
       p_simulator->collision_info = {};
-      support_info = {};
 
       was_collided = (
         bicudo::world_physics_a_collide_with_b_check(
           p_a,
           p_b,
-          &p_simulator->collision_info,
-          &support_info
+          &p_simulator->collision_info
         )
       );
 
@@ -156,8 +153,7 @@ void bicudo::world_physics_update_simulator(
 bicudo::collided bicudo::world_physics_a_collide_with_b_check(
   bicudo::placement *&p_a,
   bicudo::placement *&p_b,
-  bicudo::world::physics::collision_info_t *p_collision_info,
-  bicudo::world::physics::support_info_t *p_support_info
+  bicudo::world::physics::collision_info_t *p_collision_info
 ) {
   bicudo::collided a_has_support_point {};
   bicudo::world::physics::collision_info_t a_collision_info {};
@@ -166,7 +162,6 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
     p_a,
     p_b,
     &a_collision_info,
-    p_support_info,
     &a_has_support_point
   );
 
@@ -181,7 +176,6 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
     p_b,
     p_a,
     &b_collision_info,
-    p_support_info,
     &b_has_support_point
   );
 
@@ -231,7 +225,6 @@ void bicudo::world_physics_find_axis_penetration(
   bicudo::placement *&p_a,
   bicudo::placement *&p_b,
   bicudo::world::physics::collision_info_t *p_collision_info,
-  bicudo::world::physics::support_info_t *p_support_info,
   bool *p_has_support_point
 ) {
   bicudo::vec2 edge {};
@@ -246,6 +239,9 @@ void bicudo::world_physics_find_axis_penetration(
   bicudo::vec2 to_edge {};
 
   float proj {};
+  float dist {};
+
+  bicudo::vec2 point {};
 
   uint64_t edges_size {p_a->edges.size()};
   uint64_t vertices_size {p_b->vertices.size()};
@@ -255,25 +251,24 @@ void bicudo::world_physics_find_axis_penetration(
     dir = edge * -1.0f;
     vert = p_a->vertices.at(it_edges);
 
-    p_support_info->distance = -99999.0f;
-    p_support_info->point = {};
+    dist = -99999.0f;
     *p_has_support_point = false;
 
     for (bicudo::vec2 &vertex : p_b->vertices) {
       to_edge = vertex - vert;
       proj = to_edge.dot(dir);
 
-      if (proj > 0.0f && proj > p_support_info->distance) {
-        p_support_info->point = vertex;
-        p_support_info->distance = proj;
+      if (proj > 0.0f && proj > dist) {
+        point = vertex;
+        dist = proj;
         *p_has_support_point = true;
       }
     }
 
-    if (*p_has_support_point && p_support_info->distance < best_dist) {
-      best_dist = p_support_info->distance;
+    if (*p_has_support_point && dist < best_dist) {
+      best_dist = dist;
       best_edge = it_edges;
-      support_point = p_support_info->point;
+      support_point = point;
     }
   }
 

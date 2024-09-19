@@ -14,13 +14,6 @@ namespace bicudo::world::physics {
     bicudo::vec2 end {};
   };
 
-  struct support_info_t {
-  public:
-    bicudo::vec2 point {};
-    float projection {};
-    float distance {};
-  };
-
   struct simulator {
   public:
     std::vector<bicudo::placement*> placement_list {};
@@ -36,8 +29,7 @@ namespace bicudo {
   bicudo::collided world_physics_a_collide_with_b_check(
     bicudo::placement *&p_a,
     bicudo::placement *&p_b,
-    bicudo::world::physics::collision_info_t *p_collision_info,
-    bicudo::world::physics::support_info_t *p_support_info
+    bicudo::world::physics::collision_info_t *p_collision_info
   );
 
   void world_physics_collision_info_change_dir(
@@ -52,7 +44,6 @@ namespace bicudo {
     bicudo::placement *&p_a,
     bicudo::placement *&p_b,
     bicudo::world::physics::collision_info_t *p_collision_info,
-    bicudo::world::physics::support_info_t *p_support_info,
     bool *p_has_support_point
   );
 }

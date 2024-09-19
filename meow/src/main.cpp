@@ -50,10 +50,10 @@ void meow::render() {
     meow::app.rendering_placements_count++;
 
     if (meow::app.settings.show_vertices) {
-      meow::app.immediate.draw({p_objs->placement.vertices[0].x- camera.placement.pos.x, p_objs->placement.vertices[0].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[1].x- camera.placement.pos.x, p_objs->placement.vertices[1].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[2].x- camera.placement.pos.x, p_objs->placement.vertices[2].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[3].x- camera.placement.pos.x, p_objs->placement.vertices[3].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_objs->placement.vertices[0].x - camera.placement.pos.x, p_objs->placement.vertices[0].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_objs->placement.vertices[1].x - camera.placement.pos.x, p_objs->placement.vertices[1].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_objs->placement.vertices[2].x - camera.placement.pos.x, p_objs->placement.vertices[2].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_objs->placement.vertices[3].x - camera.placement.pos.x, p_objs->placement.vertices[3].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
       meow::app.immediate.draw({rect.x - camera.placement.pos.x + p_objs->placement.size.x / 2, rect.y - camera.placement.pos.y + p_objs->placement.size.y / 2, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
     }
 
@@ -186,7 +186,7 @@ int32_t main(int32_t, char**) {
     &pipeline_create_info
   );
 
-  ekg::frame("oiii muuu", {static_cast<float>(sdl_display_mode.w) - 500, 20}, {400, 400})
+  ekg::frame("oiii muuu", {20, static_cast<float>(sdl_display_mode.h) - 500}, {400, 400})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
 
@@ -219,7 +219,7 @@ int32_t main(int32_t, char**) {
     ->range<uint32_t>(0, 0, 0, 100)
     ->range<uint32_t>(0).u32.transfer_ownership(&number_host);
 
-  ekg::vec3 background_color {0.34f, 0.03f, 0.9f};
+  ekg::vec3 background_color {0.081f, 0.088f, 0.075f};
   ekg::label("Background Color:", ekg::dock::next);
   ekg::slider<float>("bg-clear-color-ownership", ekg::dock::fill)
     ->range<float>(0, 0.0f, 0.0f, 1.0f, 2)
@@ -298,7 +298,7 @@ int32_t main(int32_t, char**) {
   bicudo::object *p_terrain_bottom {new bicudo::object({
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
-    .friction = 0.2f,
+    .friction = 0.8f,
     .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 800},
