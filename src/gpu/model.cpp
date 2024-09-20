@@ -43,20 +43,35 @@ bicudo::result bicudo::gpu_dispatch(
   return bicudo::types::SUCCESS;
 }
 
-bicudo::result bicudo::gpu_writeback(
+bicudo::result bicudo::gpu_memory_fetch(
   bicudo::gpu::pipeline *p_pipeline,
   uint64_t module_index,
   uint64_t kernel_index,
-  uint64_t param_index
+  uint64_t param_index,
+  bicudo::types op_type
 ) {
   bicudo::gpu::kernel &kernel {p_pipeline->kernel_list.at(module_index)};
   bicudo::gpu::function &function {kernel.function_list.at(kernel_index)};
   bicudo::gpu::buffer &buffer {function.buffer_list.at(param_index)};
 
+  void *p_dst {};
+  void *p_src {};
+
+  switch (op_type) {
+  case bicudo::types::WRITEBACK:
+    p_dst = buffer.p_host;
+    p_src = buffer.p_device;
+    break;
+  case bicudo::types::WRITESTORE:
+    p_dst = buffer.p_device;
+    p_src = buffer.p_host;
+    break;
+  }
+
   hip_validate(
     hipMemcpy(
-      buffer.p_host,
-      buffer.p_device,
+      p_dst,
+      p_src,
       buffer.size,
       hipMemcpyDeviceToHost
     ),

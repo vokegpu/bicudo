@@ -53,11 +53,12 @@ namespace bicudo {
     uint64_t kernel_index
   );
 
-  bicudo::result gpu_writeback(
+  bicudo::result gpu_memory_fetch(
     bicudo::gpu::pipeline *p_pipeline,
     uint64_t module_index,
     uint64_t kernel_index,
-    uint64_t param_index
+    uint64_t param_index,
+    bicudo::types op_type
   );
 
   bicudo::result gpu_create_pipeline(

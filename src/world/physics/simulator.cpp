@@ -7,50 +7,35 @@ void bicudo::world_physics_init(
   const char *p_kernel_source_detect_collision {
     R"(
 
+    struct stride_t {
+    public:
+      uint64_t offset {};
+      uint64_t size {};
+    };
+
+    constexpr stride_t it_best_distance {0, 1};
+    constexpr stride_t it_best_edge {1, 2};
+    constexpr stride_t it_has_support_point {2, 1};
+    constexpr stride_t it_depth {3, 1};
+    constexpr stride_t it_normal {4, 2};
+    constexpr stride_t it_start {6, 2};
+    constexpr stride_t it_end {8, 2};
+    constexpr stride_t it_a_vertices {10, 8};
+    constexpr stride_t it_a_edges {18, 8};
+    constexpr stride_t it_b_vertices {26, 8};
+    constexpr stride_t it_b_edges {34, 8};
+
+    #define at(stride, size) ((p_buffer[stride.offset + size]))
+
     extern "C"
     __global__ void detect_collision(
       float *p_buffer
     ) {
-      p_buffer[0] = 25.0f;
-      p_buffer[1] = 25.0f;
-      p_buffer[2] = 25.0f;
-      p_buffer[3] = 25.0f;
-      p_buffer[4] = 25.0f;
-      p_buffer[5] = 25.0f;
-      p_buffer[6] = 25.0f;
-      p_buffer[7] = 25.0f;
-      p_buffer[8] = 25.0f;
-      p_buffer[9] = 25.0f;
-      p_buffer[10] = 25.0f;
-      p_buffer[11] = 25.0f;
-      p_buffer[12] = 25.0f;
-      p_buffer[13] = 25.0f;
-      p_buffer[14] = 25.0f;
-      p_buffer[15] = 25.0f;
-      p_buffer[16] = 25.0f;
-      p_buffer[17] = 25.0f;
-      p_buffer[18] = 25.0f;
-      p_buffer[19] = 25.0f;
-      p_buffer[20] = 25.0f;
-      p_buffer[21] = 25.0f;
-      p_buffer[22] = 25.0f;
-      p_buffer[23] = 25.0f;
-      p_buffer[24] = 25.0f;
-      p_buffer[25] = 25.0f;
-      p_buffer[26] = 25.0f;
-      p_buffer[27] = 25.0f;
-      p_buffer[28] = 25.0f;
-      p_buffer[29] = 25.0f;
-      p_buffer[30] = 25.0f;
-      p_buffer[31] = 25.0f;
-      p_buffer[32] = 25.0f;
-      p_buffer[33] = 25.0f;
-      p_buffer[34] = 25.0f;
-      p_buffer[35] = 25.0f;
-      p_buffer[36] = 25.0f;
-      p_buffer[37] = 25.0f;
-      p_buffer[38] = 25.0f;
-      p_buffer[39] = 25.0f;
+      at(it_has_support_point, 0) = 25.0f;
+      at(it_depth, 0) = 25.0f;
+      at(it_normal, 0) = 30.0f;
+      at(it_normal, 1) = 30.0f;
+      
     }
 
     )"
@@ -114,11 +99,12 @@ void bicudo::world_physics_init(
     bicudo::log() << p_buffer[it];
   }
 
-  bicudo::gpu_writeback(
+  bicudo::gpu_memory_fetch(
     &p_simulator->pipeline,
     0,
     0,
-    0
+    0,
+    bicudo::types::WRITEBACK
   );
 
   bicudo::log() << "Post writeback:";

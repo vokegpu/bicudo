@@ -15,21 +15,25 @@ namespace bicudo::gpu {
     uint64_t size {};
   };
 
-  constexpr bicudo::gpu::stride_t it_has_support_point {0, 1};
-  constexpr bicudo::gpu::stride_t it_depth {1, 1};
-  constexpr bicudo::gpu::stride_t it_normal {2, 2};
-  constexpr bicudo::gpu::stride_t it_start {4, 2};
-  constexpr bicudo::gpu::stride_t it_end {6, 2};
-  constexpr bicudo::gpu::stride_t it_a_vertices {8, 8};
-  constexpr bicudo::gpu::stride_t it_a_edges {16, 8};
-  constexpr bicudo::gpu::stride_t it_b_vertices {24, 8};
-  constexpr bicudo::gpu::stride_t it_b_edges {32, 8};
+  constexpr bicudo::gpu::stride_t it_best_distance {0, 1};
+  constexpr bicudo::gpu::stride_t it_best_edge {1, 2};
+  constexpr bicudo::gpu::stride_t it_has_support_point {2, 1};
+  constexpr bicudo::gpu::stride_t it_depth {3, 1};
+  constexpr bicudo::gpu::stride_t it_normal {4, 2};
+  constexpr bicudo::gpu::stride_t it_start {6, 2};
+  constexpr bicudo::gpu::stride_t it_end {8, 2};
+  constexpr bicudo::gpu::stride_t it_a_vertices {10, 8};
+  constexpr bicudo::gpu::stride_t it_a_edges {18, 8};
+  constexpr bicudo::gpu::stride_t it_b_vertices {26, 8};
+  constexpr bicudo::gpu::stride_t it_b_edges {34, 8};
 
   struct packed_collision_info_and_two_rect {
   public:
     union {
       struct {
         float32_t has_support_point;
+        float32_t best_distance;
+        float32_t best_edge;
         float32_t depth;
 
         float32_t normal_x;
@@ -78,11 +82,11 @@ namespace bicudo::gpu {
         float32_t b_edge3_y;
       };
 
-      float32_t host[40] {};
+      float32_t host[42] {};
     };
   protected:
     float32_t *p_device {};
-    uint64_t buffer_pre_initialized_size {40};
+    uint64_t buffer_pre_initialized_size {42};
   public:
     inline packed_collision_info_and_two_rect() = default;
 

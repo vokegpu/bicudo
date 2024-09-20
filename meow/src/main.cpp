@@ -205,11 +205,12 @@ int32_t main(int32_t, char**) {
             0
           );
 
-          bicudo::gpu_writeback(
+          bicudo::gpu_memory_fetch(
             &pipeline,
             0,
             0,
-            0
+            0,
+            bicudo::types::WRITEBACK
           );
         }
       },
