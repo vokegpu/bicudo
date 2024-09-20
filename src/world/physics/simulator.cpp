@@ -7,35 +7,125 @@ void bicudo::world_physics_init(
   const char *p_kernel_source_detect_collision {
     R"(
 
+    struct vec2_t {
+    public:
+      float x {};
+      float y {};
+    };
+
     struct stride_t {
     public:
       uint64_t offset {};
       uint64_t size {};
     };
 
-    constexpr stride_t it_best_distance {0, 1};
-    constexpr stride_t it_best_edge {1, 2};
-    constexpr stride_t it_has_support_point {2, 1};
-    constexpr stride_t it_depth {3, 1};
-    constexpr stride_t it_normal {4, 2};
-    constexpr stride_t it_start {6, 2};
-    constexpr stride_t it_end {8, 2};
-    constexpr stride_t it_a_vertices {10, 8};
-    constexpr stride_t it_a_edges {18, 8};
-    constexpr stride_t it_b_vertices {26, 8};
-    constexpr stride_t it_b_edges {34, 8};
+    constexpr stride_t IT_BEST_DISTANCE {0, 1};
+    constexpr stride_t IT_BEST_EDGE {1, 2};
+    constexpr stride_t IT_HAS_SUPPORT_POINT {2, 1};
+    constexpr stride_t IT_DEPTH {3, 1};
+    constexpr stride_t IT_NORMAL {4, 2};
+    constexpr stride_t IT_START {6, 2};
+    constexpr stride_t IT_END {8, 2};
+    constexpr stride_t IT_A_VERTICES {10, 8};
+    constexpr stride_t IT_A_EDGES {18, 8};
+    constexpr stride_t IT_B_VERTICES {26, 8};
+    constexpr stride_t IT_B_EDGES {34, 8};
 
-    #define at(stride, size) ((p_buffer[stride.offset + size]))
+    #define CLAMP_MAX(a, b)  ((a) > (b) ? (b) : (a))
+    #define AT(stride, size) ((p_buffer[stride.offset + size]))
 
     extern "C"
     __global__ void detect_collision(
       float *p_buffer
     ) {
-      at(it_has_support_point, 0) = 25.0f;
-      at(it_depth, 0) = 25.0f;
-      at(it_normal, 0) = 30.0f;
-      at(it_normal, 1) = 30.0f;
+      int32_t index {
+        CLAMP_MAX(threadIdx.x, 4)
+      };
+
+      if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == 4) {
+        int32_t best_edge_index {
+          (int32_t) AT(IT_BEST_EDGE, 0)
+        };
+
+        vec2_t best_edge {
+          AT(IT_A_EDGES, (best_edge_index * 2) + 0),
+          AT(IT_A_EDGES, (best_edge_index * 2) + 1)
+        };
+
+        float best_distance {
+          AT(IT_BEST_DISTANCE, 0)
+        };
+
+        AT(IT_DEPTH, 0) = best_distance;
+        AT(IT_NORMAL, 0) = best_edge.x;
+        AT(IT_NORMAL, 1) = best_edge.y;
+
+        vec2_t support_point {
+          AT(IT_START, 0),
+          AT(IT_START, 1)
+        };
+
+        AT(IT_START, 0) = support_point.x + (best_edge.x * best_distance);
+        AT(IT_START, 1) = support_point.y + (best_edge.y * best_distance);
+
+        AT(IT_END, 0) = AT(IT_START, 0) + AT(IT_NORMAL, 0) * best_distance;
+        AT(IT_END, 1) = AT(IT_START, 1) + AT(IT_NORMAL, 1) * best_distance;
+
+        return;
+      } else if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == -1) {
+        return;
+      }
+
+      vec2_t edge {
+        AT(IT_A_EDGES, (index * 2) + 0),
+        AT(IT_A_EDGES, (index * 2) + 1)
+      };
+
+      vec2_t dir {
+        edge.x * -1.0f,
+        edge.y * -1.0f
+      };
+
+      vec2_t vert {
+        AT(IT_A_VERTICES, (index * 2) + 0),
+        AT(IT_A_VERTICES, (index * 2) + 1)
+      };
+
+      float dist {
+        -99999.0f
+      };
+
+      vec2_t vertex {};
+      vec2_t to_edge {};
+      float proj {};
+      vec2_t point {};
+      float has_support_point {};
       
+      for (int32_t it {}; it < 4; it++) {
+        vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
+        vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
+
+        to_edge.x = vertex.x - vert.x;
+        to_edge.y = vertex.y - vert.y;
+
+        proj = (to_edge.x * dir.x + to_edge.y * dir.y);
+
+        if (proj > 0.0f && proj > dist) {
+          point = vertex;
+          dist = proj;
+          has_support_point = 1.0f;
+        }
+      }
+
+      if (has_support_point > 0.0f && dist < AT(IT_BEST_DISTANCE, 0)) {
+        AT(IT_BEST_DISTANCE, 0) = dist;
+        AT(IT_BEST_EDGE, 0) = index;
+        AT(IT_START, 0) = point.x;
+        AT(IT_START, 1) = point.y;
+        AT(IT_HAS_SUPPORT_POINT, 0) += 1.0f;
+      } else {
+        AT(IT_HAS_SUPPORT_POINT, 0) = -1.0f;
+      }
     }
 
     )"
@@ -55,7 +145,7 @@ void bicudo::world_physics_init(
           {
             .p_entry_point = "detect_collision",
             .grid = dim3(1, 1, 1),
-            .block = dim3(1, 1, 1),
+            .block = dim3(4, 1, 1),
             .shared_mem_bytes = 0,
             .stream = nullptr,
             .buffer_list = {
@@ -85,6 +175,18 @@ void bicudo::world_physics_init(
   if (result == bicudo::FAILED) {
     bicudo::log() << "Failed to world physics service compile the following pipeline: " << p_simulator->pipeline.p_tag;
   }
+
+  p_simulator->detect_collision_memory.best_distance = 99999.0f;
+  p_simulator->detect_collision_memory.best_edge = 0.0f;
+  p_simulator->detect_collision_memory.has_support_point = 0.0f;
+
+  bicudo::gpu_memory_fetch(
+    &p_simulator->pipeline,
+    0,
+    0,
+    0,
+    bicudo::types::WRITESTORE
+  );
 
   bicudo::gpu_dispatch(
     &p_simulator->pipeline,

@@ -132,7 +132,7 @@ bicudo::result bicudo::gpu_create_pipeline(
         "failed to get program log"
       );
 
-      std::cout << "[GPU] failed to create program, more info:\n" << log;
+      bicudo::log() << "failed to create program, more info:\n" << log;
       result = bicudo::types::FAILED;
       continue;
     }
