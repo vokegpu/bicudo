@@ -11,8 +11,7 @@ namespace bicudo {
     ARRAYS = 3 // meow-client reserved
   };
 
-  typedef int32_t bool32;
-  typedef float float32;
+  typedef float float32_t;
   typedef uint64_t result;
 }
 

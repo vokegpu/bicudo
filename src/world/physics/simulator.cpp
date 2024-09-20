@@ -6,23 +6,58 @@ void bicudo::world_physics_init(
 ) {
   const char *p_kernel_source_detect_collision {
     R"(
-      extern "C"
-      __global__ void detect_collision(
-        float *p_nf_rect_a/*,
-        float *p_nf_rect_b,
-        float *p_1f_depth,
-        float *p_2f_normal,
-        float *p_2f_start,
-        float *p_2f_end*/
-      ) {
-        p_nf_rect_a[0] = 5.0f;
-        p_nf_rect_a[1] = 10.0f;
-      }
+
+    extern "C"
+    __global__ void detect_collision(
+      float *p_buffer
+    ) {
+      p_buffer[0] = 25.0f;
+      p_buffer[1] = 25.0f;
+      p_buffer[2] = 25.0f;
+      p_buffer[3] = 25.0f;
+      p_buffer[4] = 25.0f;
+      p_buffer[5] = 25.0f;
+      p_buffer[6] = 25.0f;
+      p_buffer[7] = 25.0f;
+      p_buffer[8] = 25.0f;
+      p_buffer[9] = 25.0f;
+      p_buffer[10] = 25.0f;
+      p_buffer[11] = 25.0f;
+      p_buffer[12] = 25.0f;
+      p_buffer[13] = 25.0f;
+      p_buffer[14] = 25.0f;
+      p_buffer[15] = 25.0f;
+      p_buffer[16] = 25.0f;
+      p_buffer[17] = 25.0f;
+      p_buffer[18] = 25.0f;
+      p_buffer[19] = 25.0f;
+      p_buffer[20] = 25.0f;
+      p_buffer[21] = 25.0f;
+      p_buffer[22] = 25.0f;
+      p_buffer[23] = 25.0f;
+      p_buffer[24] = 25.0f;
+      p_buffer[25] = 25.0f;
+      p_buffer[26] = 25.0f;
+      p_buffer[27] = 25.0f;
+      p_buffer[28] = 25.0f;
+      p_buffer[29] = 25.0f;
+      p_buffer[30] = 25.0f;
+      p_buffer[31] = 25.0f;
+      p_buffer[32] = 25.0f;
+      p_buffer[33] = 25.0f;
+      p_buffer[34] = 25.0f;
+      p_buffer[35] = 25.0f;
+      p_buffer[36] = 25.0f;
+      p_buffer[37] = 25.0f;
+      p_buffer[38] = 25.0f;
+      p_buffer[39] = 25.0f;
+    }
+
     )"
   };
 
   uint64_t float32_size {
-    sizeof(float)
+    sizeof(float32_t)
   };
 
   bicudo::gpu::pipeline_create_info pipeline_create_info {
@@ -41,12 +76,12 @@ void bicudo::world_physics_init(
             .buffer_list = {
               {
                 .size = (
-                  bicudo::gpu::rect_resources_size
+                  p_simulator->detect_collision_memory.size()
                   *
                   float32_size
                 ),
-                .p_device = p_simulator->device_detect_collision_memory.rect_a.resources,
-                .p_host = p_simulator->host_detect_collision_memory.rect_a.resources
+                .p_device = p_simulator->detect_collision_memory.device_data(),
+                .p_host = p_simulator->detect_collision_memory.host_data()
               }
             }
           }
@@ -72,6 +107,13 @@ void bicudo::world_physics_init(
     0
   );
 
+  bicudo::log() << "Before writeback:";
+
+  float32_t *p_buffer {p_simulator->detect_collision_memory.host_data()};
+  for (uint64_t it {}; it < p_simulator->detect_collision_memory.size(); it++) {
+    bicudo::log() << p_buffer[it];
+  }
+
   bicudo::gpu_writeback(
     &p_simulator->pipeline,
     0,
@@ -79,11 +121,12 @@ void bicudo::world_physics_init(
     0
   );
 
-  bicudo::float32 *p_a_rect_resources {
-    p_simulator->host_detect_collision_memory.rect_a.resources
-  };
+  bicudo::log() << "Post writeback:";
 
-  bicudo::log() << p_a_rect_resources[0] << " mu " << p_a_rect_resources[1];
+
+  for (uint64_t it {}; it < p_simulator->detect_collision_memory.size(); it++) {
+    bicudo::log() << p_buffer[it];
+  }
 }
 
 void bicudo::world_physics_update_simulator(

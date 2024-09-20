@@ -188,11 +188,11 @@ int32_t main(int32_t, char**) {
     &pipeline_create_info
   );
 
-  ekg::frame("oiii muuu", {20, static_cast<float>(sdl_display_mode.h) - 700}, {400, 600})
+  ekg::frame("oiii muuu", {20, static_cast<float>(sdl_display_mode.h) - 700}, {600, 600})
     ->set_resize(ekg::dock::left | ekg::dock::bottom | ekg::dock::right | ekg::dock::top)
     ->set_drag(ekg::dock::full);
 
-  ekg::button("couwnt in GPU:")
+  ekg::button("🐄😊💕")
     ->set_task(
       new ekg::task {
         .info = {
@@ -222,7 +222,7 @@ int32_t main(int32_t, char**) {
     ->range<uint32_t>(0).u32.transfer_ownership(&number_host);
 
   ekg::vec3 background_color {0.081f, 0.088f, 0.075f};
-  ekg::label("Background Color:", ekg::dock::next);
+  ekg::label("BG:", ekg::dock::next);
   ekg::slider<float>("bg-clear-color-ownership", ekg::dock::fill)
     ->range<float>(0, 0.0f, 0.0f, 1.0f, 2)
     ->range<float>(0).f32.transfer_ownership(&background_color.x)
@@ -372,6 +372,9 @@ int32_t main(int32_t, char**) {
   }
 
   meow::init();
+
+  ekg::ui::auto_scale = false;
+  ekg::ui::scale = {1280.0f, 700.0f};
 
   while (running) {
     while (SDL_PollEvent(&sdl_event)) {

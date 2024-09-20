@@ -171,8 +171,8 @@ bicudo::result bicudo::gpu_create_pipeline(
 
         hip_validate(
           hipMemcpy(
-            buffer.p_host,
             buffer.p_device,
+            buffer.p_host,
             buffer.size,
             hipMemcpyHostToDevice
           ),
