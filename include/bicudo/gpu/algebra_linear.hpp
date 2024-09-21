@@ -31,9 +31,9 @@ namespace bicudo::gpu {
   public:
     union {
       struct {
-        float32_t has_support_point;
         float32_t best_distance;
         float32_t best_edge;
+        float32_t has_support_point;
         float32_t depth;
 
         float32_t normal_x;

@@ -7,9 +7,15 @@
 #include <cstdint>
 
 namespace bicudo {
+  enum physics_runtime_type {
+    CPU_SIDE = 0,
+    GPU_ROCM = 1
+  };
+
   extern struct application {
   public:
     bicudo::world_manager world_manager {};
+    bicudo::physics_runtime_type physics_runtime_type {}; 
   } app;
 
   void init();
