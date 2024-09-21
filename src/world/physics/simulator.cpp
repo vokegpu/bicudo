@@ -75,7 +75,7 @@ void bicudo::world_physics_compute_detect_collision_kernel(
     //std::cout << p_host[it] << std::endl;
   //}
 
-  //std::cout << p_simulator->detect_collision_memory.has_support_point << " " << p_simulator->detect_collision_memory.depth << std::endl;
+  std::cout << p_simulator->detect_collision_memory.depth << " " << p_simulator->detect_collision_memory.best_edge << std::endl;
 }
 
 void bicudo::world_physics_collision_info_memory_fetch(
@@ -92,7 +92,7 @@ void bicudo::world_physics_collision_info_memory_fetch(
     break;
   case bicudo::types::WRITESTORE:
     p_collision_info->has_support_point = static_cast<int32_t>(p_packed->has_support_point) > 3;
-    p_collision_info->depth = p_packed->best_distance;
+    p_collision_info->depth = p_packed->depth;
     p_collision_info->normal.x = p_packed->normal_x;
     p_collision_info->normal.y = p_packed->normal_y;
     p_collision_info->start.x = p_packed->start_x;
@@ -177,6 +177,7 @@ void bicudo::world_physics_init(
 
     #define CLAMP_MAX(a, b)  ((a) > (b) ? (b) : (a))
     #define AT(stride, pos) ((p_buffer[stride.offset + pos]))
+    #define ATOMIC_READ(at) ((atomicCAS(&at, at, at)))
 
     extern "C"
     __global__ void detect_collision(
@@ -185,38 +186,6 @@ void bicudo::world_physics_init(
       uint32_t index {
         CLAMP_MAX(threadIdx.x, (uint32_t) 3)
       };
-
-      if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == 4) {
-        uint32_t best_edge_index {
-          (uint32_t) AT(IT_BEST_EDGE, 0)
-        };
-
-        vec2_t best_edge {
-          AT(IT_A_EDGES, (best_edge_index * 2) + 0),
-          AT(IT_A_EDGES, (best_edge_index * 2) + 1)
-        };
-
-        float best_distance {
-          AT(IT_BEST_DISTANCE, 0)
-        };
-
-        AT(IT_DEPTH, 0) = best_distance;
-        AT(IT_NORMAL, 0) = best_edge.x;
-        AT(IT_NORMAL, 1) = best_edge.y;
-
-        vec2_t support_point {
-          AT(IT_START, 0),
-          AT(IT_START, 1)
-        };
-
-        AT(IT_START, 0) = support_point.x + (best_edge.x * best_distance);
-        AT(IT_START, 1) = support_point.y + (best_edge.y * best_distance);
-
-        AT(IT_END, 0) = AT(IT_START, 0) + best_edge.x * best_distance;
-        AT(IT_END, 1) = AT(IT_START, 1) + best_edge.y * best_distance;
-
-        return;
-      }
 
       vec2_t edge {
         AT(IT_A_EDGES, (index * 2) + 0),
@@ -259,12 +228,52 @@ void bicudo::world_physics_init(
         }
       }
 
-      if (has_support_point > 0.0f && dist < AT(IT_BEST_DISTANCE, 0)) {
-        atomicExch(&AT(IT_BEST_DISTANCE, 0), dist);
-        atomicExch(&AT(IT_BEST_EDGE, 0), index);
+      __shared__ float best_distance;
+      __shared__ int32_t best_edge_index;
+
+      if (threadIdx.x == 0) {
+        best_distance = 99999.0f;
+        best_edge_index = 0;
+      }
+
+      __syncthreads();
+
+      if (has_support_point > 0.0f && dist < best_distance) {
+        best_distance = dist;
+        best_edge_index = (float) index;
         atomicExch(&AT(IT_START, 0), point.x);
         atomicExch(&AT(IT_START, 1), point.y);
         atomicAdd(&AT(IT_HAS_SUPPORT_POINT, 0), 1.0f);
+      }
+
+      __syncthreads();
+
+      if (threadIdx.x == 0) {
+        AT(IT_BEST_DISTANCE, 0) = best_distance;
+        AT(IT_BEST_EDGE, 0) = best_edge_index;
+      }
+
+      if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == 4) {
+        vec2_t best_edge {
+          AT(IT_A_EDGES, (best_edge_index * 2) + 0),
+          AT(IT_A_EDGES, (best_edge_index * 2) + 1)
+        };
+
+        AT(IT_DEPTH, 0) = best_distance;
+        AT(IT_BEST_EDGE, 0) = best_edge_index; 
+        AT(IT_NORMAL, 0) = best_edge.x;
+        AT(IT_NORMAL, 1) = best_edge.y;
+
+        vec2_t support_point {
+          AT(IT_START, 0),
+          AT(IT_START, 1)
+        };
+
+        AT(IT_START, 0) = support_point.x + (best_edge.x * best_distance);
+        AT(IT_START, 1) = support_point.y + (best_edge.y * best_distance);
+
+        AT(IT_END, 0) = AT(IT_START, 0) + best_edge.x * best_distance;
+        AT(IT_END, 1) = AT(IT_START, 1) + best_edge.y * best_distance;
       }
     }
 

@@ -16,7 +16,7 @@ namespace bicudo::gpu {
   };
 
   constexpr bicudo::gpu::stride_t it_best_distance {0, 1};
-  constexpr bicudo::gpu::stride_t it_best_edge {1, 2};
+  constexpr bicudo::gpu::stride_t it_best_edge {1, 1};
   constexpr bicudo::gpu::stride_t it_has_support_point {2, 1};
   constexpr bicudo::gpu::stride_t it_depth {3, 1};
   constexpr bicudo::gpu::stride_t it_normal {4, 2};
