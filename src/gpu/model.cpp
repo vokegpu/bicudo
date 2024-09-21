@@ -56,15 +56,18 @@ bicudo::result bicudo::gpu_memory_fetch(
 
   void *p_dst {};
   void *p_src {};
+  hipMemcpyKind mem_copy_kind {};
 
   switch (op_type) {
   case bicudo::types::WRITEBACK:
     p_dst = buffer.p_host;
     p_src = buffer.p_device;
+    mem_copy_kind = hipMemcpyDeviceToHost;
     break;
   case bicudo::types::WRITESTORE:
     p_dst = buffer.p_device;
     p_src = buffer.p_host;
+    mem_copy_kind = hipMemcpyHostToDevice;
     break;
   }
 
@@ -73,7 +76,7 @@ bicudo::result bicudo::gpu_memory_fetch(
       p_dst,
       p_src,
       buffer.size,
-      hipMemcpyDeviceToHost
+      mem_copy_kind
     ),
     "failed to copy memory"
   );

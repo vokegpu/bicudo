@@ -68,6 +68,14 @@ void bicudo::world_physics_compute_detect_collision_kernel(
     p_collision_info,
     bicudo::types::WRITESTORE
   );
+
+  //std::cout << "po"  << std::endl;
+  //float *p_host {p_simulator->detect_collision_memory.host_data()};
+  //for (uint64_t it {}; it < 10; it++) {
+    //std::cout << p_host[it] << std::endl;
+  //}
+
+  //std::cout << p_simulator->detect_collision_memory.has_support_point << " " << p_simulator->detect_collision_memory.depth << std::endl;
 }
 
 void bicudo::world_physics_collision_info_memory_fetch(
@@ -83,8 +91,8 @@ void bicudo::world_physics_collision_info_memory_fetch(
     p_packed->best_edge = 0.0f;
     break;
   case bicudo::types::WRITESTORE:
-    p_collision_info->has_support_point = static_cast<bool>(p_packed->has_support_point);
-    p_collision_info->depth = p_packed->depth;
+    p_collision_info->has_support_point = static_cast<int32_t>(p_packed->has_support_point) > 3;
+    p_collision_info->depth = p_packed->best_distance;
     p_collision_info->normal.x = p_packed->normal_x;
     p_collision_info->normal.y = p_packed->normal_y;
     p_collision_info->start.x = p_packed->start_x;
@@ -172,15 +180,15 @@ void bicudo::world_physics_init(
 
     extern "C"
     __global__ void detect_collision(
-      float *p_buffer
+      float *__restrict__ p_buffer
     ) {
-      int32_t index {
-        CLAMP_MAX(threadIdx.x, 4)
+      uint32_t index {
+        CLAMP_MAX(threadIdx.x, (uint32_t) 3)
       };
 
       if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == 4) {
-        int32_t best_edge_index {
-          (int32_t) AT(IT_BEST_EDGE, 0)
+        uint32_t best_edge_index {
+          (uint32_t) AT(IT_BEST_EDGE, 0)
         };
 
         vec2_t best_edge {
@@ -204,11 +212,9 @@ void bicudo::world_physics_init(
         AT(IT_START, 0) = support_point.x + (best_edge.x * best_distance);
         AT(IT_START, 1) = support_point.y + (best_edge.y * best_distance);
 
-        AT(IT_END, 0) = AT(IT_START, 0) + AT(IT_NORMAL, 0) * best_distance;
-        AT(IT_END, 1) = AT(IT_START, 1) + AT(IT_NORMAL, 1) * best_distance;
+        AT(IT_END, 0) = AT(IT_START, 0) + best_edge.x * best_distance;
+        AT(IT_END, 1) = AT(IT_START, 1) + best_edge.y * best_distance;
 
-        return;
-      } else if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == -1) {
         return;
       }
 
@@ -233,7 +239,7 @@ void bicudo::world_physics_init(
 
       vec2_t vertex {};
       vec2_t to_edge {};
-      float proj {};
+      float proj_dot {};
       vec2_t point {};
       float has_support_point {};
       
@@ -244,23 +250,21 @@ void bicudo::world_physics_init(
         to_edge.x = vertex.x - vert.x;
         to_edge.y = vertex.y - vert.y;
 
-        proj = (to_edge.x * dir.x + to_edge.y * dir.y);
+        proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
 
-        if (proj > 0.0f && proj > dist) {
+        if (proj_dot > 0.0f && proj_dot > dist) {
           point = vertex;
-          dist = proj;
+          dist = proj_dot;
           has_support_point = 1.0f;
         }
       }
 
       if (has_support_point > 0.0f && dist < AT(IT_BEST_DISTANCE, 0)) {
-        AT(IT_BEST_DISTANCE, 0) = dist;
-        AT(IT_BEST_EDGE, 0) = index;
-        AT(IT_START, 0) = point.x;
-        AT(IT_START, 1) = point.y;
-        AT(IT_HAS_SUPPORT_POINT, 0) += 1.0f;
-      } else {
-        AT(IT_HAS_SUPPORT_POINT, 0) = -1.0f;
+        atomicExch(&AT(IT_BEST_DISTANCE, 0), dist);
+        atomicExch(&AT(IT_BEST_EDGE, 0), index);
+        atomicExch(&AT(IT_START, 0), point.x);
+        atomicExch(&AT(IT_START, 1), point.y);
+        atomicAdd(&AT(IT_HAS_SUPPORT_POINT, 0), 1.0f);
       }
     }
 
@@ -388,156 +392,120 @@ void bicudo::world_physics_update_simulator(
   bicudo::vec2 tangent {};
 
   uint64_t placement_size {p_simulator->placement_list.size()};
+  for (uint64_t it_a {}; it_a < placement_size; it_a++) {
+    /* stupid */
+    for (uint64_t it_b {}; it_b < placement_size; it_b++) {
+      if (it_a == it_b) {
+        continue;
+      }
+  
+      bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
+      bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
 
-  switch (bicudo::app.physics_runtime_type) {
-  case bicudo::physics_runtime_type::CPU_SIDE:
-    for (uint64_t it_a {}; it_a < placement_size; it_a++) {
-      /* stupid */
-      for (uint64_t it_b {}; it_b < placement_size; it_b++) {
-        if (it_a == it_b) {
-          continue;
-        }
-  
-        bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
-        bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
-  
-        if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
-          continue;
-        }
-  
-        p_simulator->collision_info = {};
-  
-        was_collided = (
-          bicudo::world_physics_a_collide_with_b_check(
-            p_a,
-            p_b,
-            &p_simulator->collision_info,
-            p_simulator
-          )
-        );
-  
-        p_a->was_collided = was_collided;
-  
-        if (!was_collided) {
-          continue;
-        }
-  
-        n = p_simulator->collision_info.normal;
-        total_mass = p_a->mass + p_b->mass;
-        num = p_simulator->collision_info.depth / total_mass * 1.0f;
-        correction = n * num;
-  
-        bicudo::move(
+      if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
+        continue;
+      }
+
+      p_simulator->collision_info = {};
+
+      was_collided = (
+        bicudo::world_physics_a_collide_with_b_check(
           p_a,
-          correction * -p_a->mass
-        );
-  
-        bicudo::move(
           p_b,
-          correction * p_b->mass
-        );
-  
-        start = p_simulator->collision_info.start * (p_b->mass / total_mass);
-        end = p_simulator->collision_info.end * (p_a->mass / total_mass);
-        p = start + end;
-  
-        c1.x = p_a->pos.x + (p_a->size.x / 2);
-        c1.y = p_a->pos.y + (p_a->size.y / 2);
-        c1 = p - c1;
-      
-        c2.x = p_b->pos.x + (p_b->size.x / 2);
-        c2.y = p_b->pos.y + (p_b->size.y / 2);
-        c2 = p - c2;
-  
-        v1 = (
-          p_a->velocity + bicudo::vec2(-1.0f * p_a->angular_velocity * c1.y, p_a->angular_velocity * c1.x)
-        );
-  
-        v2 = (
-          p_b->velocity + bicudo::vec2(-1.0f * p_b->angular_velocity * c2.y, p_b->angular_velocity * c2.x)
-        );
-  
-        vdiff = v2 - v1;
-        vdiff_dot = vdiff.dot(n);
-  
-        if (vdiff_dot > 0.0f) {
-          continue;
-        }
-  
-        restitution = std::min(p_a->restitution, p_b->restitution);
-        friction = std::min(p_a->friction, p_b->friction);
-      
-        c1_cross = c1.cross(n);
-        c2_cross = c2.cross(n);
-  
-        jn = (
-          (-(1.0f + restitution) * vdiff_dot)
-          /
-          (total_mass + c1_cross * c1_cross * p_a->inertia + c2_cross * c2_cross * p_b->inertia)
-        );
-  
-        impulse = n * jn;
-  
-        p_a->velocity -= impulse * p_a->mass;
-        p_b->velocity += impulse * p_b->mass;
-  
-        p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
-        p_b->angular_velocity += c2_cross * jn * p_b->inertia;
-  
-        tangent = vdiff - n * vdiff.dot(n);
-        tangent = tangent.normalize() * -1.0f;
-  
-        c1_cross = c1.cross(tangent);
-        c2_cross = c2.cross(tangent);
-  
-        jt = (
-          (-(1.0f + restitution) * vdiff.dot(tangent) * friction)
-          /
-          (total_mass + c1_cross * c1_cross * p_a->inertia + c2_cross * c2_cross * p_b->inertia)
-        );
-  
-        jt = jt > jn ? jn : jt;
-        impulse = tangent * jt;
-  
-        p_a->velocity -= impulse * p_a->mass;
-        p_b->velocity += impulse * p_b->mass;
-  
-        p_a->angular_velocity -= c1_cross * jt * p_a->inertia;
-        p_b->angular_velocity += c2_cross * jt * p_b->inertia;
-      }
-    }
-    break;
-  case bicudo::physics_runtime_type::GPU_ROCM:
-    for (uint64_t it_a {}; it_a < placement_size; it_a++) {
-      /* stupid */
-      for (uint64_t it_b {}; it_b < placement_size; it_b++) {
-        if (it_a == it_b) {
-          continue;
-        }
-  
-        bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
-        bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
-  
-        if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
-          continue;
-        }
-  
-        p_simulator->collision_info = {};
-  
-        was_collided = (
-          bicudo::world_physics_a_collide_with_b_check(
-            p_a,
-            p_b,
-            &p_simulator->collision_info,
-            p_simulator
-          )
-        );
-  
-        p_a->was_collided = was_collided;
-      }
-    }
+          &p_simulator->collision_info,
+          p_simulator
+        )
+      );
 
-    break;
+      p_a->was_collided = was_collided;
+
+      if (!was_collided) {
+        continue;
+      }
+
+      n = p_simulator->collision_info.normal;
+      total_mass = p_a->mass + p_b->mass;
+      num = p_simulator->collision_info.depth / total_mass * 1.0f;
+      correction = n * num;
+
+      bicudo::move(
+        p_a,
+        correction * -p_a->mass
+      );
+  
+      bicudo::move(
+        p_b,
+        correction * p_b->mass
+      );
+
+      start = p_simulator->collision_info.start * (p_b->mass / total_mass);
+      end = p_simulator->collision_info.end * (p_a->mass / total_mass);
+      p = start + end;
+
+      c1.x = p_a->pos.x + (p_a->size.x / 2);
+      c1.y = p_a->pos.y + (p_a->size.y / 2);
+      c1 = p - c1;
+    
+      c2.x = p_b->pos.x + (p_b->size.x / 2);
+      c2.y = p_b->pos.y + (p_b->size.y / 2);
+      c2 = p - c2;
+
+      v1 = (
+        p_a->velocity + bicudo::vec2(-1.0f * p_a->angular_velocity * c1.y, p_a->angular_velocity * c1.x)
+      );
+
+      v2 = (
+        p_b->velocity + bicudo::vec2(-1.0f * p_b->angular_velocity * c2.y, p_b->angular_velocity * c2.x)
+      );
+
+      vdiff = v2 - v1;
+      vdiff_dot = vdiff.dot(n);
+
+      if (vdiff_dot > 0.0f) {
+        continue;
+      }
+
+      restitution = std::min(p_a->restitution, p_b->restitution);
+      friction = std::min(p_a->friction, p_b->friction);
+    
+      c1_cross = c1.cross(n);
+      c2_cross = c2.cross(n);
+
+      jn = (
+        (-(1.0f + restitution) * vdiff_dot)
+        /
+        (total_mass + c1_cross * c1_cross * p_a->inertia + c2_cross * c2_cross * p_b->inertia)
+      );
+
+      impulse = n * jn;
+
+      p_a->velocity -= impulse * p_a->mass;
+      p_b->velocity += impulse * p_b->mass;
+
+      p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
+      p_b->angular_velocity += c2_cross * jn * p_b->inertia;
+
+      tangent = vdiff - n * vdiff.dot(n);
+      tangent = tangent.normalize() * -1.0f;
+
+      c1_cross = c1.cross(tangent);
+      c2_cross = c2.cross(tangent);
+
+      jt = (
+        (-(1.0f + restitution) * vdiff.dot(tangent) * friction)
+        /
+        (total_mass + c1_cross * c1_cross * p_a->inertia + c2_cross * c2_cross * p_b->inertia)
+      );
+
+      jt = jt > jn ? jn : jt;
+      impulse = tangent * jt;
+  
+      p_a->velocity -= impulse * p_a->mass;
+      p_b->velocity += impulse * p_b->mass;
+  
+      p_a->angular_velocity -= c1_cross * jt * p_a->inertia;
+      p_b->angular_velocity += c2_cross * jt * p_b->inertia;
+    }
   }
 }
 
