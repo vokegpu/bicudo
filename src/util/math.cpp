@@ -1,5 +1,4 @@
 #include "bicudo/util/math.hpp"
-#include "bicudo/bicudo.hpp"
 #include <iostream>
 
 uint64_t bicudo::framerate {75};
@@ -136,56 +135,4 @@ bool bicudo::vec4_collide_with_vec4(const bicudo::vec4 &a, const bicudo::vec4 &b
     &&
     (a.y < b.y + b.w && a.y + a.w > b.y)
   );
-}
-
-void bicudo::move(bicudo::placement *p_placement, const bicudo::vec2 &dir) {
-  p_placement->min.x = 99999.0f;
-  p_placement->min.y = 99999.0f;
-  p_placement->max.x = -99999.0f;
-  p_placement->max.y = -99999.0f;
-
-  for (bicudo::vec2 &vertex : p_placement->vertices) {
-    vertex += dir;
-
-    p_placement->min.x = std::min(p_placement->min.x, vertex.x);
-    p_placement->min.y = std::min(p_placement->min.y, vertex.y);
-    p_placement->max.x = std::max(p_placement->max.x, vertex.x);
-    p_placement->max.y = std::max(p_placement->max.y, vertex.y);
-  }
-
-  bicudo::splash_edges_normalized(
-    p_placement->edges.data(),
-    p_placement->vertices.data()
-  );
-
-  p_placement->pos += dir;
-}
-
-void bicudo::rotate(bicudo::placement *p_placement, float angle_dir) {
-  bicudo::vec2 center {
-    p_placement->pos.x + (p_placement->size.x / 2),
-    p_placement->pos.y + (p_placement->size.y / 2)
-  };
-
-  for (bicudo::vec2 &vertex : p_placement->vertices) {
-    vertex = vertex.rotate(angle_dir, center);
-  }
-
-  p_placement->angle += angle_dir;
-}
-
-void bicudo::mass(bicudo::placement *p_placement, float mass) {
-  if (bicudo::assert_float(mass, 0.0f)) {
-    p_placement->inertia = 0.0f;
-    p_placement->mass = 0.0f;
-  } else {
-    p_placement->mass = mass;
-    p_placement->inertia = (1.0f / mass) * p_placement->size.magnitude_no_sq() / 12;
-    p_placement->inertia = 1.0f / p_placement->inertia;
-  }
-}
-
-void bicudo::to_local_camera(bicudo::vec2 *p_vec) {
-  p_vec->x /= bicudo::app.world_manager.camera.zoom;
-  p_vec->y /= bicudo::app.world_manager.camera.zoom;
 }

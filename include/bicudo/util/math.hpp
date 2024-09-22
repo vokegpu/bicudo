@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include <cfloat>
-#include <vector>
 #include <cstdint>
 
 #define bicudo_clamp_min(a, b)      ((a) < (b) ? (b) : (a))
@@ -342,33 +341,6 @@ namespace bicudo {
     }
    } vec4;
 
-  struct placement {
-  public:
-    const char *p_tag {};
-
-    float mass {};
-    float friction {};
-    float restitution {};
-    float inertia {};
-
-    bicudo::vec2 min {};
-    bicudo::vec2 max {};
-
-    bicudo::vec2 pos {};
-    bicudo::vec2 size {};
-    bicudo::vec2 velocity {};
-    bicudo::vec2 acc {};
-
-    float angle {};
-    float angular_velocity {};
-    float angular_acc {};
-
-    std::vector<bicudo::vec2> vertices {};
-    std::vector<bicudo::vec2> edges {};
-
-    bool was_collided {};
-  };
-
   void splash_vertices(bicudo::vec2 *p_vertices, bicudo::vec2 &pos, bicudo::vec2 &size);
   void splash_edges_normalized(bicudo::vec2 *p_edges, bicudo::vec2 *p_vertices);
 
@@ -389,11 +361,6 @@ namespace bicudo {
   bool aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec4(const bicudo::vec4 &a, const bicudo::vec4 &b);
-
-  void move(bicudo::placement *p_placement, const bicudo::vec2 &dir);
-  void rotate(bicudo::placement *p_placement, float angle_dir);
-  void mass(bicudo::placement *p_placement, float mass);
-  void to_local_camera(bicudo::vec2 *p_vec);
 }
 
 #endif

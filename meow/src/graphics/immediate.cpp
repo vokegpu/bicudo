@@ -1,4 +1,5 @@
 #include "immediate.hpp"
+#include "meow.hpp"
 #include "bicudo/bicudo.hpp"
 #include <iostream>
 
@@ -109,7 +110,7 @@ void meow::immediate_graphics::set_viewport(int32_t w, int32_t h) {
   this->viewport.z = static_cast<float>(w);
   this->viewport.w = static_cast<float>(h);
 
-  bicudo::camera &camera {bicudo::app.world_manager.camera};
+  meow::camera &camera {meow::app.camera};
   bicudo::vec2 center {this->viewport.z / 2, this->viewport.w / 2};
 
   bicudo::vec2 delta {(center / this->current_zoom) + camera.placement.pos};

@@ -17,6 +17,7 @@ void meow::init() {
   bicudo::log() << "Initializing Meow renderer and GUI bindings!";
 
   meow::app.immediate.create();
+  meow::app.camera.create();
 
   ekg::input::bind("click-on-object", "mouse-1");
   ekg::input::bind("drop-object", "mouse-1-up");
@@ -26,7 +27,7 @@ void meow::init() {
 }
 
 void meow::render() {
-  bicudo::camera &camera {bicudo::world::camera()};
+  meow::camera &camera {meow::app.camera};
   meow::app.immediate.invoke();
 
   bicudo::vec4 rect {};
@@ -34,34 +35,34 @@ void meow::render() {
 
   meow::app.rendering_placements_count = 0;
 
-  for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
-    rect.x = p_objs->placement.pos.x;
-    rect.y = p_objs->placement.pos.y;
-    rect.z = p_objs->placement.size.x;
-    rect.w = p_objs->placement.size.y;
+  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.simulator.placement_list) {
+    rect.x = p_placements->pos.x;
+    rect.y = p_placements->pos.y;
+    rect.z = p_placements->size.x;
+    rect.w = p_placements->size.y;
 
     if (!bicudo::vec4_collide_with_vec4(rect, camera.rect)) {
       continue;
     }
 
-    rect.x = p_objs->placement.pos.x - camera.placement.pos.x;
-    rect.y = p_objs->placement.pos.y - camera.placement.pos.y;
+    rect.x = p_placements->pos.x - camera.placement.pos.x;
+    rect.y = p_placements->pos.y - camera.placement.pos.y;
 
-    color.x = p_objs->placement.was_collided;
-    meow::app.immediate.draw(rect, color, p_objs->placement.angle);
+    color.x = p_placements->was_collided;
+    meow::app.immediate.draw(rect, color, p_placements->angle);
     meow::app.rendering_placements_count++;
 
     if (meow::app.settings.show_vertices) {
-      meow::app.immediate.draw({p_objs->placement.vertices[0].x - camera.placement.pos.x, p_objs->placement.vertices[0].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[1].x - camera.placement.pos.x, p_objs->placement.vertices[1].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[2].x - camera.placement.pos.x, p_objs->placement.vertices[2].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.vertices[3].x - camera.placement.pos.x, p_objs->placement.vertices[3].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({rect.x - camera.placement.pos.x + p_objs->placement.size.x / 2, rect.y - camera.placement.pos.y + p_objs->placement.size.y / 2, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->vertices[0].x - camera.placement.pos.x, p_placements->vertices[0].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->vertices[1].x - camera.placement.pos.x, p_placements->vertices[1].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->vertices[2].x - camera.placement.pos.x, p_placements->vertices[2].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->vertices[3].x - camera.placement.pos.x, p_placements->vertices[3].y - camera.placement.pos.y, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({rect.x - camera.placement.pos.x + p_placements->size.x / 2, rect.y - camera.placement.pos.y + p_placements->size.y / 2, 10.0f, 10.0f}, {1.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
     }
 
     if (meow::app.settings.show_aabb) {
-      meow::app.immediate.draw({p_objs->placement.min.x - camera.placement.pos.x, p_objs->placement.min.y - camera.placement.pos.y, 10.0f, 10.0f}, {0.0f, 1.0f, 1.0f, 1.0f}, 0.0f);
-      meow::app.immediate.draw({p_objs->placement.max.x - camera.placement.pos.x, p_objs->placement.max.y - camera.placement.pos.y, 10.0f, 10.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->min.x - camera.placement.pos.x, p_placements->min.y - camera.placement.pos.y, 10.0f, 10.0f}, {0.0f, 1.0f, 1.0f, 1.0f}, 0.0f);
+      meow::app.immediate.draw({p_placements->max.x - camera.placement.pos.x, p_placements->max.y - camera.placement.pos.y, 10.0f, 10.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, 0.0f);
     }
   }
 
@@ -69,13 +70,13 @@ void meow::render() {
     rect.z = 10.0f;
     rect.w = 10.0f;
 
-    rect.x = bicudo::app.world_manager.simulator.collision_info.start.x ;
-    rect.y = bicudo::app.world_manager.simulator.collision_info.start.y;
+    rect.x = meow::app.bicudo.simulator.collision_info.start.x ;
+    rect.y = meow::app.bicudo.simulator.collision_info.start.y;
 
     meow::app.immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f}, 0.0f);
 
-    rect.x = bicudo::app.world_manager.simulator.collision_info.end.x;
-    rect.y = bicudo::app.world_manager.simulator.collision_info.end.y;
+    rect.x = meow::app.bicudo.simulator.collision_info.end.x;
+    rect.y = meow::app.bicudo.simulator.collision_info.end.y;
 
     meow::app.immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f}, 0.0f);
   }
@@ -248,7 +249,7 @@ int32_t main(int32_t, char**) {
   ekg::label("Gravity:", ekg::dock::next);
   ekg::slider<float>("gravity-ownership", ekg::dock::fill)
     ->range<float>(0, 9.0f, 0.0f, 20.0f)
-    ->range<float>(0).f32.transfer_ownership(&bicudo::app.world_manager.gravity.y)
+    ->range<float>(0).f32.transfer_ownership(&meow::app.bicudo.gravity.y)
     ->set_text_align(ekg::dock::center | ekg::dock::right);
 
   ekg::label("Objects:", ekg::dock::next);
@@ -259,7 +260,7 @@ int32_t main(int32_t, char**) {
 
   ekg::label("---", ekg::dock::next);
   ekg::checkbox("GPU-ROCm Collisions", false, ekg::dock::next | ekg::dock::fill)
-    ->transfer_ownership((bool*)&bicudo::app.physics_runtime_type);
+    ->transfer_ownership((bool*)&meow::app.bicudo.physics_runtime_type);
 
   ekg::checkbox("Show AABB", false, ekg::dock::next | ekg::dock::fill)
     ->transfer_ownership(&meow::app.settings.show_aabb);
@@ -281,13 +282,13 @@ int32_t main(int32_t, char**) {
   ekg::scrollbar("scrollbar-meow");
   ekg::pop_group();
 
-  bicudo::app.world_manager.gravity.x = 0.0f;
+  meow::app.bicudo.gravity.x = 0.0f;
 
   uint64_t framerate_count {};
   ekg::timing elapsed_frame_timing {};
   bicudo::vec2 gravity {};
 
-  bicudo::object *p_cow {new bicudo::object({
+  bicudo::physics::placement *p_cow {new bicudo::physics::placement({
     .p_tag = "vakinha",
     .mass = 2000.0f,
     .friction = 0.0001f,
@@ -297,7 +298,7 @@ int32_t main(int32_t, char**) {
     .acc = gravity
   })};
 
-  bicudo::object *p_cow_2 {new bicudo::object({
+  bicudo::physics::placement *p_cow_2 {new bicudo::physics::placement({
     .p_tag = "gatinho",
     .mass = 20.0f,
     .friction = 0.0001f,
@@ -307,7 +308,7 @@ int32_t main(int32_t, char**) {
     .acc = gravity
   })};
 
-  bicudo::object *p_terrain_bottom {new bicudo::object({
+  bicudo::physics::placement *p_terrain_bottom {new bicudo::physics::placement({
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
     .friction = 0.8f,
@@ -318,7 +319,7 @@ int32_t main(int32_t, char**) {
     .acc = {0.0f, 0.0f}
   })};
 
-  bicudo::object *p_terrain_top {new bicudo::object({
+  bicudo::physics::placement *p_terrain_top {new bicudo::physics::placement({
     .p_tag = "terrain-top",
     .mass = 0.0f,
     .friction = 0.2f,
@@ -329,7 +330,7 @@ int32_t main(int32_t, char**) {
     .acc = {0.0f, 0.0f}
   })};
 
-  bicudo::object *p_terrain_left {new bicudo::object({
+  bicudo::physics::placement *p_terrain_left {new bicudo::physics::placement({
     .p_tag = "terrain-left",
     .mass = 0.0f,
     .friction = 0.2f,
@@ -340,7 +341,7 @@ int32_t main(int32_t, char**) {
     .acc = {0.0f, 0.0f}
   })};
 
-  bicudo::object *p_terrain_right {new bicudo::object({
+  bicudo::physics::placement *p_terrain_right {new bicudo::physics::placement({
     .p_tag = "terrain-right",
     .mass = 0.0f,
     .friction = 0.2f,
@@ -351,22 +352,22 @@ int32_t main(int32_t, char**) {
     .acc = {0.0f, 0.0f}
   })};
 
-  bicudo::object *p_picked_obj {nullptr};
+  bicudo::physics::placement *p_picked_obj {nullptr};
   ekg::vec4 &interact {ekg::input::interact()};
   bicudo::vec2 drag {};
 
-  bicudo::app.physics_runtime_type = bicudo::physics_runtime_type::GPU_ROCM;
+  meow::app.bicudo.physics_runtime_type = bicudo::physics_runtime_type::CPU_SIDE;
 
-  bicudo::init();
-  bicudo::world::insert(p_cow);
-  bicudo::world::insert(p_cow_2);
-  bicudo::world::insert(p_terrain_top);
-  bicudo::world::insert(p_terrain_bottom);
-  bicudo::world::insert(p_terrain_left);
-  bicudo::world::insert(p_terrain_right);
+  bicudo::init(&meow::app.bicudo);
+  bicudo::insert(&meow::app.bicudo, p_cow);
+  bicudo::insert(&meow::app.bicudo, p_cow_2);
+  bicudo::insert(&meow::app.bicudo, p_terrain_top);
+  bicudo::insert(&meow::app.bicudo, p_terrain_bottom);
+  bicudo::insert(&meow::app.bicudo, p_terrain_left);
+  bicudo::insert(&meow::app.bicudo, p_terrain_right);
 
-  for (uint64_t it {}; it < 30; it++) {
-    bicudo::world::insert(new bicudo::object({
+  for (uint64_t it {}; it < 60; it++) {
+    bicudo::insert(&meow::app.bicudo, new bicudo::physics::placement({
     .p_tag = "miau",
     .mass = bicudo_clamp_min(static_cast<float>(std::rand() % 200), 1),
     .friction = bicudo_clamp_min(static_cast<float>((std::rand() % 100) / 100), 0.0000001f),
@@ -389,7 +390,6 @@ int32_t main(int32_t, char**) {
       }
 
       if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-        bicudo::viewport(sdl_event.window.data1, sdl_event.window.data2);
         meow::app.immediate.set_viewport(sdl_event.window.data1, sdl_event.window.data2);
       }
 
@@ -412,9 +412,9 @@ int32_t main(int32_t, char**) {
       framerate_count = 0;
 
       std::string position {"("};
-      position += std::to_string(bicudo::app.world_manager.camera.placement.pos.x);
+      position += std::to_string(meow::app.camera.placement.pos.x);
       position += ", ";
-      position += std::to_string(bicudo::app.world_manager.camera.placement.pos.y);
+      position += std::to_string(meow::app.camera.placement.pos.y);
       position += ")";
 
       p_position->set_value(position);
@@ -428,7 +428,7 @@ int32_t main(int32_t, char**) {
       &meow::app.object_pickup_info
     );
 
-    bicudo::update();
+    bicudo::update(&meow::app.bicudo);
     ekg::update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -1,7 +1,7 @@
 #ifndef MEOW_TOOLS_PICKUP_HPP
 #define MEOW_TOOLS_PICKUP_HPP
 
-#include "bicudo/world/object.hpp"
+#include "bicudo/physics/placement.hpp"
 
 namespace meow::tools {
   struct pickup_info_t {
@@ -9,12 +9,20 @@ namespace meow::tools {
     bicudo::vec2 delta {};
     bicudo::vec2 pick_pos {};
     bicudo::vec2 prev_pos {};
-    bicudo::placement *p_placement {};
-    bicudo::object *p_obj {};
+    bicudo::physics::placement *p_placement {};
   };
 }
 
 namespace meow {
+  void tools_to_local_camera(
+    bicudo::vec2 *p_vec
+  );
+
+  bicudo::collided tools_pick_physics_placement(
+    bicudo::physics::placement *&p_placement,
+    bicudo::vec2 pos
+  );
+
   void tools_pick_camera(
     meow::tools::pickup_info_t *p_pickup_info
   );

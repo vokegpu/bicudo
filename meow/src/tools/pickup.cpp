@@ -4,15 +4,35 @@
 #include <ekg/ekg.hpp>
 #include "meow.hpp"
 
+void meow::tools_to_local_camera(bicudo::vec2 *p_vec) {
+  p_vec->x /= meow::app.camera.zoom;
+  p_vec->y /= meow::app.camera.zoom;
+}
+
+bicudo::collided meow::tools_pick_physics_placement(bicudo::physics::placement *&p_placement, bicudo::vec2 pos) {
+  bicudo::vec2 &cam {meow::app.camera.placement.pos};
+  float &zoom {meow::app.camera.zoom};
+  pos = (pos / zoom) + cam;
+
+  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.simulator.placement_list) {
+    if (bicudo::aabb_collide_with_vec2(p_placements->min, p_placements->max, pos)) {
+      p_placement = p_placements;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void meow::tools_pick_camera(
   meow::tools::pickup_info_t *p_pickup_info
 ) {
-  bicudo::camera &camera {bicudo::world::camera()};
+  meow::camera &camera {meow::app.camera};
   ekg::vec4 &interact {ekg::input::interact()};
 
   if (ekg::hovered.id == 0 && ekg::input::action("zoom-camera")) {
-    bicudo::app.world_manager.camera.interpolated_zoom = bicudo_clamp_min(
-      bicudo::app.world_manager.camera.interpolated_zoom + interact.w * 0.09f,
+    meow::app.camera.interpolated_zoom = bicudo_clamp_min(
+      meow::app.camera.interpolated_zoom + interact.w * 0.09f,
       0.000001f
     );
   }
@@ -38,10 +58,10 @@ void meow::tools_pick_camera(
 void meow::tools_update_picked_camera(
   meow::tools::pickup_info_t *p_pickup_info
 ) {
-  if (bicudo::app.world_manager.camera.interpolated_zoom != bicudo::app.world_manager.camera.zoom) {
-    bicudo::app.world_manager.camera.zoom = bicudo::lerp<float>(
-      bicudo::app.world_manager.camera.zoom,
-      bicudo::app.world_manager.camera.interpolated_zoom,
+  if (meow::app.camera.interpolated_zoom != meow::app.camera.zoom) {
+    meow::app.camera.zoom = bicudo::lerp<float>(
+      meow::app.camera.zoom,
+      meow::app.camera.interpolated_zoom,
       bicudo::dt
     );
 
@@ -50,6 +70,8 @@ void meow::tools_update_picked_camera(
       meow::app.immediate.viewport.w
     );
   }
+
+  meow::app.camera.on_update();
 
   if (!p_pickup_info->p_placement) {
     return;
@@ -72,28 +94,28 @@ bicudo::collided meow::tools_pick_object_from_world(
   ekg::vec4 &interact {ekg::input::interact()};
 
   if (
-      !p_pickup_info->p_obj &&
+      !p_pickup_info->p_placement &&
       ekg::hovered.id == 0 &&
       ekg::input::action("click-on-object") &&
-      bicudo::world::pick(p_pickup_info->p_obj, bicudo::vec2(interact.x, interact.y))
+      meow::tools_pick_physics_placement(p_pickup_info->p_placement, bicudo::vec2(interact.x, interact.y))
     ) {
 
-    p_pickup_info->delta.x = interact.x - p_pickup_info->p_obj->placement.min.x;
-    p_pickup_info->delta.y = interact.y - p_pickup_info->p_obj->placement.min.y;
+    p_pickup_info->delta.x = interact.x - p_pickup_info->p_placement->min.x;
+    p_pickup_info->delta.y = interact.y - p_pickup_info->p_placement->min.y;
 
-    p_pickup_info->pick_pos.x = p_pickup_info->p_obj->placement.pos.x;
-    p_pickup_info->pick_pos.y = p_pickup_info->p_obj->placement.pos.y;
+    p_pickup_info->pick_pos.x = p_pickup_info->p_placement->pos.x;
+    p_pickup_info->pick_pos.y = p_pickup_info->p_placement->pos.y;
 
     p_pickup_info->prev_pos.x = interact.x;
     p_pickup_info->prev_pos.y = interact.y;
 
-    bicudo::to_local_camera(&p_pickup_info->pick_pos);
-    bicudo::to_local_camera(&p_pickup_info->prev_pos);
-    bicudo::to_local_camera(&p_pickup_info->delta);
+    meow::tools_to_local_camera(&p_pickup_info->pick_pos);
+    meow::tools_to_local_camera(&p_pickup_info->prev_pos);
+    meow::tools_to_local_camera(&p_pickup_info->delta);
 
     return true;
   } else if (ekg::input::action("drop-object")) {
-    p_pickup_info->p_obj = nullptr;
+    p_pickup_info->p_placement = nullptr;
     return false;
   }
 
@@ -103,27 +125,27 @@ bicudo::collided meow::tools_pick_object_from_world(
 void meow::tools_update_picked_object(
   meow::tools::pickup_info_t *p_pickup_info
 ) {
-  if (!p_pickup_info->p_obj) {
+  if (!p_pickup_info->p_placement) {
     return;
   }
 
   ekg::vec4 interact {ekg::input::interact()};
 
-  interact.x /= bicudo::app.world_manager.camera.zoom;
-  interact.y /= bicudo::app.world_manager.camera.zoom;
+  interact.x /= meow::app.camera.zoom;
+  interact.y /= meow::app.camera.zoom;
 
-  p_pickup_info->p_obj->placement.velocity = {
+  p_pickup_info->p_placement->velocity = {
     ((interact.x - p_pickup_info->delta.x) - (p_pickup_info->prev_pos.x - p_pickup_info->delta.x)),
     ((interact.y - p_pickup_info->delta.y) - (p_pickup_info->prev_pos.y - p_pickup_info->delta.y))
   };
 
-  if (bicudo::assert_float(p_pickup_info->p_obj->placement.mass, 0.0f)) {
-    bicudo::move(
-      &p_pickup_info->p_obj->placement,
-      p_pickup_info->p_obj->placement.velocity
+  if (bicudo::assert_float(p_pickup_info->p_placement->mass, 0.0f)) {
+    bicudo::physics_placement_move(
+      p_pickup_info->p_placement,
+      p_pickup_info->p_placement->velocity
     );
 
-    p_pickup_info->p_obj->placement.velocity = {};
+    p_pickup_info->p_placement->velocity = {};
   }
 
   p_pickup_info->prev_pos.x = interact.x;

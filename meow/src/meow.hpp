@@ -2,6 +2,8 @@
 #define MEOW_HPP
 
 #include "tools/pickup.hpp"
+#include "tools/camera.hpp"
+#include "bicudo/bicudo.hpp"
 #include "graphics/immediate.hpp"
 
 #define MEOW_INITIAL_WINDOW_OFFSET 89
@@ -16,6 +18,8 @@ namespace meow {
 
   extern struct application {
   public:
+    bicudo::runtime bicudo {};
+    meow::camera camera {};
     meow::immediate_graphics immediate {};
     meow::tools::pickup_info_t object_pickup_info {};
     meow::tools::pickup_info_t camera_pickup_info {};

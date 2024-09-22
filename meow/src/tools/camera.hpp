@@ -1,21 +1,19 @@
-#ifndef BICUDO_WORLD_CAMERA_HPP
-#define BICUDO_WORLD_CAMERA_HPP
+#ifndef MEOW_TOOLS_CAMERA_HPP
+#define MEOW_TOOLS_CAMERA_HPP
 
 #include "bicudo/util/math.hpp"
+#include "bicudo/physics/placement.hpp"
 
-namespace bicudo {
+namespace meow {
   class camera {
   public:
-    static bicudo::vec2 display;
-  public:
-    bicudo::placement placement {};
+    bicudo::physics::placement placement {};
     float smooth_amount {0.2f};
     bicudo::vec4 rect {};
     float zoom {1.0f};
     float interpolated_zoom {1.0f};
   public:
     void create();
-    void set_viewport(int32_t w, int32_t h);
     void on_update();
   };
 }

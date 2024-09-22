@@ -4,145 +4,95 @@
 #include <vector>
 #include <iostream>
 
-bicudo::application bicudo::app {};
-
-void bicudo::init() {
-  bicudo::log() << "Initializing Bicudo physics service!";
-  bicudo::app.world_manager.on_create();
+void bicudo::init(
+  bicudo::runtime *p_runtime
+) {
+  bicudo::log() << "Initializing Bicudo physics simulator!";
+  bicudo::physics_init(
+    &p_runtime->simulator
+  );
 }
 
-void bicudo::update() {
-  bicudo::app.world_manager.on_update();
-}
-
-void bicudo::viewport(int32_t w, int32_t h) {
-  bicudo::app.world_manager.camera.set_viewport(w, h);
-}
-
-bicudo::camera &bicudo::world::camera() {
-  return bicudo::app.world_manager.camera;
-}
-
-void bicudo::world::insert(bicudo::object *p_obj) {
-  bicudo::app.world_manager.push_back_object(p_obj);
-}
-
-bicudo::collided bicudo::world::pick(bicudo::object *&p_obj, bicudo::vec2 pos) {
-  bicudo::vec2 &cam {bicudo::app.world_manager.camera.placement.pos};
-  float &zoom {bicudo::app.world_manager.camera.zoom};
-
-  pos = (pos / zoom) + cam;
-
-  for (bicudo::object *&p_objs : bicudo::app.world_manager.loaded_object_list) {
-    if (bicudo::aabb_collide_with_vec2(p_objs->placement.min, p_objs->placement.max, pos)) {
-      p_obj = p_objs;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
-#define assert_log(result, expect, error) result != expect && std::cout << error << std::endl
-
-static constexpr auto kernel_source {
-R"(
-  extern "C"
-  __global__ void meow(uint32_t *p_number) {
-    if (threadIdx.x == 0) {
-      uint32_t &number {*p_number};
-      number += 250;
-    }
-  }
-)"
-};
-
-void bicudo::count(uint32_t *p_number) {
-  hiprtcProgram program {};
-
-  hiprtcCreateProgram(
-    &program,
-    kernel_source,
-    "meow.cpp",
-    0,
-    nullptr,
-    nullptr
+void bicudo::insert(
+  bicudo::runtime *p_runtime,
+  bicudo::physics::placement *p_placement
+) {
+  bicudo::physics_placement_mass(
+    p_placement,
+    p_placement->mass
   );
 
-  hiprtcCompileProgram(
-    program,
-    0,
-    nullptr
+  p_placement->vertices.resize(4);
+  bicudo::splash_vertices(
+    p_placement->vertices.data(),
+    p_placement->pos,
+    p_placement->size
   );
 
-  uint64_t log_size {};
-  hiprtcGetProgramLogSize(program, &log_size);
+  p_placement->edges.resize(4);
+  bicudo::splash_edges_normalized(
+    p_placement->edges.data(),
+    p_placement->vertices.data()
+  );
 
-  if (log_size) {
-    std::string log {}; log.resize(log_size);
-    hiprtcGetProgramLog(program, log.data());
+  p_placement->id = p_runtime->highest_object_id++;
+  p_runtime->simulator.placement_list.push_back(p_placement);
+}
+
+void bicudo::erase(
+  bicudo::runtime *p_runtime,
+  bicudo::physics::placement *p_placement
+) {
+  // meow
+}
+
+void bicudo::erase(
+  bicudo::runtime *p_runtime,
+  bicudo::id id
+) {
+  // meow
+}
+
+void bicudo::update(
+  bicudo::runtime *p_runtime
+) {
+  bicudo::vec2 center {};
+  for (bicudo::physics::placement *&p_placement : p_runtime->simulator.placement_list) {
+    p_placement->acc.y = (
+      p_runtime->gravity.y * (!bicudo::assert_float(p_placement->mass, 0.0f))
+    ); // enable it
   
-    std::cout << "meow??? " << log_size << std::endl;
+    p_placement->min.x = 99999.0f;
+    p_placement->min.y = 99999.0f;
+    p_placement->max.x = -99999.0f;
+    p_placement->max.y = -99999.0f;
+
+    p_placement->velocity += p_placement->acc * bicudo::dt;
+    p_placement->pos += p_placement->velocity;
+
+    p_placement->angular_velocity += p_placement->angular_acc * bicudo::dt;
+    p_placement->angle += p_placement->angular_velocity;
+
+    center.x = p_placement->pos.x + (p_placement->size.x / 2);
+    center.y = p_placement->pos.y + (p_placement->size.y / 2);
+
+    for (bicudo::vec2 &vertex : p_placement->vertices) {
+      vertex += p_placement->velocity;
+      vertex = vertex.rotate(p_placement->angular_velocity, center);
+
+      p_placement->min.x = std::min(p_placement->min.x, vertex.x);
+      p_placement->min.y = std::min(p_placement->min.y, vertex.y);
+      p_placement->max.x = std::max(p_placement->max.x, vertex.x);
+      p_placement->max.y = std::max(p_placement->max.y, vertex.y);
+    }
+
+    bicudo::splash_edges_normalized(
+      p_placement->edges.data(),
+      p_placement->vertices.data()
+    );
   }
 
-  hipDeviceProp_t device_properties {};
-  assert_log(hipGetDeviceProperties(&device_properties, 0), hipSuccess, "idc");
-  std::cout << device_properties.gcnArchName << std::endl;
-
-  uint64_t kernel_binary_size {};
-  assert_log(hiprtcGetCodeSize(program, &kernel_binary_size), HIP_SUCCESS, "meow");
-
-  std::vector<char> kernel_binary(kernel_binary_size);
-  assert_log(hiprtcGetCode(program, kernel_binary.data()), HIP_SUCCESS, "ugabuga");
-
-  assert_log(hiprtcDestroyProgram(&program), HIPRTC_SUCCESS, "? failed to do meow");
-
-  hipModule_t module {};
-  hipFunction_t kernel {};
-
-  assert_log(hipModuleLoadData(&module, kernel_binary.data()), hipSuccess, "idk");
-  assert_log(hipModuleGetFunction(&kernel, module, "meow"), hipSuccess, "idk");
-
-  uint32_t *p_number_device {};
-
-  assert_log(hipMalloc(&p_number_device, sizeof(uint32_t)), hipSuccess, "oi");
-  assert_log(hipMemcpy(p_number_device, &p_number, sizeof(uint32_t), hipMemcpyHostToDevice), hipSuccess, "oi");
-
-  struct {
-    uint32_t *p_number;
-  } args {p_number_device};
-
-  uint64_t size {sizeof(args)};
-
-  void *p_configs[] {
-    HIP_LAUNCH_PARAM_BUFFER_POINTER, &args,
-    HIP_LAUNCH_PARAM_BUFFER_SIZE, &size,
-    HIP_LAUNCH_PARAM_END
-  };
-
-  hipError_t err {
-    hipModuleLaunchKernel(
-      kernel,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      nullptr,
-      nullptr,
-      p_configs
-    )
-  };
-
-  if (err != hipSuccess) {
-    std::cout << "muu: " << hipGetErrorName(err) << std::endl;
-  }
-
-  assert_log(hipMemcpy(&p_number, p_number_device, sizeof(uint32_t), hipMemcpyDeviceToHost), hipSuccess, "oi amo brigadeiro");
-
-  std::cout << "bicudo muuuuuuuuuuuu" << p_number << std::endl;
+  bicudo::physics_update_simulator(
+    &p_runtime->simulator
+  );
 }
-**/

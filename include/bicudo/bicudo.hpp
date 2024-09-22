@@ -2,33 +2,42 @@
 #define BICUDO_HPP
 
 #include "bicudo/util/log.hpp"
-#include "bicudo/world/management/world_manager.hpp"
 #include "bicudo/gpu/model.hpp"
+#include "bicudo/physics/simulator.hpp"
+#include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
 namespace bicudo {
-  enum physics_runtime_type {
-    CPU_SIDE = 0,
-    GPU_ROCM = 1
+  struct runtime {
+  public:
+    bicudo::physics::simulator simulator {};
+    bicudo::id highest_object_id {};
+    bicudo::vec2 gravity {};
+    bicudo::physics_runtime_type physics_runtime_type {}; 
   };
 
-  extern struct application {
-  public:
-    bicudo::world_manager world_manager {};
-    bicudo::physics_runtime_type physics_runtime_type {}; 
-  } app;
+  void init(
+    bicudo::runtime *p_runtime
+  );
 
-  void init();
-  void update();
-  void viewport(int32_t w, int32_t h);
+  void insert(
+    bicudo::runtime *p_runtime,
+    bicudo::physics::placement *p_placement
+  );
 
-  namespace world {
-    bicudo::camera &camera();
-    void insert(bicudo::object *p_obj);
-    bicudo::collided pick(bicudo::object *&p_obj, bicudo::vec2 pos);
-  }
+  void erase(
+    bicudo::runtime *p_runtime,
+    bicudo::physics::placement *p_placement
+  );
 
-  void count(uint32_t *p_number);
+  void erase(
+    bicudo::runtime *p_runtime,
+    bicudo::id id
+  );
+
+  void update(
+    bicudo::runtime *p_runtime
+  );
 }
 
 #endif

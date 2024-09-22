@@ -1,12 +1,12 @@
-#include "bicudo/world/physics/simulator.hpp"
+#include "bicudo/physics/simulator.hpp"
 #include "bicudo/util/log.hpp"
 #include "bicudo/bicudo.hpp"
 
-void bicudo::world_physics_compute_detect_collision_kernel(
-  bicudo::world::physics::simulator *p_simulator,
-  bicudo::world::physics::collision_info_t *p_collision_info,
-  bicudo::placement *&p_a,
-  bicudo::placement *&p_b
+void bicudo::physics_compute_detect_collision_kernel(
+  bicudo::physics::simulator *p_simulator,
+  bicudo::physics::collision_info_t *p_collision_info,
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
 ) {
 
   /**
@@ -14,13 +14,13 @@ void bicudo::world_physics_compute_detect_collision_kernel(
    * then write-store both rects a and b to host device memory. 
    **/
 
-  bicudo::world_physics_collision_info_memory_fetch(
+  bicudo::physics_collision_info_memory_fetch(
     &p_simulator->detect_collision_memory,
     p_collision_info,
     bicudo::types::WRITEBACK
   );
 
-  bicudo::world_physics_rect_a_b_memory_writestore(
+  bicudo::physics_rect_a_b_memory_writestore(
     &p_simulator->detect_collision_memory,
     p_a,
     p_b
@@ -63,7 +63,7 @@ void bicudo::world_physics_compute_detect_collision_kernel(
     bicudo::types::WRITEBACK
   );
 
-  bicudo::world_physics_collision_info_memory_fetch(
+  bicudo::physics_collision_info_memory_fetch(
     &p_simulator->detect_collision_memory,
     p_collision_info,
     bicudo::types::WRITESTORE
@@ -76,9 +76,9 @@ void bicudo::world_physics_compute_detect_collision_kernel(
   //}
 }
 
-void bicudo::world_physics_collision_info_memory_fetch(
+void bicudo::physics_collision_info_memory_fetch(
   bicudo::gpu::packed_collision_info_and_two_rect *p_packed,
-  bicudo::world::physics::collision_info_t *p_collision_info,
+  bicudo::physics::collision_info_t *p_collision_info,
   bicudo::types op_type
 ) {
   switch (op_type) {
@@ -108,10 +108,10 @@ void bicudo::world_physics_collision_info_memory_fetch(
   }
 }
 
-void bicudo::world_physics_rect_a_b_memory_writestore(
+void bicudo::physics_rect_a_b_memory_writestore(
   bicudo::gpu::packed_collision_info_and_two_rect *p_packed,
-  bicudo::placement *&p_a,
-  bicudo::placement *&p_b
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
 ) {
   p_packed->a_vertex0_x = p_a->vertices.at(0).x;
   p_packed->a_vertex0_y = p_a->vertices.at(0).y;
@@ -150,8 +150,8 @@ void bicudo::world_physics_rect_a_b_memory_writestore(
   p_packed->b_edge3_y = p_b->edges.at(3).y;
 }
 
-void bicudo::world_physics_init(
-  bicudo::world::physics::simulator *p_simulator
+void bicudo::physics_init(
+  bicudo::physics::simulator *p_simulator
 ) {
   const char *p_kernel_source_detect_collision {
     R"(
@@ -429,8 +429,8 @@ void bicudo::world_physics_init(
   }
 }
 
-void bicudo::world_physics_update_simulator(
-  bicudo::world::physics::simulator *p_simulator
+void bicudo::physics_update_simulator(
+  bicudo::physics::simulator *p_simulator
 ) {
   bicudo::collided was_collided {};
   bicudo::vec4 a_box {};
@@ -472,8 +472,8 @@ void bicudo::world_physics_update_simulator(
         continue;
       }
   
-      bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
-      bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
+      bicudo::physics::placement *&p_a {p_simulator->placement_list.at(it_a)};
+      bicudo::physics::placement *&p_b {p_simulator->placement_list.at(it_b)};
 
       a_box.x = p_a->min.x;
       a_box.y = p_a->min.y;
@@ -499,7 +499,7 @@ void bicudo::world_physics_update_simulator(
       p_simulator->collision_info = {};
 
       was_collided = (
-        bicudo::world_physics_a_collide_with_b_check(
+        bicudo::physics_a_collide_with_b_check(
           p_a,
           p_b,
           &p_simulator->collision_info,
@@ -516,12 +516,12 @@ void bicudo::world_physics_update_simulator(
       num = p_simulator->collision_info.depth / total_mass * 1.0f;
       correction = n * num;
 
-      bicudo::move(
+      bicudo::physics_placement_move(
         p_a,
         correction * -p_a->mass
       );
   
-      bicudo::move(
+      bicudo::physics_placement_move(
         p_b,
         correction * p_b->mass
       );
@@ -597,16 +597,16 @@ void bicudo::world_physics_update_simulator(
   }
 }
 
-bicudo::collided bicudo::world_physics_a_collide_with_b_check(
-  bicudo::placement *&p_a,
-  bicudo::placement *&p_b,
-  bicudo::world::physics::collision_info_t *p_collision_info,
-  bicudo::world::physics::simulator *p_simulator
+bicudo::collided bicudo::physics_a_collide_with_b_check(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b,
+  bicudo::physics::collision_info_t *p_collision_info,
+  bicudo::physics::simulator *p_simulator
 ) {
-  switch (bicudo::app.physics_runtime_type) {
+  switch (p_simulator->physics_runtime_type) {
     case bicudo::physics_runtime_type::CPU_SIDE: {
-      bicudo::world::physics::collision_info_t a_collision_info {};
-      bicudo::world_physics_find_axis_penetration(
+      bicudo::physics::collision_info_t a_collision_info {};
+      bicudo::physics_find_axis_penetration(
         p_a,
         p_b,
         &a_collision_info
@@ -616,8 +616,8 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         return false;
       }
 
-      bicudo::world::physics::collision_info_t b_collision_info {};
-      bicudo::world_physics_find_axis_penetration(
+      bicudo::physics::collision_info_t b_collision_info {};
+      bicudo::physics_find_axis_penetration(
         p_b,
         p_a,
         &b_collision_info
@@ -632,7 +632,7 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         p_collision_info->normal = a_collision_info.normal;
         p_collision_info->start = a_collision_info.start - (a_collision_info.normal * a_collision_info.depth);
     
-        bicudo::world_physics_collision_info_update(
+        bicudo::physics_collision_info_update(
           p_collision_info
         );
       } else {
@@ -640,7 +640,7 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         p_collision_info->normal = b_collision_info.normal * -1.0f;
         p_collision_info->start = b_collision_info.start;
     
-        bicudo::world_physics_collision_info_update(
+        bicudo::physics_collision_info_update(
           p_collision_info
         );
       }
@@ -649,8 +649,8 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
     }
 
     case bicudo::physics_runtime_type::GPU_ROCM: {
-      bicudo::world::physics::collision_info_t a_collision_info {};
-      bicudo::world_physics_compute_detect_collision_kernel(
+      bicudo::physics::collision_info_t a_collision_info {};
+      bicudo::physics_compute_detect_collision_kernel(
         p_simulator,
         &a_collision_info,
         p_a,
@@ -661,8 +661,8 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         return false;
       }
     
-      bicudo::world::physics::collision_info_t b_collision_info {};
-      bicudo::world_physics_compute_detect_collision_kernel(
+      bicudo::physics::collision_info_t b_collision_info {};
+      bicudo::physics_compute_detect_collision_kernel(
         p_simulator,
         &b_collision_info,
         p_b,
@@ -678,7 +678,7 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         p_collision_info->normal = a_collision_info.normal;
         p_collision_info->start = a_collision_info.start - (a_collision_info.normal * a_collision_info.depth);
     
-        bicudo::world_physics_collision_info_update(
+        bicudo::physics_collision_info_update(
           p_collision_info
         );
       } else {
@@ -686,7 +686,7 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
         p_collision_info->normal = b_collision_info.normal * -1.0f;
         p_collision_info->start = b_collision_info.start;
     
-        bicudo::world_physics_collision_info_update(
+        bicudo::physics_collision_info_update(
           p_collision_info
         );
       }
@@ -698,8 +698,8 @@ bicudo::collided bicudo::world_physics_a_collide_with_b_check(
   return false;
 }
 
-void bicudo::world_physics_collision_info_change_dir(
-  bicudo::world::physics::collision_info_t *p_collision_info
+void bicudo::physics_collision_info_change_dir(
+  bicudo::physics::collision_info_t *p_collision_info
 ) {
   p_collision_info->normal *= -1.0f;
   bicudo::vec2 n {p_collision_info->normal};
@@ -707,18 +707,18 @@ void bicudo::world_physics_collision_info_change_dir(
   p_collision_info->end = n;
 }
 
-void bicudo::world_physics_collision_info_update(
-  bicudo::world::physics::collision_info_t *p_collsion_info
+void bicudo::physics_collision_info_update(
+  bicudo::physics::collision_info_t *p_collsion_info
 ) {
   p_collsion_info->end = (
     p_collsion_info->start + p_collsion_info->normal * p_collsion_info->depth
   );
 }
 
-void bicudo::world_physics_find_axis_penetration(
-  bicudo::placement *&p_a,
-  bicudo::placement *&p_b,
-  bicudo::world::physics::collision_info_t *p_collision_info
+void bicudo::physics_find_axis_penetration(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b,
+  bicudo::physics::collision_info_t *p_collision_info
 ) {
   bicudo::vec2 edge {};
   bicudo::vec2 support_point {};
@@ -772,7 +772,7 @@ void bicudo::world_physics_find_axis_penetration(
     p_collision_info->normal = edge;
     p_collision_info->start = support_point + (edge * best_dist);
 
-    bicudo::world_physics_collision_info_update(
+    bicudo::physics_collision_info_update(
       p_collision_info
     );
   }
