@@ -217,23 +217,68 @@ void bicudo::world_physics_init(
       vec2_t to_edge {};
       int32_t best_edge_index_found {-1};
       float proj_dot {};
-      
-      for (int32_t it {}; it < 4; it++) {
-        vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
-        vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
+      int32_t it {};
 
-        to_edge.x = vertex.x - vert.x;
-        to_edge.y = vertex.y - vert.y;
+      it = 0;
+      vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
+      vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
 
-        proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
+      to_edge.x = vertex.x - vert.x;
+      to_edge.y = vertex.y - vert.y;
 
-        if (proj_dot > 0.0f && proj_dot > dist) {
-          best_edge_index_found = it;
-          dist = proj_dot;
-        }
+      proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
+
+      if (proj_dot > 0.0f && proj_dot > dist) {
+        best_edge_index_found = it;
+        dist = proj_dot;
+      }
+
+      it = 1;
+      vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
+      vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
+
+      to_edge.x = vertex.x - vert.x;
+      to_edge.y = vertex.y - vert.y;
+
+      proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
+
+      if (proj_dot > 0.0f && proj_dot > dist) {
+        best_edge_index_found = it;
+        dist = proj_dot;
+      }
+
+      it = 2;
+      vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
+      vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
+
+      to_edge.x = vertex.x - vert.x;
+      to_edge.y = vertex.y - vert.y;
+
+      proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
+
+      if (proj_dot > 0.0f && proj_dot > dist) {
+        best_edge_index_found = it;
+        dist = proj_dot;
+      }
+
+      it = 3;
+      vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
+      vertex.y = AT(IT_B_VERTICES, (it * 2) + 1);
+
+      to_edge.x = vertex.x - vert.x;
+      to_edge.y = vertex.y - vert.y;
+
+      proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
+
+      if (proj_dot > 0.0f && proj_dot > dist) {
+        best_edge_index_found = it;
+        dist = proj_dot;
       }
 
       if (best_edge_index_found != -1) {
+        //AT(IT_BEST_DISTANCE, index) = dist;
+        //AT(IT_SUPPORT_POINT, index) = best_edge_index_found;
+        //AT(IT_HAS_SUPPORT_POINT, 0) = 1.0f;
         atomicExch(&AT(IT_BEST_DISTANCE, index), dist);
         atomicExch(&AT(IT_SUPPORT_POINT, index), best_edge_index_found);
         atomicAdd(&AT(IT_HAS_SUPPORT_POINT, 0), 1.0f);
@@ -388,6 +433,8 @@ void bicudo::world_physics_update_simulator(
   bicudo::world::physics::simulator *p_simulator
 ) {
   bicudo::collided was_collided {};
+  bicudo::vec4 a_box {};
+  bicudo::vec4 b_box {};
 
   float num {};
   bicudo::vec2 correction {};
@@ -428,7 +475,24 @@ void bicudo::world_physics_update_simulator(
       bicudo::placement *&p_a {p_simulator->placement_list.at(it_a)};
       bicudo::placement *&p_b {p_simulator->placement_list.at(it_b)};
 
-      if (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f)) {
+      a_box.x = p_a->min.x;
+      a_box.y = p_a->min.y;
+      a_box.z = p_a->max.x;
+      a_box.w = p_a->max.y;
+
+      b_box.x = p_b->min.x;
+      b_box.y = p_b->min.y;
+      b_box.z = p_b->max.x;
+      b_box.w = p_b->max.y;
+
+      was_collided = (bicudo::aabb_collide_with_aabb(a_box, b_box));
+      p_a->was_collided = was_collided;
+
+      if (
+          (bicudo::assert_float(p_a->mass, 0.0f) && bicudo::assert_float(p_b->mass, 0.0f))
+          ||
+          (!was_collided)
+        ) {
         continue;
       }
 
@@ -442,8 +506,6 @@ void bicudo::world_physics_update_simulator(
           p_simulator
         )
       );
-
-      p_a->was_collided = was_collided;
 
       if (!was_collided) {
         continue;
@@ -714,6 +776,4 @@ void bicudo::world_physics_find_axis_penetration(
       p_collision_info
     );
   }
-
-  std::cout << best_edge << std::endl;
 }

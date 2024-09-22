@@ -108,6 +108,14 @@ bicudo::vec2 bicudo::lerp(const bicudo::vec2 &a, const bicudo::vec2 &b, float dt
   };
 }
 
+bool bicudo::aabb_collide_with_aabb(const bicudo::vec4 &a, const bicudo::vec4 &b) {
+  return (
+    (a.x < b.z && a.z > b.x)
+    &&
+    (a.y < b.w && a.w > b.y)
+  );
+}
+
 bool bicudo::aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2) {
   return (
     vec2.x > min.x && vec2.y > min.y && vec2.x < max.x && vec2.y < max.y

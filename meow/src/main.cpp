@@ -360,12 +360,12 @@ int32_t main(int32_t, char**) {
   bicudo::init();
   bicudo::world::insert(p_cow);
   bicudo::world::insert(p_cow_2);
-  /*bicudo::world::insert(p_terrain_top);
+  bicudo::world::insert(p_terrain_top);
   bicudo::world::insert(p_terrain_bottom);
   bicudo::world::insert(p_terrain_left);
-  bicudo::world::insert(p_terrain_right);*/
+  bicudo::world::insert(p_terrain_right);
 
-  for (uint64_t it {}; it < 0; it++) {
+  for (uint64_t it {}; it < 30; it++) {
     bicudo::world::insert(new bicudo::object({
     .p_tag = "miau",
     .mass = bicudo_clamp_min(static_cast<float>(std::rand() % 200), 1),

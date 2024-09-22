@@ -385,6 +385,7 @@ namespace bicudo {
   bicudo::vec2 lerp(const bicudo::vec2 &a, const bicudo::vec2 &b, float dt);
   bicudo::vec2 lerp(const bicudo::vec2 &pos, float, float t);
 
+  bool aabb_collide_with_aabb(const bicudo::vec4 &a, const bicudo::vec4 &b);
   bool aabb_collide_with_vec2(const bicudo::vec2 &min, const bicudo::vec2 &max, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec2(const bicudo::vec4 &vec4, const bicudo::vec2 &vec2);
   bool vec4_collide_with_vec4(const bicudo::vec4 &a, const bicudo::vec4 &b);
