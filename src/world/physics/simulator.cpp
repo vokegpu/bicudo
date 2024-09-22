@@ -74,8 +74,6 @@ void bicudo::world_physics_compute_detect_collision_kernel(
   //for (uint64_t it {}; it < 10; it++) {
     //std::cout << p_host[it] << std::endl;
   //}
-
-  std::cout << p_simulator->detect_collision_memory.depth << " " << p_simulator->detect_collision_memory.best_edge << std::endl;
 }
 
 void bicudo::world_physics_collision_info_memory_fetch(
@@ -87,7 +85,14 @@ void bicudo::world_physics_collision_info_memory_fetch(
   case bicudo::types::WRITEBACK:
     p_collision_info->has_support_point = false;
     p_packed->has_support_point = static_cast<float>(p_collision_info->has_support_point);
-    p_packed->best_distance = 99999.0f;
+    p_packed->best_distance0 = 99999.0f;
+    p_packed->best_distance1 = 99999.0f;
+    p_packed->best_distance2 = 99999.0f;
+    p_packed->best_distance3 = 99999.0f;
+    p_packed->support_point0 = 0;
+    p_packed->support_point1 = 0;
+    p_packed->support_point2 = 0;
+    p_packed->support_point3 = 0;
     p_packed->best_edge = 0.0f;
     break;
   case bicudo::types::WRITESTORE:
@@ -163,19 +168,21 @@ void bicudo::world_physics_init(
       uint64_t size {};
     };
 
-    constexpr stride_t IT_BEST_DISTANCE {0, 1};
-    constexpr stride_t IT_BEST_EDGE {1, 2};
-    constexpr stride_t IT_HAS_SUPPORT_POINT {2, 1};
-    constexpr stride_t IT_DEPTH {3, 1};
-    constexpr stride_t IT_NORMAL {4, 2};
-    constexpr stride_t IT_START {6, 2};
-    constexpr stride_t IT_END {8, 2};
-    constexpr stride_t IT_A_VERTICES {10, 8};
-    constexpr stride_t IT_A_EDGES {18, 8};
-    constexpr stride_t IT_B_VERTICES {26, 8};
-    constexpr stride_t IT_B_EDGES {34, 8};
+    constexpr stride_t IT_BEST_EDGE {0, 1};
+    constexpr stride_t IT_HAS_SUPPORT_POINT {1, 1};
+    constexpr stride_t IT_DEPTH {2, 1};
+    constexpr stride_t IT_NORMAL {3, 2};
+    constexpr stride_t IT_START {5, 2};
+    constexpr stride_t IT_END {7, 2};
+    constexpr stride_t IT_A_VERTICES {9, 8};
+    constexpr stride_t IT_A_EDGES {17, 8};
+    constexpr stride_t IT_B_VERTICES {25, 8};
+    constexpr stride_t IT_B_EDGES {33, 8};
+    constexpr stride_t IT_BEST_DISTANCE {41, 4};
+    constexpr stride_t IT_SUPPORT_POINT {45, 4};
 
-    #define CLAMP_MAX(a, b)  ((a) > (b) ? (b) : (a))
+    #define CLAMP_MAX(a, b) ((a) > (b) ? (b) : (a))
+    #define CLAMP_MIN(a, b) ((a) < (b) ? (b) : (a))
     #define AT(stride, pos) ((p_buffer[stride.offset + pos]))
     #define ATOMIC_READ(at) ((atomicCAS(&at, at, at)))
 
@@ -208,9 +215,8 @@ void bicudo::world_physics_init(
 
       vec2_t vertex {};
       vec2_t to_edge {};
+      int32_t best_edge_index_found {-1};
       float proj_dot {};
-      vec2_t point {};
-      float has_support_point {};
       
       for (int32_t it {}; it < 4; it++) {
         vertex.x = AT(IT_B_VERTICES, (it * 2) + 0);
@@ -222,51 +228,63 @@ void bicudo::world_physics_init(
         proj_dot = (to_edge.x * dir.x + to_edge.y * dir.y);
 
         if (proj_dot > 0.0f && proj_dot > dist) {
-          point = vertex;
+          best_edge_index_found = it;
           dist = proj_dot;
-          has_support_point = 1.0f;
         }
       }
 
-      __shared__ float best_distance;
-      __shared__ int32_t best_edge_index;
-
-      if (threadIdx.x == 0) {
-        best_distance = 99999.0f;
-        best_edge_index = 0;
-      }
-
-      __syncthreads();
-
-      if (has_support_point > 0.0f && dist < best_distance) {
-        best_distance = dist;
-        best_edge_index = (float) index;
-        atomicExch(&AT(IT_START, 0), point.x);
-        atomicExch(&AT(IT_START, 1), point.y);
+      if (best_edge_index_found != -1) {
+        atomicExch(&AT(IT_BEST_DISTANCE, index), dist);
+        atomicExch(&AT(IT_SUPPORT_POINT, index), best_edge_index_found);
         atomicAdd(&AT(IT_HAS_SUPPORT_POINT, 0), 1.0f);
       }
 
-      __syncthreads();
-
-      if (threadIdx.x == 0) {
-        AT(IT_BEST_DISTANCE, 0) = best_distance;
-        AT(IT_BEST_EDGE, 0) = best_edge_index;
-      }
-
       if ((int32_t) AT(IT_HAS_SUPPORT_POINT, 0) == 4) {
+        int32_t best_edge_index {};
+        int32_t support_point_index {};
+        dist = 99999.0f;
+
+        if (AT(IT_BEST_DISTANCE, 0) < dist) {
+          best_edge_index = 0;
+          support_point_index = AT(IT_SUPPORT_POINT, 0);
+          dist = AT(IT_BEST_DISTANCE, 0);
+        }
+
+        if (AT(IT_BEST_DISTANCE, 1) < dist) {
+          best_edge_index = 1;
+          support_point_index = AT(IT_SUPPORT_POINT, 1);
+          dist = AT(IT_BEST_DISTANCE, 1);
+        }
+
+        if (AT(IT_BEST_DISTANCE, 2) < dist) {
+          best_edge_index = 2;
+          support_point_index = AT(IT_SUPPORT_POINT, 2);
+          dist = AT(IT_BEST_DISTANCE, 2);
+        }
+
+        if (AT(IT_BEST_DISTANCE, 3) < dist) {
+          best_edge_index = 3;
+          support_point_index = AT(IT_SUPPORT_POINT, 3);
+          dist = AT(IT_BEST_DISTANCE, 3);
+        }
+
         vec2_t best_edge {
           AT(IT_A_EDGES, (best_edge_index * 2) + 0),
           AT(IT_A_EDGES, (best_edge_index * 2) + 1)
         };
 
+        float best_distance {
+          dist
+        };
+
         AT(IT_DEPTH, 0) = best_distance;
-        AT(IT_BEST_EDGE, 0) = best_edge_index; 
+        AT(IT_BEST_EDGE, 0) = best_edge_index;
         AT(IT_NORMAL, 0) = best_edge.x;
         AT(IT_NORMAL, 1) = best_edge.y;
 
         vec2_t support_point {
-          AT(IT_START, 0),
-          AT(IT_START, 1)
+          AT(IT_B_VERTICES, (support_point_index * 2) + 0),
+          AT(IT_B_VERTICES, (support_point_index * 2) + 1)
         };
 
         AT(IT_START, 0) = support_point.x + (best_edge.x * best_distance);
@@ -327,7 +345,6 @@ void bicudo::world_physics_init(
     bicudo::log() << "Failed to world physics service compile the following pipeline: " << p_simulator->pipeline.p_tag;
   }
 
-  p_simulator->detect_collision_memory.best_distance = 99999.0f;
   p_simulator->detect_collision_memory.best_edge = 0.0f;
   p_simulator->detect_collision_memory.has_support_point = 0.0f;
 
@@ -697,4 +714,6 @@ void bicudo::world_physics_find_axis_penetration(
       p_collision_info
     );
   }
+
+  std::cout << best_edge << std::endl;
 }

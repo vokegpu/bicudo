@@ -15,23 +15,23 @@ namespace bicudo::gpu {
     uint64_t size {};
   };
 
-  constexpr bicudo::gpu::stride_t it_best_distance {0, 1};
-  constexpr bicudo::gpu::stride_t it_best_edge {1, 1};
-  constexpr bicudo::gpu::stride_t it_has_support_point {2, 1};
-  constexpr bicudo::gpu::stride_t it_depth {3, 1};
-  constexpr bicudo::gpu::stride_t it_normal {4, 2};
-  constexpr bicudo::gpu::stride_t it_start {6, 2};
-  constexpr bicudo::gpu::stride_t it_end {8, 2};
-  constexpr bicudo::gpu::stride_t it_a_vertices {10, 8};
-  constexpr bicudo::gpu::stride_t it_a_edges {18, 8};
-  constexpr bicudo::gpu::stride_t it_b_vertices {26, 8};
-  constexpr bicudo::gpu::stride_t it_b_edges {34, 8};
+  constexpr bicudo::gpu::stride_t it_best_edge {0, 1};
+  constexpr bicudo::gpu::stride_t it_has_support_point {1, 1};
+  constexpr bicudo::gpu::stride_t it_depth {2, 1};
+  constexpr bicudo::gpu::stride_t it_normal {3, 2};
+  constexpr bicudo::gpu::stride_t it_start {5, 2};
+  constexpr bicudo::gpu::stride_t it_end {7, 2};
+  constexpr bicudo::gpu::stride_t it_a_vertices {9, 8};
+  constexpr bicudo::gpu::stride_t it_a_edges {17, 8};
+  constexpr bicudo::gpu::stride_t it_b_vertices {25, 8};
+  constexpr bicudo::gpu::stride_t it_b_edges {33, 8};
+  constexpr bicudo::gpu::stride_t it_best_distance {41, 4};
+  constexpr bicudo::gpu::stride_t it_support_point {45, 4};
 
   struct packed_collision_info_and_two_rect {
   public:
     union {
       struct {
-        float32_t best_distance;
         float32_t best_edge;
         float32_t has_support_point;
         float32_t depth;
@@ -80,13 +80,23 @@ namespace bicudo::gpu {
         float32_t b_edge2_y;
         float32_t b_edge3_x;
         float32_t b_edge3_y;
+
+        float32_t best_distance0;
+        float32_t best_distance1;
+        float32_t best_distance2;
+        float32_t best_distance3;
+
+        float32_t support_point0;
+        float32_t support_point1;
+        float32_t support_point2;
+        float32_t support_point3;
       };
 
-      float32_t host[42] {};
+      float32_t host[49] {};
     };
   protected:
     float32_t *p_device {};
-    uint64_t buffer_pre_initialized_size {42};
+    uint64_t buffer_pre_initialized_size {49};
   public:
     inline packed_collision_info_and_two_rect() = default;
 
