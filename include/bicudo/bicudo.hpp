@@ -2,21 +2,28 @@
 #define BICUDO_HPP
 
 #include "bicudo/util/log.hpp"
-#include "bicudo/gpu/model.hpp"
-#include "bicudo/physics/simulator.hpp"
+#include "bicudo/api/base.hpp"
+#include "bicudo/physics/collision_info.hpp"
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
 namespace bicudo {
   struct runtime {
   public:
-    bicudo::physics::simulator simulator {};
+    std::vector<bicudo::physics::placement*> placement_list {};
+    bicudo::physics::collision_info_t collision_info {};
     bicudo::id highest_object_id {};
+  public:
     bicudo::vec2 gravity {};
-    bicudo::physics_runtime_type physics_runtime_type {}; 
+    bicudo::physics_runtime_type physics_runtime_type {bicudo::physics_runtime_type::CPU_SIDE};
+    bicudo::api::base *p_rocm_api {};
   };
 
   void init(
+    bicudo::runtime *p_runtime
+  );
+
+  void quit(
     bicudo::runtime *p_runtime
   );
 

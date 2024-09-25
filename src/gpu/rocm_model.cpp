@@ -1,13 +1,13 @@
-#include "bicudo/gpu/model.hpp"
+#include "bicudo/gpu/rocm_model.hpp"
 #include "bicudo/util/log.hpp"
 
-bicudo::result bicudo::gpu_dispatch(
-  bicudo::gpu::pipeline *p_pipeline,
+bicudo::result bicudo::gpu_rocm_dispatch(
+  bicudo::gpu::rocm_pipeline *p_pipeline,
   uint64_t module_index,
   uint64_t kernel_index
 ) {
-  bicudo::gpu::kernel &kernel {p_pipeline->kernel_list.at(module_index)};
-  bicudo::gpu::function &function {kernel.function_list.at(kernel_index)};
+  bicudo::gpu::rocm_kernel &kernel {p_pipeline->kernel_list.at(module_index)};
+  bicudo::gpu::rocm_function &function {kernel.function_list.at(kernel_index)};
 
   void *p_configs[] {
     HIP_LAUNCH_PARAM_BUFFER_POINTER, function.argument_list.data(),
@@ -43,16 +43,16 @@ bicudo::result bicudo::gpu_dispatch(
   return bicudo::types::SUCCESS;
 }
 
-bicudo::result bicudo::gpu_memory_fetch(
-  bicudo::gpu::pipeline *p_pipeline,
+bicudo::result bicudo::gpu_rocm_memory_fetch(
+  bicudo::gpu::rocm_pipeline *p_pipeline,
   uint64_t module_index,
   uint64_t kernel_index,
   uint64_t param_index,
   bicudo::types op_type
 ) {
-  bicudo::gpu::kernel &kernel {p_pipeline->kernel_list.at(module_index)};
-  bicudo::gpu::function &function {kernel.function_list.at(kernel_index)};
-  bicudo::gpu::buffer &buffer {function.buffer_list.at(param_index)};
+  bicudo::gpu::rocm_kernel &kernel {p_pipeline->kernel_list.at(module_index)};
+  bicudo::gpu::rocm_function &function {kernel.function_list.at(kernel_index)};
+  bicudo::gpu::buffer_t &buffer {function.buffer_list.at(param_index)};
 
   void *p_dst {};
   void *p_src {};
@@ -84,9 +84,9 @@ bicudo::result bicudo::gpu_memory_fetch(
   return bicudo::types::SUCCESS;
 }
 
-bicudo::result bicudo::gpu_create_pipeline(
-  bicudo::gpu::pipeline *p_pipeline,
-  bicudo::gpu::pipeline_create_info *p_pipeline_create_info
+bicudo::result bicudo::gpu_rocm_create_pipeline(
+  bicudo::gpu::rocm_pipeline *p_pipeline,
+  bicudo::gpu::rocm_pipeline_create_info *p_pipeline_create_info
 ) {
   p_pipeline->p_tag = p_pipeline_create_info->p_tag;
   p_pipeline->kernel_list = p_pipeline_create_info->kernel_list;
@@ -94,7 +94,7 @@ bicudo::result bicudo::gpu_create_pipeline(
   bicudo::result result {bicudo::types::SUCCESS};
   std::vector<char> binary_list {};
 
-  for (bicudo::gpu::kernel &kernel : p_pipeline->kernel_list) {
+  for (bicudo::gpu::rocm_kernel &kernel : p_pipeline->kernel_list) {
     hiprtc_validate(
       hiprtcCreateProgram(
         &kernel.program,
@@ -168,7 +168,7 @@ bicudo::result bicudo::gpu_create_pipeline(
       "failed to load module data"
     );
 
-    for (bicudo::gpu::function &function : kernel.function_list) {
+    for (bicudo::gpu::rocm_function &function : kernel.function_list) {
       hip_validate(
         hipModuleGetFunction(
           &function.entry_point,
@@ -178,7 +178,7 @@ bicudo::result bicudo::gpu_create_pipeline(
         "failed to get entry point from module"
       );
 
-      for (bicudo::gpu::buffer &buffer : function.buffer_list) {
+      for (bicudo::gpu::buffer_t &buffer : function.buffer_list) {
         hip_validate(
           hipMalloc(
             &buffer.p_device,

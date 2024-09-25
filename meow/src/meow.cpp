@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "bicudo/gpu/model.hpp"
-#include "bicudo/bicudo.hpp"
+#include <bicudo/api/rocm.hpp>
+#include <bicudo/bicudo.hpp>
 
 #include <ekg/ekg.hpp>
 #include <ekg/os/ekg_opengl.hpp>
@@ -24,6 +24,14 @@ void meow::init() {
   ekg::input::bind("click-on-camera", "mouse-2");
   ekg::input::bind("drop-camera", "mouse-2-up");
   ekg::input::bind("zoom-camera", "mouse-wheel");
+
+  meow::app.bicudo = {
+    .gravity = {},
+    .physics_runtime_type = bicudo::physics_runtime_type::CPU_SIDE,
+    .p_rocm_api = new bicudo::api::rocm()
+  };
+
+  bicudo::init(&meow::app.bicudo);
 }
 
 void meow::render() {
@@ -35,7 +43,7 @@ void meow::render() {
 
   meow::app.rendering_placements_count = 0;
 
-  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.simulator.placement_list) {
+  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.placement_list) {
     rect.x = p_placements->pos.x;
     rect.y = p_placements->pos.y;
     rect.z = p_placements->size.x;
@@ -70,13 +78,13 @@ void meow::render() {
     rect.z = 10.0f;
     rect.w = 10.0f;
 
-    rect.x = meow::app.bicudo.simulator.collision_info.start.x ;
-    rect.y = meow::app.bicudo.simulator.collision_info.start.y;
+    rect.x = meow::app.bicudo.collision_info.start.x ;
+    rect.y = meow::app.bicudo.collision_info.start.y;
 
     meow::app.immediate.draw(rect, {1.0f, 0.0f, 0.0f, 1.0f}, 0.0f);
 
-    rect.x = meow::app.bicudo.simulator.collision_info.end.x;
-    rect.y = meow::app.bicudo.simulator.collision_info.end.y;
+    rect.x = meow::app.bicudo.collision_info.end.x;
+    rect.y = meow::app.bicudo.collision_info.end.y;
 
     meow::app.immediate.draw(rect, {0.0f, 1.0f, 0.0f, 1.0f}, 0.0f);
   }
@@ -139,6 +147,8 @@ int32_t main(int32_t, char**) {
   SDL_Event sdl_event {};
   bool running {true};
 
+  meow::init();
+
   const char *p_shader_count {
     R"(
     extern "C"
@@ -154,7 +164,7 @@ int32_t main(int32_t, char**) {
   uint32_t *p_number_device {};
   uint32_t number_host {};
 
-  bicudo::gpu::pipeline_create_info pipeline_create_info {
+  bicudo::gpu::rocm_pipeline_create_info pipeline_create_info {
     .p_tag = "meow",
     .kernel_list =
     {
@@ -183,8 +193,8 @@ int32_t main(int32_t, char**) {
     }
   };
 
-  bicudo::gpu::pipeline pipeline {};
-  bicudo::gpu_create_pipeline(
+  bicudo::gpu::rocm_pipeline pipeline {};
+  bicudo::gpu_rocm_create_pipeline(
     &pipeline,
     &pipeline_create_info
   );
@@ -200,13 +210,13 @@ int32_t main(int32_t, char**) {
           .tag = "omg gpu kkkk"
         },
         .function = [&pipeline](ekg::info &info) {
-          bicudo::gpu_dispatch(
+          bicudo::gpu_rocm_dispatch(
             &pipeline,
             0,
             0
           );
 
-          bicudo::gpu_memory_fetch(
+          bicudo::gpu_rocm_memory_fetch(
             &pipeline,
             0,
             0,
@@ -291,8 +301,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_cow {new bicudo::physics::placement({
     .p_tag = "vakinha",
     .mass = 2000.0f,
-    .friction = 0.0001f,
-    .restitution = 0.2f,
+    .friction = 0.8f,
+    .restitution = 1.0f,
     .pos = {20, 20},
     .size = {144, 144},
     .acc = gravity
@@ -301,8 +311,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_cow_2 {new bicudo::physics::placement({
     .p_tag = "gatinho",
     .mass = 20.0f,
-    .friction = 0.0001f,
-    .restitution = 0.2f,
+    .friction = 0.8f,
+    .restitution = 1.0f,
     .pos = {200, 20},
     .size = {400, 50},
     .acc = gravity
@@ -312,7 +322,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
     .friction = 0.8f,
-    .restitution = 0.2f,
+    .restitution = 1.0f,
     .inertia = 0.0f,
     .pos = {200, 800},
     .size = {1280, 50},
@@ -322,8 +332,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_terrain_top {new bicudo::physics::placement({
     .p_tag = "terrain-top",
     .mass = 0.0f,
-    .friction = 0.2f,
-    .restitution = 0.2f,
+    .friction = 0.8f,
+    .restitution = 1.0f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {1280, 50},
@@ -333,8 +343,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_terrain_left {new bicudo::physics::placement({
     .p_tag = "terrain-left",
     .mass = 0.0f,
-    .friction = 0.2f,
-    .restitution = 0.2f,
+    .friction = 0.8f,
+    .restitution = 1.0f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {50, 1280},
@@ -344,8 +354,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_terrain_right {new bicudo::physics::placement({
     .p_tag = "terrain-right",
     .mass = 0.0f,
-    .friction = 0.2f,
-    .restitution = 0.2f,
+    .friction = 0.8f,
+    .restitution = 1.0f,
     .inertia = 0.0f,
     .pos = {900, 200},
     .size = {50, 1280},
@@ -366,7 +376,7 @@ int32_t main(int32_t, char**) {
   bicudo::insert(&meow::app.bicudo, p_terrain_left);
   bicudo::insert(&meow::app.bicudo, p_terrain_right);
 
-  for (uint64_t it {}; it < 60; it++) {
+  for (uint64_t it {}; it < 0; it++) {
     bicudo::insert(&meow::app.bicudo, new bicudo::physics::placement({
     .p_tag = "miau",
     .mass = bicudo_clamp_min(static_cast<float>(std::rand() % 200), 1),
@@ -377,8 +387,6 @@ int32_t main(int32_t, char**) {
     .acc = gravity
     }));
   }
-
-  meow::init();
 
   ekg::ui::auto_scale = false;
   ekg::ui::scale = {1280.0f, 700.0f};

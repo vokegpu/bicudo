@@ -1,5 +1,5 @@
 #include "bicudo/bicudo.hpp"
-#include "bicudo/gpu/rocm.hpp"
+#include "bicudo/physics/processor.hpp"
 
 #include <vector>
 #include <iostream>
@@ -8,9 +8,18 @@ void bicudo::init(
   bicudo::runtime *p_runtime
 ) {
   bicudo::log() << "Initializing Bicudo physics simulator!";
-  bicudo::physics_init(
-    &p_runtime->simulator
-  );
+
+  if (p_runtime->p_rocm_api) {
+    p_runtime->p_rocm_api->init();
+  }
+}
+
+void bicudo::quit(
+  bicudo::runtime *p_runtime
+) {
+  if (p_runtime->p_rocm_api) {
+    p_runtime->p_rocm_api->quit();
+  }
 }
 
 void bicudo::insert(
@@ -36,7 +45,7 @@ void bicudo::insert(
   );
 
   p_placement->id = p_runtime->highest_object_id++;
-  p_runtime->simulator.placement_list.push_back(p_placement);
+  p_runtime->placement_list.push_back(p_placement);
 }
 
 void bicudo::erase(
@@ -57,7 +66,7 @@ void bicudo::update(
   bicudo::runtime *p_runtime
 ) {
   bicudo::vec2 center {};
-  for (bicudo::physics::placement *&p_placement : p_runtime->simulator.placement_list) {
+  for (bicudo::physics::placement *&p_placement : p_runtime->placement_list) {
     p_placement->acc.y = (
       p_runtime->gravity.y * (!bicudo::assert_float(p_placement->mass, 0.0f))
     ); // enable it
@@ -92,7 +101,7 @@ void bicudo::update(
     );
   }
 
-  bicudo::physics_update_simulator(
-    &p_runtime->simulator
+  bicudo::physics_processor_update(
+    p_runtime
   );
 }

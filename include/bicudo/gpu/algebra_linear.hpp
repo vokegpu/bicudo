@@ -1,7 +1,7 @@
 #ifndef BICUDO_GPU_ALGEBRA_LINEAR_HPP
 #define BICUDO_GPU_ALGEBRA_LINEAR_HPP
 
-#include "rocm.hpp"
+#include "types.hpp"
 
 namespace bicudo::gpu {
   // sub

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "bicudo/gpu/rocm.hpp"
-
 namespace bicudo {
   struct log {
   public:

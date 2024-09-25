@@ -14,7 +14,7 @@ bicudo::collided meow::tools_pick_physics_placement(bicudo::physics::placement *
   float &zoom {meow::app.camera.zoom};
   pos = (pos / zoom) + cam;
 
-  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.simulator.placement_list) {
+  for (bicudo::physics::placement *&p_placements : meow::app.bicudo.placement_list) {
     if (bicudo::aabb_collide_with_vec2(p_placements->min, p_placements->max, pos)) {
       p_placement = p_placements;
       return true;
