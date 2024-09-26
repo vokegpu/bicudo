@@ -42,7 +42,7 @@ For example ROCm/HIP API:
 #include <bicudo/api/rocm.hpp>
 
 bicudo::runtime bicudo_runtime {
-  .gravity = {}, // by default is 0
+  .gravity = {}, // by default is 0.0 (x and y)
   .physics_runtime_type = bicudo::physics_runtime_type::GPU_ROCM,
   .p_rocm_api = new bicudo::api::rocm()
 };
