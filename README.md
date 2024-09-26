@@ -1,6 +1,6 @@
 # Bicudo 🐦
 
-Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via an GPGPU API (ROCm/HIP, OpenCL, CUDA/HIP). The project contains an optionally client called Meow OpenGL-4 based to test the library.
+Bicudo is a physics engine library being develop to process Separation Axis Theorem (SAT) and Newton's laws under GPU via an GPGPU API (ROCm/HIP, OpenCL, CUDA/HIP). The project contains an optionally client called Meow OpenGL-4 based to test the library.
 
 ---
 
@@ -29,7 +29,7 @@ For example CPU-side only.
 #include <bicudo/bicudo.hpp>
 
 bicudo::runtime bicudo_runtime {
-  .gravity = {}, // by default is 0
+  .gravity = {}, // by default is 0.0 (x and y)
   .physics_runtime_type = bicudo::physics_runtime_type::CPU_SIDE
 };
 
@@ -137,7 +137,9 @@ Run the following command:
 
 ```sh
 cd ./meow # Meow is a sub-folder in this project
-cmake -S . -B ./cmake-build-debug/ -G Ninja && cmake --build ./cmake-build-debug/
+
+cmake -S . -B ./cmake-build-debug/ -G Ninja
+cmake --build ./cmake-build-debug/
 ```
 
 Outputs: `./meow/bin/meow`, `./meow/bin/meow.exe`
