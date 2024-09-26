@@ -2,6 +2,8 @@
 
 Bicudo is a physics engine library being develop to process Separation Axis Theorem (SAT) and Newton's laws under GPU via an GPGPU API (ROCm/HIP, OpenCL, CUDA/HIP). The project contains an optionally client called Meow OpenGL-4 based to test the library.
 
+The name "Bicudo" refers to a baby chick I had some years ago, but 🐤 died... then I named this project as Bicudo! 💕
+
 ---
 
 # Getting Started 😊
