@@ -32,6 +32,7 @@ namespace bicudo::physics {
     std::vector<bicudo::vec2> edges {};
 
     bool was_collided {};
+    bicudo::vec2 prev_size {};
   };
 }
 

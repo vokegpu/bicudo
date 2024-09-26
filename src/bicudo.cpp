@@ -67,6 +67,19 @@ void bicudo::update(
 ) {
   bicudo::vec2 center {};
   for (bicudo::physics::placement *&p_placement : p_runtime->placement_list) {
+    if ( // temp
+        bicudo::assert_float(p_placement->prev_size.x, p_placement->size.x)
+        ||
+        bicudo::assert_float(p_placement->prev_size.y, p_placement->size.y)
+      ) {
+      p_placement->prev_size = p_placement->size;
+      bicudo::splash_vertices(
+        p_placement->vertices.data(),
+        p_placement->pos,
+        p_placement->size
+      );
+    }
+
     p_placement->acc.y = (
       p_runtime->gravity.y * (!bicudo::assert_float(p_placement->mass, 0.0f))
     ); // enable it
