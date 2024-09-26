@@ -1,6 +1,8 @@
 # Bicudo 🐦
 
-Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via ROCm/HIP (or CPU-side only). The project uses a client called Meow OpenGL-4 based to test the library, but you are able to build the library to use in your application. It only requires ROCm/HIP.
+Bicudo is a physics engine library being develop to process SAT and Newton's laws under GPU via an GPGPU API (ROCm/HIP, OpenCL, CUDA/HIP). The project contains an optionally client called Meow OpenGL-4 based to test the library.
+
+---
 
 # Getting Started 😊
 
@@ -98,12 +100,23 @@ bicudo::insert(
 );
 ```
 
+---
+
 # Bicudo Building 🔧🐦
 
-Bicudo library requires only [ROCm/HIP](https://github.com/ROCm/HIP) library.
+Bicudo library requires all the three APIs include dir (ROCm/HIP, OpenCL, CUDA/HIP). For now only [ROCm/HIP](https://github.com/ROCm/HIP).  
+Install the ROCm-SDK, for Windows download the official AMD installer, for Linux run command from the package manager.
 
+For CMake building on Linux:
 ```sh
-cmake -S . -B ./cmake-build-debug -G Ninja && cmake --build ./cmake-build-debug
+cmake -S . -B ./cmake-build-debug -G Ninja
+cmake --build ./cmake-build-debug
+```
+
+Windows:
+```sh
+cmake -S . -B ./cmake-build-debug -G Ninja -DHIP_PATH="/path-to-rocm-dir/AMD/ROCm/x.x/"
+cmake --build ./cmake-build-debug
 ```
 
 Outputs: `/lib/windows/libbicudo.a`, `/lib/linux/libbicudo.a`
