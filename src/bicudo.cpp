@@ -7,7 +7,7 @@
 void bicudo::init(
   bicudo::runtime *p_runtime
 ) {
-  bicudo::log() << "Initializing Bicudo " << bicudo_version << "physics simulator!";
+  bicudo::log() << "Initializing Bicudo " << bicudo_version << " physics simulator!";
 
   if (p_runtime->p_rocm_api) {
     p_runtime->p_rocm_api->init();
@@ -114,7 +114,11 @@ void bicudo::update_position(
   }
 
   p_placement->acc.y = (
-    p_runtime->gravity.y * (!bicudo::assert_float(p_placement->mass, 0.0f))
+    (p_runtime->gravity.y)
+    *
+    (!bicudo::assert_float(p_placement->mass, 0.0f))
+    *
+    (!p_placement->turn_off_gravity)
   ); // enable it
 
   p_placement->min.x = 99999.0f;

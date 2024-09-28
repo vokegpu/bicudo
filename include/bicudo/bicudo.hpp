@@ -7,7 +7,7 @@
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
-#define bicudo_version "1.1.0"
+#define bicudo_version "1.1.1"
 
 namespace bicudo {
   struct runtime {

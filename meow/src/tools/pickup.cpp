@@ -49,6 +49,7 @@ void meow::tools_pick_camera(
     p_pickup_info->prev_pos.x = interact.x;
     p_pickup_info->prev_pos.y = interact.y;
 
+
     meow::app.immediate.latest_pos_clicked = {interact.x, interact.y};
   } else if (ekg::input::action("drop-camera")) {
     p_pickup_info->p_placement = nullptr;
@@ -100,6 +101,7 @@ bicudo::collided meow::tools_pick_object_from_world(
       meow::tools_pick_physics_placement(p_pickup_info->p_placement, bicudo::vec2(interact.x, interact.y))
     ) {
 
+    p_pickup_info->p_placement->turn_off_gravity = true;
     p_pickup_info->delta.x = interact.x - p_pickup_info->p_placement->min.x;
     p_pickup_info->delta.y = interact.y - p_pickup_info->p_placement->min.y;
 
@@ -114,7 +116,8 @@ bicudo::collided meow::tools_pick_object_from_world(
     meow::tools_to_local_camera(&p_pickup_info->delta);
 
     return true;
-  } else if (ekg::input::action("drop-object")) {
+  } else if (p_pickup_info->p_placement && ekg::input::action("drop-object")) {
+    p_pickup_info->p_placement->turn_off_gravity = false;
     p_pickup_info->p_placement = nullptr;
     return false;
   }
