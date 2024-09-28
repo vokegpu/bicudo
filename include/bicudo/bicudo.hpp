@@ -7,6 +7,8 @@
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
+#define bicudo_version "1.1.0"
+
 namespace bicudo {
   struct runtime {
   public:
@@ -43,6 +45,15 @@ namespace bicudo {
   );
 
   void update(
+    bicudo::runtime *p_runtime
+  );
+
+  void update_position(
+    bicudo::runtime *p_runtime,
+    bicudo::physics::placement *p_placement
+  );
+
+  void update_collisions(
     bicudo::runtime *p_runtime
   );
 }

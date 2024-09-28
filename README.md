@@ -53,13 +53,43 @@ bicudo::init(&bicudo_runtime);
 ```
 
 Running Bicudo is simple, be sure the application is calculating correctly the delta time.
-```
+
+Calling `bicudo::update(bicudo::runtime *p_runtime)` update position and process collision resolution.  
+```C++
 // any framework media layer initialization
 // bicudo initialization
 
 while (mainloop) {
   bicudo::dt = 0.16f; // 60fps
   bicudo::update(&bicudo_runtime);
+  bicudo::log::flush(); // flush log
+
+  // etc render
+}
+```
+
+Alternatively there are two separate functions to update each physic step:  
+-- `bicudo::update_position(bicudo::runtime *p_runtime, bicudo::physics::placement *p_placement)`  
+-- `bicudo::update_collision(bicudo::runtime *p_runtime)`
+
+```C++
+// any framework media layer initialization
+// bicudo initialization
+
+while (mainloop) {
+  bicudo::dt = 0.16f; // 60fps
+
+  for (bicudo::physics::placement *&p_placements : bicudo_runtime.placement_list) {
+    bicudo::update_position(
+      &bicudo_runtime,
+      p_placements
+    );
+  }
+
+  bicudo::update_collisions(
+    &bicudo_runtime
+  );
+
   bicudo::log::flush(); // flush log
 
   // etc render

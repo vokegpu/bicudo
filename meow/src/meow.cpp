@@ -302,7 +302,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "vakinha",
     .mass = 2000.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .pos = {20, 20},
     .size = {144, 144},
     .acc = gravity
@@ -312,7 +312,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "gatinho",
     .mass = 20.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .pos = {200, 20},
     .size = {400, 50},
     .acc = gravity
@@ -322,7 +322,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-bottom",
     .mass = 0.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 800},
     .size = {1280, 50},
@@ -333,7 +333,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-top",
     .mass = 0.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {1280, 50},
@@ -344,7 +344,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-left",
     .mass = 0.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {200, 200},
     .size = {50, 1280},
@@ -355,7 +355,7 @@ int32_t main(int32_t, char**) {
     .p_tag = "terrain-right",
     .mass = 0.0f,
     .friction = 0.8f,
-    .restitution = 1.0f,
+    .restitution = 0.2f,
     .inertia = 0.0f,
     .pos = {900, 200},
     .size = {50, 1280},
@@ -436,7 +436,11 @@ int32_t main(int32_t, char**) {
       &meow::app.object_pickup_info
     );
 
-    bicudo::update(&meow::app.bicudo);
+    for (bicudo::physics::placement *&p_placements : meow::app.bicudo.placement_list) {
+      bicudo::update_position(&meow::app.bicudo, p_placements);
+    }
+
+    bicudo::update_collisions(&meow::app.bicudo);
     ekg::update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

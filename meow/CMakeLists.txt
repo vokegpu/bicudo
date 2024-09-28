@@ -13,6 +13,10 @@ if(
     -static-libgcc
     -static-libstdc++
   )
+
+  add_compile_options(
+    -O3
+  )
 endif()
 
 if(LINUX)

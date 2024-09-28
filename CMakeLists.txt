@@ -1,7 +1,19 @@
 cmake_minimum_required(VERSION 3.9)
 
 set(CMAKE_CXX_STANDARD 17)
-set(BICUDO_VERSIION 0.1.0)
+set(BICUDO_VERSIION 1.1.0)
+
+if(
+    CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+    OR
+    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+  )
+
+  add_compile_options(
+    -O3
+  )
+endif()
+
 
 if(LINUX OR ANDROID)
   file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
