@@ -96,7 +96,7 @@ while (mainloop) {
 }
 ```
 
-Rendering is application-side, Bicudo does not provide any way rendering engine, only geometry data.
+Rendering is application-side, Bicudo does not provide any rendering engine, only geometry data. All meshes are rotated but it is not the most efficient method send it all to the GPU, so on render application must calculate rotation using an Euller rotation-matrix or some other way.
 
 ```C++
 bicudo::vec4 rect {};
@@ -110,7 +110,19 @@ for (bicudo::physics::placement *&p_placements : bicudo_runtime.placement_list) 
     continue; // frustum clip
   }
 
-  // do render
+  bicudo::mat4 mat4x4_rotate = bicudo::mat4(1.0f);
+
+  if (!bicudo::assert_float(p_placement->angle, 0.0f)) {
+    bicudo::vec2 center {
+      rect.x + (rect.z / 2), rect.y + (rect.w / 2)
+    };
+
+    mat4x4_rotate = bicudo::translate(mat4x4_rotate, center);
+    mat4x4_rotate = bicudo::rotate(mat4x4_rotate, {0.0f, 0.0f, 1.0f}, -p_placement->angle);
+    mat4x4_rotate = bicudo::translate(mat4x4_rotate, -center);
+  }
+
+  // do render etc
 }
 ```
 
