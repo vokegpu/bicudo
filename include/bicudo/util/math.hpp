@@ -7,7 +7,7 @@
 
 #define bicudo_clamp_min(a, b)      ((a) < (b) ? (b) : (a))
 #define bicudo_clamp_max(a, b)      ((a) > (b) ? (b) : (a))
-#define bicudo_clamp(val, min, max) (val < min ? min : ((max < val) ? max : val))
+#define bicudo_clamp(val, min, max) ((val) < (min) ? (min) : (val > max ? max : val))
 #define bicudo_deg2rad(x)           ((x) * 0.0174533f)
 #define bicudo_lerp(a, b, t)        ((a) - (b - a ) * (t)) // buu???????? repeated code omg!!!11 rp it
 

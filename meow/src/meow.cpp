@@ -13,6 +13,20 @@
 
 meow::application meow::app {};
 
+void on_collided_meow_meow(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
+) {
+  std::cout << "collided " << p_a->p_tag << " " << p_b->p_tag << std::endl;
+}
+
+void on_pre_collided_meow_meow_mu(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
+) {
+  std::cout << "pre-mu " << p_a->p_tag << " " << p_b->p_tag << std::endl;
+}
+
 void meow::init() {
   bicudo::log() << "Initializing Meow renderer and GUI bindings!";
 
@@ -28,7 +42,9 @@ void meow::init() {
   meow::app.bicudo = {
     .gravity = {},
     .physics_runtime_type = bicudo::physics_runtime_type::CPU_SIDE,
-    .p_rocm_api = new bicudo::api::rocm()
+    .p_rocm_api = new bicudo::api::rocm(),
+    .p_on_collision_pre_apply_forces = &on_pre_collided_meow_meow_mu,
+    .p_on_collision = &on_collided_meow_meow
   };
 
   bicudo::init(&meow::app.bicudo);

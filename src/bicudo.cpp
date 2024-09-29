@@ -26,11 +26,6 @@ void bicudo::insert(
   bicudo::runtime *p_runtime,
   bicudo::physics::placement *p_placement
 ) {
-  bicudo::physics_placement_mass(
-    p_placement,
-    p_placement->mass
-  );
-
   p_placement->vertices.resize(4);
   bicudo::splash_vertices(
     p_placement->vertices.data(),
@@ -101,9 +96,9 @@ void bicudo::update_position(
 ) {
   bicudo::vec2 center {};
   if ( // temp
-      bicudo::assert_float(p_placement->prev_size.x, p_placement->size.x)
+      !bicudo::assert_float(p_placement->prev_size.x, p_placement->size.x)
       ||
-      bicudo::assert_float(p_placement->prev_size.y, p_placement->size.y)
+      !bicudo::assert_float(p_placement->prev_size.y, p_placement->size.y)
     ) {
     p_placement->prev_size = p_placement->size;
     bicudo::splash_vertices(
@@ -111,6 +106,21 @@ void bicudo::update_position(
       p_placement->pos,
       p_placement->size
     );
+  }
+
+  if ( // temp
+      !bicudo::assert_float(p_placement->prev_mass, p_placement->mass)
+    ) {
+    if (bicudo::assert_float(p_placement->mass, 0.0f)) {
+      p_placement->inertia = 0.0f;
+      p_placement->mass = 0.0f;
+    } else {
+      p_placement->mass = p_placement->mass;
+      p_placement->inertia = (1.0f / p_placement->mass) * p_placement->size.magnitude_no_sq() / p_runtime->intertia_const;
+      p_placement->inertia = 1.0f / p_placement->inertia;
+    }
+
+    p_placement->prev_mass = p_placement->mass;
   }
 
   p_placement->acc.y = (

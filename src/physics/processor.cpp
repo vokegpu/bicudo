@@ -86,7 +86,7 @@ void bicudo::physics_processor_update(
 
       n = p_runtime->collision_info.normal;
       total_mass = p_a->mass + p_b->mass;
-      num = p_runtime->collision_info.depth / total_mass * 1.0f;
+      num = p_runtime->collision_info.depth / total_mass * p_runtime->solve_accurace;
       correction = n * num;
 
       bicudo::physics_placement_move(
@@ -98,6 +98,10 @@ void bicudo::physics_processor_update(
         p_b,
         correction * p_b->mass
       );
+
+      if (p_runtime->p_on_collision_pre_apply_forces) {
+        p_runtime->p_on_collision_pre_apply_forces(p_a, p_b);
+      }
 
       start = p_runtime->collision_info.start * (p_b->mass / total_mass);
       end = p_runtime->collision_info.end * (p_a->mass / total_mass);
@@ -166,6 +170,10 @@ void bicudo::physics_processor_update(
   
       p_a->angular_velocity -= c1_cross * jt * p_a->inertia;
       p_b->angular_velocity += c2_cross * jt * p_b->inertia;
+
+      if (p_runtime->p_on_collision) {
+        p_runtime->p_on_collision(p_a, p_b);
+      }
     }
   }
 }

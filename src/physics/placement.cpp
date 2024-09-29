@@ -41,17 +41,3 @@ void bicudo::physics_placement_rotate(
 
   p_placement->angle += angle_dir;
 }
-
-void bicudo::physics_placement_mass(
-  bicudo::physics::placement *p_placement,
-  float mass
-) {
-  if (bicudo::assert_float(mass, 0.0f)) {
-    p_placement->inertia = 0.0f;
-    p_placement->mass = 0.0f;
-  } else {
-    p_placement->mass = mass;
-    p_placement->inertia = (1.0f / mass) * p_placement->size.magnitude_no_sq() / 12;
-    p_placement->inertia = 1.0f / p_placement->inertia;
-  }
-}

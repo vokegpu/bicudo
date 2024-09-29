@@ -34,6 +34,7 @@ namespace bicudo::physics {
     bool turn_off_gravity {};
     bool was_collided {};
     bicudo::vec2 prev_size {};
+    float prev_mass {};
   };
 }
 
@@ -46,11 +47,6 @@ namespace bicudo {
   void physics_placement_rotate(
     bicudo::physics::placement *p_placement,
     float angle_dir
-  );
-
-  void physics_placement_mass(
-    bicudo::physics::placement *p_placement,
-    float mass
   );
 }
 

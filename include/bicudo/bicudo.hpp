@@ -7,18 +7,27 @@
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
-#define bicudo_version "1.1.1"
+#define bicudo_version "1.2.0"
 
 namespace bicudo {
+  typedef void(*p_on_collision_pre_apply_forces)(bicudo::physics::placement*&, bicudo::physics::placement*&);
+  typedef void(*p_on_collision)(bicudo::physics::placement*&, bicudo::physics::placement*&);
+
   struct runtime {
-  public:
+  public: // internal
     std::vector<bicudo::physics::placement*> placement_list {};
     bicudo::physics::collision_info_t collision_info {};
     bicudo::id highest_object_id {};
-  public:
+  public: // config
+    float solve_accurace {1.0f};
+    float intertia_const {12.0f};
     bicudo::vec2 gravity {};
+
     bicudo::physics_runtime_type physics_runtime_type {bicudo::physics_runtime_type::CPU_SIDE};
     bicudo::api::base *p_rocm_api {};
+
+    bicudo::p_on_collision_pre_apply_forces p_on_collision_pre_apply_forces {nullptr};
+    bicudo::p_on_collision p_on_collision {nullptr};
   };
 
   void init(

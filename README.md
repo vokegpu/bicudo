@@ -1,4 +1,4 @@
-# Bicudo 🐦
+# Bicudo 🐤
 
 Bicudo is a physics engine library being develop to process Separation Axis Theorem (SAT) and Newton's laws under GPU via an GPGPU API (ROCm/HIP, OpenCL, CUDA/HIP). The project contains an optionally client called Meow OpenGL-4 based to test the library.
 
@@ -144,9 +144,34 @@ bicudo::insert(
 );
 ```
 
+### Events Callback 🧼
+
+Bicudo offers two events callback for invoke on collision, an pre collision before apply physics forces and an after.
+
+```C++
+void on_collision_pre_apply_forces(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
+) {
+  bicudo::log() << "pre-forces: " << p_a->p_tag << " x " << p_b->p_tag;
+  p_a->velocity = {}; // you are able to modify the forces here
+}
+
+void on_collision(
+  bicudo::physics::placement *&p_a,
+  bicudo::physics::placement *&p_b
+) {
+  bicudo::log() << "after forces: " << p_a->p_tag << " x " << p_b->p_tag;
+  p_a->velocity = {}; // you are able to modify the forces here too
+}
+
+bicudo_runtime.p_on_collision_pre_apply_forces = &on_collision_pre_apply_forces;
+bicudo_runtime.p_on_collision = &on_collision;
+```
+
 ---
 
-# Bicudo Building 🔧🐦
+# Bicudo Building 🔧🐤
 
 Bicudo library requires all the three APIs include dir (ROCm/HIP, OpenCL, CUDA/HIP). For now only [ROCm/HIP](https://github.com/ROCm/HIP).  
 Install the ROCm-SDK, for Windows download the official AMD installer, for Linux run command from the package manager.
