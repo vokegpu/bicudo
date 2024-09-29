@@ -115,7 +115,7 @@ void bicudo::update_position(
       p_placement->inertia = 0.0f;
       p_placement->mass = 0.0f;
     } else {
-      p_placement->mass = p_placement->mass;
+      p_placement->mass = (1.0f/ p_placement->mass);
       p_placement->inertia = (1.0f / p_placement->mass) * p_placement->size.magnitude_no_sq() / p_runtime->intertia_const;
       p_placement->inertia = 1.0f / p_placement->inertia;
     }

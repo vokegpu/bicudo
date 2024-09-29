@@ -316,9 +316,9 @@ int32_t main(int32_t, char**) {
 
   bicudo::physics::placement *p_cow {new bicudo::physics::placement({
     .p_tag = "vakinha",
-    .mass = 2000.0f,
-    .friction = 0.8f,
-    .restitution = 0.2f,
+    .mass = 20.0f,
+    .friction = 1.0f,
+    .restitution = 0.0f,
     .pos = {20, 20},
     .size = {144, 144},
     .acc = gravity
@@ -327,8 +327,8 @@ int32_t main(int32_t, char**) {
   bicudo::physics::placement *p_cow_2 {new bicudo::physics::placement({
     .p_tag = "gatinho",
     .mass = 20.0f,
-    .friction = 0.8f,
-    .restitution = 0.2f,
+    .friction = 1.0f,
+    .restitution = 0.0f,
     .pos = {200, 20},
     .size = {400, 50},
     .acc = gravity
