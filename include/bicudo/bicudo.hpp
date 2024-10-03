@@ -7,7 +7,7 @@
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
-#define bicudo_version "1.2.0"
+#define bicudo_version "1.3.1"
 
 namespace bicudo {
   typedef void(*p_on_collision_pre_apply_forces)(bicudo::physics::placement*&, bicudo::physics::placement*&);

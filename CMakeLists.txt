@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 
 set(CMAKE_CXX_STANDARD 17)
-set(BICUDO_VERSIION 1.2.0)
+set(BICUDO_VERSIION 1.3.1)
 
 if(
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang"

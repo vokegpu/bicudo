@@ -48,12 +48,16 @@ void bicudo::erase(
   bicudo::physics::placement *p_placement
 ) {
   for (uint64_t it {}; it < p_runtime->placement_list.size(); it++) {
-    bicudo::physics::placement *&p_alive_placement {
+    bicudo::physics::placement *p_alive_placement {
       p_runtime->placement_list.at(it)
     };
 
     if (p_alive_placement != nullptr && p_alive_placement == p_placement) {
-      p_runtime->placement_list.erase(p_runtime->placement_list.begin() + it);
+      p_runtime->placement_list.erase(
+        p_runtime->placement_list.begin() + it
+      );
+
+      delete p_alive_placement;
       break;
     }
   }
@@ -64,12 +68,16 @@ void bicudo::erase(
   bicudo::id id
 ) {
   for (uint64_t it {}; it < p_runtime->placement_list.size(); it++) {
-    bicudo::physics::placement *&p_alive_placement {
+    bicudo::physics::placement *p_alive_placement {
       p_runtime->placement_list.at(it)
     };
 
     if (p_alive_placement != nullptr && p_alive_placement->id == id) {
-      p_runtime->placement_list.erase(p_runtime->placement_list.begin() + it);
+      p_runtime->placement_list.erase(
+        p_runtime->placement_list.begin() + it
+      );
+
+      delete p_alive_placement;
       break;
     }
   }

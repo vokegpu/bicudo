@@ -150,7 +150,7 @@ void bicudo::physics_processor_update(
       p_a->angular_velocity -= c1_cross * jn * p_a->inertia;
       p_b->angular_velocity += c2_cross * jn * p_b->inertia;
 
-      tangent = vdiff - n * vdiff.dot(n);
+      tangent = vdiff - n * vdiff_dot;
       tangent = tangent.normalize() * -1.0f;
 
       c1_cross = c1.cross(tangent);

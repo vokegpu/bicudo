@@ -10,11 +10,13 @@ namespace bicudo::physics {
   public:
     const char *p_tag {};
     bicudo::id id {};
+    bicudo::flags flags {};
 
     float mass {};
     float friction {};
     float restitution {};
     float inertia {};
+    float hardness {};
 
     bicudo::vec2 min {};
     bicudo::vec2 max {};

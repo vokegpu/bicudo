@@ -1,0 +1,36 @@
+a equação da energia cinética é (m * v * v) / 2, m é massa e v é velocidade, pro ce usa rina :) By Hamdolf WB s2
+
+
+m1 : massa do objeto maior.
+v1 : velocidade do objeto maior antes da colisão
+m2: massa do objeto menor
+v2: velocidade do objeto menor (pode ser 0 se estiver parado)
+e: energia de deformação/fratura do objeto menor.
+F: força de impacto durante a colisão.
+K: coeficiente de fratura (o fator que indica o potencial de fratura do objeto menor).
+
+
+A força de impacto pode ser aproximada como:
+F = x
+// Onde Δv é a variação de velocidade do objeto maior após o impacto e Δt é o tempo de contato
+
+coeficiente de Fratura (K)Agora, o coeficiente de fratura pode ser relacionado à fração da energia cinética transferida ao objeto menor que excede sua resistência a fratura 𝑒 e,
+que pode ser definida como a energia que o objeto menor pode absorver antes de quebrar
+K é o coeficiente de fratura;
+K = e*F*v*1
+
+F×Δv1 é a força efetiva que atinge o objeto menor, levando em conta a variação de velocidade do objeto maior;e é a resistência à fratura do objeto menor (propriedade do material).
+Se 𝐾 > 1 K>1, o objeto menor tem grandes chances de se fraturar
+Se 𝐾 ≤ 1 K≤1, o objeto menor pode resistir ao impacto.
+
+
+
+Ecin = 0.5 * m1 * v1^2 + 0.5 * m2 * v2²
+Ecin = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2
+
+
+
+
+O valor de 𝑒 e precisa ser conhecido ou estimado com base na resistência do material à fratura (como uma função de dureza, rigidez, e absorção de energia do materia
+
+e = energia cinetica
