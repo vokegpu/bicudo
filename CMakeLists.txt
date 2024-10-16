@@ -21,7 +21,7 @@ elseif(WIN32)
   set(ROCM_HIP_DIR ${HIP_PATH})
   if (DEFINED $ENV{HIP_PATH})
     set(ROCM_HIP_DIR $ENV{HIP_PATH})
-    message(STATUS "Meow is using HIP_PATH venv")
+    message(STATUS "Bicudo is using HIP_PATH venv")
   endif()
 
   file(GLOB ROCM_INCLUDE_DIR "${ROCM_HIP_DIR}/include")
