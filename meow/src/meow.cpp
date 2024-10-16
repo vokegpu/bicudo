@@ -321,7 +321,8 @@ int32_t main(int32_t, char**) {
     .restitution = 0.0f,
     .pos = {20, 20},
     .size = {144, 144},
-    .acc = gravity
+    .acc = gravity,
+    .angle = 3.0f
   })};
 
   bicudo::physics::placement *p_cow_2 {new bicudo::physics::placement({
@@ -392,7 +393,7 @@ int32_t main(int32_t, char**) {
   bicudo::insert(&meow::app.bicudo, p_terrain_left);
   bicudo::insert(&meow::app.bicudo, p_terrain_right);
 
-  for (uint64_t it {}; it < 0; it++) {
+  for (uint64_t it {}; it < 4; it++) {
     bicudo::insert(&meow::app.bicudo, new bicudo::physics::placement({
     .p_tag = "miau",
     .mass = bicudo_clamp_min(static_cast<float>(std::rand() % 200), 1),

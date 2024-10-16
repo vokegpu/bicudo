@@ -45,7 +45,8 @@ void bicudo::insert(
 
 void bicudo::erase(
   bicudo::runtime *p_runtime,
-  bicudo::physics::placement *p_placement
+  bicudo::physics::placement *p_placement,
+  bool free
 ) {
   for (uint64_t it {}; it < p_runtime->placement_list.size(); it++) {
     bicudo::physics::placement *p_alive_placement {
@@ -53,11 +54,15 @@ void bicudo::erase(
     };
 
     if (p_alive_placement != nullptr && p_alive_placement == p_placement) {
+      if (free) {
+        delete p_alive_placement;
+        p_alive_placement = nullptr;
+      }
+
       p_runtime->placement_list.erase(
         p_runtime->placement_list.begin() + it
       );
 
-      delete p_alive_placement;
       break;
     }
   }
@@ -65,7 +70,8 @@ void bicudo::erase(
 
 void bicudo::erase(
   bicudo::runtime *p_runtime,
-  bicudo::id id
+  bicudo::id id,
+  bool free
 ) {
   for (uint64_t it {}; it < p_runtime->placement_list.size(); it++) {
     bicudo::physics::placement *p_alive_placement {
@@ -73,11 +79,15 @@ void bicudo::erase(
     };
 
     if (p_alive_placement != nullptr && p_alive_placement->id == id) {
+      if (free) {
+        delete p_alive_placement;
+        p_alive_placement = nullptr;
+      }
+
       p_runtime->placement_list.erase(
         p_runtime->placement_list.begin() + it
       );
 
-      delete p_alive_placement;
       break;
     }
   }
@@ -150,9 +160,7 @@ void bicudo::update_position(
   p_placement->angular_velocity += p_placement->angular_acc * bicudo::dt;
   p_placement->angle += p_placement->angular_velocity;
 
-  center.x = p_placement->pos.x + (p_placement->size.x / 2);
-  center.y = p_placement->pos.y + (p_placement->size.y / 2);
-
+  center = p_placement->pos + (p_placement->size / 2.0f);
   for (bicudo::vec2 &vertex : p_placement->vertices) {
     vertex += p_placement->velocity;
     vertex = vertex.rotate(p_placement->angular_velocity, center);

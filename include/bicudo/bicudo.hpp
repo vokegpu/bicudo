@@ -7,7 +7,7 @@
 #include "bicudo/physics/placement.hpp"
 #include <cstdint>
 
-#define bicudo_version "1.3.1"
+#define bicudo_version "1.3.2"
 
 namespace bicudo {
   typedef void(*p_on_collision_pre_apply_forces)(bicudo::physics::placement*&, bicudo::physics::placement*&);
@@ -45,12 +45,14 @@ namespace bicudo {
 
   void erase(
     bicudo::runtime *p_runtime,
-    bicudo::physics::placement *p_placement
+    bicudo::physics::placement *p_placement,
+    bool free = false
   );
 
   void erase(
     bicudo::runtime *p_runtime,
-    bicudo::id id
+    bicudo::id id,
+    bool free = false
   );
 
   void update(
