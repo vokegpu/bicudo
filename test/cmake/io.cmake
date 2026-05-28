@@ -1,0 +1,1 @@
+set(EXECUTABLE_OUTPUT_PATH "../bin/")

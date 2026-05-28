@@ -7,7 +7,7 @@ include(cmake/io.cmake)
 set(BICUDO_VERSION 0.1.0)
 
 project(
-  BICUDO
+  Bicudo
   VERSION ${BICUDO_VERSION}
   DESCRIPTION "gpu-accelerated physics library"
 )
@@ -40,3 +40,23 @@ set_target_properties(
 )
 
 message(STATUS "Successfully generated Bicudo build-make files!")
+
+install(
+  TARGETS bicudo
+  EXPORT bicudo
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY ./include/
+  DESTINATION include/bicudo
+)
+
+install(
+  EXPORT bicudo
+  FILE BicudoConfig.cmake
+  NAMESPACE Bicudo::
+  DESTINATION lib/cmake/bicudo
+)
