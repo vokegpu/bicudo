@@ -1,9 +1,8 @@
 # CMake
 
-/cmake-build-debug/
-/meow/cmake-build-debug/
-/meow/bin/meow
+/cmake-build/
 /lib
+/cmake-install
 
 # Sublime Text
 *.sublime-workspace

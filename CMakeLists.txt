@@ -1,44 +1,62 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_CXX_STANDARD 17)
-set(BICUDO_VERSIION 1.3.2)
+message(STATUS "Starting to preare Bicudo make-files...")
 
-if(
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
-    OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-  )
+include(cmake/io.cmake)
 
-  add_compile_options(
-    -O3
-  )
-endif()
+set(BICUDO_VERSION 0.1.0)
 
-if(LINUX OR ANDROID)
-  file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
-  set(LIBRARY_OUTPUT_PATH "../lib/linux/")
-elseif(WIN32)
-  set(ROCM_HIP_DIR ${HIP_PATH})
-  if (DEFINED $ENV{HIP_PATH})
-    set(ROCM_HIP_DIR $ENV{HIP_PATH})
-    message(STATUS "Bicudo is using HIP_PATH venv")
-  endif()
-
-  file(GLOB ROCM_INCLUDE_DIR "${ROCM_HIP_DIR}/include")
-  set(LIBRARY_OUTPUT_PATH "../lib/windows/")
-endif()
+project(
+  Bicudo
+  VERSION ${BICUDO_VERSION}
+  DESCRIPTION "gpu-accelerated physics library"
+)
 
 file(GLOB_RECURSE BICUDO_SRC_FILES "./src/*.cpp")
 
-project(
-  bicudo
-  VERSION ${BICUDO_VERSIION}
-  DESCRIPTION "SAT & Newton physics library with acceleration option to ROCm/HIP"
+add_library(
+  bicudo ${BICUDO_SRC_FILES}
 )
 
-include_directories(
-  ./include
-  ${ROCM_INCLUDE_DIR}
+target_include_directories(
+  bicudo PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
-add_library(bicudo ${BICUDO_SRC_FILES})
+target_compile_options(
+  bicudo PRIVATE
+  ${BICUDO_COMPILE_OPTIONS}
+)
+
+target_compile_definitions(
+  bicudo PRIVATE
+  BICUDO_VERSION="v${BICUDO_VERSION}"
+)
+
+set_target_properties(
+  bicudo PROPERTIES
+  CXX_STANDARD 17
+)
+
+message(STATUS "Successfully generated Bicudo build-make files!")
+
+install(
+  TARGETS bicudo
+  EXPORT bicudo
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY ./include/
+  DESTINATION include/bicudo
+)
+
+install(
+  EXPORT bicudo
+  FILE BicudoConfig.cmake
+  NAMESPACE Bicudo::
+  DESTINATION lib/cmake/bicudo
+)
