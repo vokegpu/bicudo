@@ -34,7 +34,7 @@
 		{
 			"name": "Linux Build-Run Bicudo & Bicudo-Test",
 			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cmake --install ./cmake-build --prefix ./cmake-install && cd ./test/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -D CMAKE_INSTALL_PREFIX=../cmake-install && cmake --build ./cmake-build && cd ./bin/ && ./bicudo-tests"
+				"cd $folder && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cmake --install ./cmake-build --prefix ./cmake-install && cd ./test/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cd ./bin/ && ./bicudo-tests"
 		}
 	]
 }

@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 include(cmake/io.cmake)
 
 project(
@@ -12,7 +11,8 @@ find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(Bicudo REQUIRED)
+
+include(cmake/install-bicudo.cmake)
 include(cmake/install-ekg.cmake)
 
 file(GLOB_RECURSE BICUDO_TESTS_SRC_FILES "./src/*.cpp")
@@ -34,7 +34,7 @@ target_link_libraries(
   OpenGL::GL
   GLEW::GLEW
   Freetype::Freetype
-  Bicudo::bicudo
+  bicudo
   ekg
   -static-libgcc -static-libstdc++
 )

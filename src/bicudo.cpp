@@ -1,5 +1,4 @@
-#include "bicudo.hpp"
-
+#include <bicudo/bicudo.hpp>
 #include <iostream>
 
 void bicudo::init() {
