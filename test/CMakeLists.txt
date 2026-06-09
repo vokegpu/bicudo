@@ -42,5 +42,6 @@ target_link_libraries(
   Freetype::Freetype
   bicudo
   ekg
+  ${ROCM_NATIVE_LIBRARY_PATH}
   -static-libgcc -static-libstdc++
 )

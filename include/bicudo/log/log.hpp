@@ -12,11 +12,13 @@
 namespace bicudo {
   using id_t = std::size_t;
   using result_t = std::size_t;
+  using device_id_t = int;
 
   enum result : result_t {
     OK,
     SUCCESS,
     FAILED_TO_INITIALIZE_BICUDO,
+    FAILED_TO_INITIALIZE_ROCM,
     NOT_IMPLEMENTED
   };
 
