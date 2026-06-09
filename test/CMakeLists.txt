@@ -14,12 +14,18 @@ find_package(Freetype REQUIRED)
 
 include(cmake/install-bicudo.cmake)
 include(cmake/install-ekg.cmake)
+include(cmake/fetch-hip.cmake)
 
 file(GLOB_RECURSE BICUDO_TESTS_SRC_FILES "./src/*.cpp")
 
 add_executable(
   bicudo-tests
   ${BICUDO_TESTS_SRC_FILES}
+)
+
+target_include_directories(
+  bicudo-tests PRIVATE
+  ${ROCM_INCLUDE_DIR}
 )
 
 set_target_properties(

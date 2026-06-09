@@ -6,7 +6,7 @@ set(BICUDO_VERSION 0.1.0)
 set(ROCM_VERSION rocm-7.2.2)
 
 include(cmake/io.cmake)
-include(cmake/hip.cmake)
+include(cmake/fetch-hip.cmake)
 
 project(
   Bicudo
@@ -24,6 +24,7 @@ add_library(
 target_include_directories(
   bicudo PRIVATE
   "./include"
+  ${ROCM_INCLUDE_DIR}
 )
 
 target_compile_options(
