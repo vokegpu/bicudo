@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(
+  VERSION 3.30
+)
 
-message(STATUS "Starting to preare Bicudo make-files...")
+message(STATUS "Starting to prepare Bicudo cmake-building-files...")
 
 set(BICUDO_VERSION 0.1.0)
 set(ROCM_VERSION rocm-7.2.2)
@@ -14,53 +16,7 @@ project(
   DESCRIPTION "gpu-accelerated physics library"
 )
 
-file(GLOB_RECURSE BICUDO_SRC_FILES "./src/*.cpp")
+include(cmake/bicudo.cmake)
+include(cmake/bicudo-hip-rocm.cmake)
 
-add_library(
-  bicudo SHARED
-  ${BICUDO_SRC_FILES}
-)
-
-target_include_directories(
-  bicudo PRIVATE
-  "./include"
-  ${ROCM_INCLUDE_DIR}
-)
-
-target_compile_options(
-  bicudo PRIVATE
-  ${BICUDO_COMPILE_OPTIONS}
-)
-
-target_compile_definitions(
-  bicudo PRIVATE
-  BICUDO_VERSION="v${BICUDO_VERSION}"
-)
-
-set_target_properties(
-  bicudo PROPERTIES
-  CXX_STANDARD 17
-)
-
-message(STATUS "Successfully generated Bicudo build-make files!")
-
-install(
-  TARGETS bicudo
-  EXPORT bicudo
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-  PUBLIC_HEADER DESTINATION include
-)
-
-install(
-  DIRECTORY ./include/bicudo
-  DESTINATION include
-)
-
-install(
-  EXPORT bicudo
-  FILE BicudoConfig.cmake
-  NAMESPACE Bicudo::
-  DESTINATION lib/cmake/bicudo
-)
+message(STATUS "Successfully generated Bicudo cmake-building-files!")

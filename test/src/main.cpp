@@ -1,6 +1,5 @@
 #include <cstdint>
 
-
 #include <bicudo/bicudo.hpp>
 #include <bicudo/pipeline/rocm.hpp>
 
