@@ -14,7 +14,7 @@
     		{
      			"initializationOptions":
     	 		{
-	     			"clangd.compile-commands-dir": "./cmake-build-debug"
+	     			"clangd.compile-commands-dir": "./cmake-build"
      			}
      		}
     	}
@@ -24,17 +24,7 @@
 		{
 			"name": "Linux Build Bicudo",
 			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build"
-		},
-		{
-			"name": "Linux Build Bicudo & Meow",
-			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cd ./meow/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build"
-		},
-		{
-			"name": "Linux Build-Run Bicudo & Bicudo-Test",
-			"shell_cmd":
-				"cd $folder && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cmake --install ./cmake-build --prefix ./cmake-install && cd ./test/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cd ./bin/ && ./bicudo-tests"
+				"cd $folder && sh ./bicudo-linux.sh --build"
 		}
 	]
 }

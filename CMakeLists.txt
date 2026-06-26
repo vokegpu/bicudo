@@ -17,6 +17,29 @@ project(
 )
 
 include(cmake/bicudo.cmake)
-include(cmake/bicudo-hip-rocm.cmake)
+
+if(BICUDO_HIP_ROCM)
+  include(cmake/bicudo-hip-rocm.cmake)
+endif()
+
+install(
+  TARGETS ${BICUDO_EXPORT_TARGETS}
+  EXPORT bicudo-targets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY ./include/bicudo
+  DESTINATION include
+)
+
+install(
+  EXPORT bicudo-targets
+  FILE BicudoConfig.cmake
+  NAMESPACE Bicudo::
+  DESTINATION lib/cmake/bicudo
+)
 
 message(STATUS "Successfully generated Bicudo cmake-building-files!")

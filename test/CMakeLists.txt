@@ -11,8 +11,8 @@ find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(Bicudo REQUIRED)
 
-include(cmake/install-bicudo.cmake)
 include(cmake/install-ekg.cmake)
 include(cmake/fetch-hip.cmake)
 
@@ -40,7 +40,8 @@ target_link_libraries(
   OpenGL::GL
   GLEW::GLEW
   Freetype::Freetype
-  bicudo
+  Bicudo::bicudo
+  Bicudo::bicudo-hip-rocm
   ekg
   ${ROCM_NATIVE_LIBRARY_PATH}
   -static-libgcc -static-libstdc++

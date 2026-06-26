@@ -13,7 +13,3 @@
 # 
 # FetchContent_MakeAvailable(Bicudo)
 # FetchContent_GetProperties(Bicudo)
-
-# dev ignore
-include_directories(../cmake-install/include)
-link_directories(../cmake-install/lib)

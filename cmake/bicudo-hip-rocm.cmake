@@ -24,17 +24,7 @@ set_target_properties(
   CXX_STANDARD 17
 )
 
-install(
-  TARGETS bicudo-hip-rocm
-  EXPORT bicudo-hip-rocm
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-install(
-  EXPORT bicudo-hip-rocm
-  FILE BicudoHipROCMConfig.cmake
-  NAMESPACE Bicudo::
-  DESTINATION lib/cmake/bicudo
+list(
+  APPEND BICUDO_EXPORT_TARGETS
+  bicudo-hip-rocm
 )

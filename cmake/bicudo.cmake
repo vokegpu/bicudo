@@ -24,23 +24,7 @@ set_target_properties(
   CXX_STANDARD 17
 )
 
-install(
-  TARGETS bicudo
-  EXPORT bicudo
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-  PUBLIC_HEADER DESTINATION include
-)
-
-install(
-  DIRECTORY ./include/bicudo
-  DESTINATION include
-)
-
-install(
-  EXPORT bicudo
-  FILE BicudoConfig.cmake
-  NAMESPACE Bicudo::
-  DESTINATION lib/cmake/bicudo
+list(
+  APPEND BICUDO_EXPORT_TARGETS
+  bicudo
 )
