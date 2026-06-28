@@ -24,7 +24,7 @@
 		{
 			"name": "Linux Build Bicudo",
 			"shell_cmd":
-				"cd $folder && sh ./bicudo-linux.sh --build"
+				"cd $folder && sh ./bicudo-linux.sh --build --test"
 		}
 	]
 }

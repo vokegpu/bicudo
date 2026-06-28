@@ -54,4 +54,6 @@ namespace bicudo {
   void flush();
 }
 
+#define bicudo_hip_assert(result, expected, log) if (result != expected) log;
+
 #endif
