@@ -1,5 +1,5 @@
 if(LINUX OR ANDROID)
-  file(GLOB ROCM_NATIVE_LIBRARY_PATH "/opt/rocm/lib/libamdhip64.so")
+  file(GLOB ROCM_NATIVE_LIBRARY_PATH "/opt/rocm/lib/libamdhip64.so" "/opt/rocm/lib/libhiprtc.so")
   file(GLOB ROCM_INCLUDE_DIR "/opt/rocm/include")
 elseif(WIN32)
   set(ROCM_HIP_DIR ${HIP_PATH})

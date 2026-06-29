@@ -4,6 +4,7 @@
 #include <bicudo/pipeline/base.hpp>
 #include <bicudo/gpu/rocm/divine.hpp>
 #include <bicudo/gpu/rocm/sacred.hpp>
+#include <bicudo/gpu/rocm/header.hpp>
 #include <vector>
 
 namespace bicudo {
@@ -30,7 +31,7 @@ namespace bicudo {
 
     bicudo::result_t gpu_load_kernels(
       bicudo::gpu_rm_divine_pipeline_t &pipeline,
-      std::vector<bicudo::gpu_rm_divine_kernel_t> &kernels
+      bicudo::gpu_rm_divine_kernels_t &kernels
     );
   };
 }

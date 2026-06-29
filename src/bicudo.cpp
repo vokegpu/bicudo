@@ -15,6 +15,8 @@ bicudo::result_t bicudo::init(
     return bicudo::result::FAILED_TO_INITIALIZE_BICUDO;
   }
 
+  bicudo::p_core = &core;
   bicudo::log("Successfully initalized Bicudo core!");
+
   return bicudo::result::OK;
 }

@@ -5,7 +5,7 @@
 
 namespace bicudo {
   template<typename t>
-  t &as_gpu_base() {
+  t &as_gpu() {
     return *dynamic_cast<t*>(bicudo::p_core->p_base);
   }
 }

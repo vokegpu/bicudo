@@ -5,9 +5,9 @@
 #include <sstream>
 #include <iostream>
 
-#define BICUDO_LOG_STATUS_PREFIX "<bicudo-status> "
-#define BICUDO_LOG_ERROR_PREFIX "<bicudo-error> "
-#define BICUDO_LOG_WARNING_PREFIX "<bicudo-warning> "
+#define BICUDO_LOG_STATUS_PREFIX  "< bicudo ok--- > "
+#define BICUDO_LOG_ERROR_PREFIX   "< bicudo error > "
+#define BICUDO_LOG_WARNING_PREFIX "< bicudo warn- > "
 
 namespace bicudo {
   using id_t = std::size_t;
@@ -19,7 +19,10 @@ namespace bicudo {
   enum result : result_t {
     OK,
     SUCCESS,
+    KERNEL_LOADED,
+    KERNEL_NOT_LOADED,
     FAILED_TO_OPEN_FILE,
+    FAILED_TO_COMPILE_KERNEL,
     FAILED_TO_INITIALIZE_BICUDO,
     FAILED_TO_INITIALIZE_ROCM,
     NOT_IMPLEMENTED
@@ -55,9 +58,38 @@ namespace bicudo {
     logr(rest...);
   }
 
+  template<typename t>
+  std::string logt(t &k, std::string_view type) {
+    std::string l {};
+
+    l += "<'";
+    l += k.tag;
+    l += "'-";
+    l += type;
+    l += "> ";
+
+    return l;
+  }
+
+  template<typename t>
+  std::string logtk(t &k) {
+    return logt<t>(k, "kernel");
+  }
+
+  template<typename t>
+  std::string logtf(t &k) {
+    return logt<t>(k,"function");
+  }
+
+  template<typename t>
+  std::string logtp(t &k) {
+    return logt<t>(k, "pipeline");
+  }
+
   int32_t flush();
 }
 
+#define bicudo_trace_log(x) std::cout << x << std::endl;
 #define bicudo_hip_assert(result, expected, log) if (result != expected) log;
 
 #endif

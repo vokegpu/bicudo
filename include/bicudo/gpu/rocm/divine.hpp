@@ -34,29 +34,36 @@ namespace bicudo {
     void *p_device;
   };
 
+  using gpu_rm_divine_fun_arguments_t = std::vector<bicudo::gpu_rm_divine_fun_args_t>;
+
   struct gpu_rm_divine_fun_t {
   public:
-    gpu_rm_divine_fun_entry_point_t entry_point {};
-    gpu_rm_divine_fun_memory_properties_t memory {};
-    gpu_rm_divine_fun_dimension_t dimension {};
-    std::vector<gpu_rm_divine_fun_args_t> args {};
+    bicudo::gpu_rm_divine_fun_entry_point_t entry_point {};
+    bicudo::gpu_rm_divine_fun_memory_properties_t memory {};
+    bicudo::gpu_rm_divine_fun_dimension_t dimension {};
+    bicudo::gpu_rm_divine_fun_arguments_t args {};
   };
+
+  using gpu_rm_divine_functions_t = std::vector<bicudo::gpu_rm_divine_fun_t>;
 
   struct gpu_rm_divine_kernel_t {
   public:
     std::string tag {};
     std::string src {};
-    std::vector<gpu_rm_divine_fun_t> functions {};
+    bicudo::gpu_rm_divine_functions_t functions {};
+    bicudo::result_t status {bicudo::result::KERNEL_NOT_LOADED};
   public:
     hipModule_t hip_module {};
     hiprtcProgram hip_program {};
   };
 
+  using gpu_rm_divine_kernels_t = std::vector<bicudo::gpu_rm_divine_kernel_t>;
+
   struct gpu_rm_divine_pipeline_t {
   public:
     std::string tag {};
     std::string description {};
-    std::vector<bicudo::gpu_rm_divine_kernel_t> kernels {};
+    bicudo::gpu_rm_divine_kernels_t kernels {};
   };
 }
 

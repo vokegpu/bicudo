@@ -3,6 +3,7 @@
 #include <bicudo/bicudo.hpp>
 #include <bicudo/pipeline/rocm.hpp>
 #include <bicudo/gpu/rocm/programs.hpp>
+#include <bicudo/gpu/gpu.hpp>
 
 int32_t main(int32_t, char**) {
   bicudo::init_core_t bicudo_init_core = {
@@ -14,11 +15,11 @@ int32_t main(int32_t, char**) {
 
   bicudo::gpu_rm_sacred_atomic_memory_t<float, float> atomic {
     .host = {
-      3.0f, // should be 17.0f
-      4.0f, // should be 27.0f
-      5.0f, // should be 37.0f
-      6.0f, // should be 47.0f
-      7.0f  // should be 52.0f
+      153.0f,  // should be 17.0f
+      26.0f,   // should be 27.0f
+      24.0f,   // should be 37.0f
+      6.0f,    // should be 47.0f
+      1977.0f  // should be 52.0f
     },
     .device = std::vector<float>(5),
     .bytes = sizeof(float)*5
@@ -32,7 +33,7 @@ int32_t main(int32_t, char**) {
   kernel_hip_runtime.functions = {
     {
       .entry_point = {
-        .name = "runtime_assert_entrypoint"
+        .name = "runtime_assert_entry_point"
       },
       .memory = {
         .shared_mem_bytes = 0,
@@ -53,10 +54,12 @@ int32_t main(int32_t, char**) {
     }
   };
 
-  bicudo::gpu_rm_divine_pipeline_t pipeline { .tag = "52" };
-  pipeline.kernels.push_back(kernel_hip_runtime);
-
-  bicudo::rocm &rocm {bicudo::as_gpu<bicudo::rocm>()};  
+  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
+  bicudo::gpu_rm_divine_pipeline_t pipeline52 { .tag = "52", .description = "The divine kernel for Divine numbers assertation." };
+  bicudo::gpu_rm_divine_kernels_t kernels = { kernel_hip_runtime };
+  
+  rocm.gpu_load_kernels(pipeline52, kernels);
+  rocm.gpu_create_pipeline(pipeline52);
 
   return bicudo::flush();
 }

@@ -11,7 +11,7 @@ namespace bicudo::gpu::rocm {
  **/
 
 extern "C" __global__
-void runtime_assert_entrypoint(
+void runtime_assert_entry_point(
   float *__restrict__ p_assert_buffer
 ) {
   p_assert_buffer[0] = 17.0f;
