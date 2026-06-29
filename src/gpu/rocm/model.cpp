@@ -1,6 +1,6 @@
-#include <bicudo/pipeline/rocm/model.hpp>
+#include <bicudo/gpu/rocm/model.hpp>
 
-bicudo::result_t bicudo::pipeline::rocm::init() {
+bicudo::result_t bicudo::rocm::init() {
   bicudo::device_id_t device_count {};
   if (hipGetDeviceCount(&device_count) != hipSuccess) {
     bicudo::loge("Failed to initialize ROCm pipeline; no device found");

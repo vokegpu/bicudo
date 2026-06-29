@@ -46,7 +46,7 @@ endfunction()
 file(
   GLOB_RECURSE BICUDO_HIP_ROCM_SRC_FILES
   "./src/pipeline/rocm.cpp"
-  "./src/pipeline/rocm/*.cpp"
+  "./src/gpu/rocm/*.cpp"
 )
 
 file(
@@ -57,4 +57,4 @@ file(
 ## #
 ## Excludes the GPUs driver implementation due shareable pipeline. 
 ## #
-exclude_files_by_regex(BICUDO_SRC_FILES "bicudo/pipeline/rocm/|rocm.cpp")
+exclude_files_by_regex(BICUDO_SRC_FILES "bicudo/gpu/rocm/|rocm.cpp")

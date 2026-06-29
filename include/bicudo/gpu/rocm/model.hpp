@@ -1,8 +1,10 @@
 #ifndef BICUDO_PIPELINE_ROCM_MODEL_HPP
 #define BICUDO_PIPELINE_ROCM_MODEL_HPP
 
-#include <bicudo/pipeline/rocm/header.hpp>
 #include <bicudo/pipeline/base.hpp>
+#include <bicudo/gpu/rocm/divine.hpp>
+#include <bicudo/gpu/rocm/sacred.hpp>
+#include <vector>
 
 namespace bicudo {
   struct rocm_pipeline_configuration_t {
@@ -11,7 +13,7 @@ namespace bicudo {
   };
 }
 
-namespace bicudo::pipeline {
+namespace bicudo {
   class rocm : public bicudo::pipeline::base {
   protected:
     bicudo::rocm_pipeline_configuration_t pipeline_config;
@@ -21,6 +23,15 @@ namespace bicudo::pipeline {
     }
   public:
     bicudo::result_t init() override;
+  public:
+    bicudo::result_t gpu_create_pipeline(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline
+    );
+
+    bicudo::result_t gpu_load_kernels(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline,
+      std::vector<bicudo::gpu_rm_divine_kernel_t> &kernels
+    );
   };
 }
 

@@ -2,85 +2,61 @@
 
 #include <bicudo/bicudo.hpp>
 #include <bicudo/pipeline/rocm.hpp>
-
-#include <bicudo/math/geometry.hpp>
-#include <vector>
-
-struct fun_memory_properties_t {
-public:
-  std::size_t shared_mem_bytes;
-  std::size_t mem_size;
-  hipStream_t stream;
-};
-
-struct fun_dimension_t {
-public:
-  bicudo::vec3_t<uint32_t> grid;
-  bicudo::vec3_t<uint32_t> block;
-};
-
-struct fun_entry_point_t {
-public:
-  std::string name;
-  hipFunction_t hip_function;
-};
-
-struct fun_args_t {
-public:
-  std::vector<void*> buffers;
-};
-
-struct fun_t {
-public:
-  fun_entry_point_t entry_point {};
-  fun_dimension_t dimension {};
-  fun_memory_properties_t memory {};
-  fun_args_t args {};
-};
-
-struct kernel_t {
-public:
-  std::string tag {};
-  std::string src {};
-  hipModule_t hip_module {};
-  hiprtcProgram hip_program {};
-  std::vector<fun_t> functions {};
-};
-
-struct pipeline_t {
-public:
-  std::string tag {};
-  std::vector<kernel_t> kernels {};
-};
+#include <bicudo/gpu/rocm/programs.hpp>
 
 int32_t main(int32_t, char**) {
   bicudo::init_core_t bicudo_init_core = {
-    .p_base = bicudo::rocm()
+    .p_base = bicudo::as_rocm()
   };
 
   bicudo::core_t core {};
   bicudo::init(bicudo_init_core, core);
 
-  pipeline_t pipeline {
-    .tag = "meow amo vc lamed",
-    .kernels = {
-      kernel_t {
-        .functions = {
-          {
-            .entry_point = { .name = "meow" }
-          }
+  bicudo::gpu_rm_sacred_atomic_memory_t<float, float> atomic {
+    .host = {
+      3.0f, // should be 17.0f
+      4.0f, // should be 27.0f
+      5.0f, // should be 37.0f
+      6.0f, // should be 47.0f
+      7.0f  // should be 52.0f
+    },
+    .device = std::vector<float>(5),
+    .bytes = sizeof(float)*5
+  };
+
+  bicudo::gpu_rm_divine_kernel_t kernel_hip_runtime {
+    .tag = "hip-runtime-assert",
+    .src = bicudo::gpu::rocm::hip_rocm_kernel_runtime_assert
+  };
+
+  kernel_hip_runtime.functions = {
+    {
+      .entry_point = {
+        .name = "runtime_assert_entrypoint"
+      },
+      .memory = {
+        .shared_mem_bytes = 0,
+        .mem_size = 0,
+        .stream = nullptr,
+      },
+      .dimension = {
+        .grid = bicudo::vec3_t<uint32_t>(1, 1, 1),
+        .block = bicudo::vec3_t<uint32_t>(4, 1, 1)
+      },
+      .args = {
+        {
+          .bytes = atomic.bytes,
+          .p_host = atomic.host.data(),
+          .p_device = atomic.device.data()
         }
       }
     }
   };
 
-  auto j = 1;
+  bicudo::gpu_rm_divine_pipeline_t pipeline { .tag = "52" };
+  pipeline.kernels.push_back(kernel_hip_runtime);
 
-  bicudo_hip_assert(
-    j, hipSuccess, bicudo::loge("Failed!")
-  );
+  bicudo::rocm &rocm {bicudo::as_gpu<bicudo::rocm>()};  
 
-  bicudo::flush();
-
-  return 0;
+  return bicudo::flush();
 }
