@@ -29,15 +29,18 @@ bicudo::result_t bicudo::rocm::init() {
   return bicudo::result::SUCCESS;
 }
 
-bicudo::result_t bicudo::rocm::gpu_create_pipeline(
+bicudo::result_t bicudo::rocm::gpu_pipeline_create(
   bicudo::gpu_rm_divine_pipeline_t &pipeline
 ) {
   bicudo::log(bicudo::logtp(pipeline), "Creating...");
 
+  bicudo::result_t status {bicudo::result::SUCCESS};
   std::vector<char> kernel_binary {};
+
   for (bicudo::gpu_rm_divine_kernel_t &kernel : pipeline.kernels) {
     if (kernel.status == bicudo::result::KERNEL_NOT_LOADED) {
       bicudo::logw(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Skipping... kernel not loaded.");
+      status = bicudo::result::OK;
       continue;
     }
 
@@ -72,7 +75,7 @@ bicudo::result_t bicudo::rocm::gpu_create_pipeline(
     );
 
     bicudo_hip_assert(
-      hipModuleLoad(
+      hipModuleLoadData(
         &kernel.hip_module,
         kernel_binary.data()
       ),
@@ -83,32 +86,79 @@ bicudo::result_t bicudo::rocm::gpu_create_pipeline(
     bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Module was loaded.");
 
     for (bicudo::gpu_rm_divine_fun_t &fun : kernel.functions) {
-      bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Fetching entry-point '", fun.entry_point.name, "'...");
-
+      hipError_t result {};
       bicudo_hip_assert(
-        hipModuleGetFunction(
-          &fun.entry_point.h_fun,
-          kernel.hip_module,
-          fun.entry_point.name.c_str()
+        (
+          result =
+            hipModuleGetFunction(
+            &fun.entry_point.h_fun,
+            kernel.hip_module,
+            fun.entry_point.name.c_str()
+          )
         ),
         hipSuccess,
         bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to fetch entry-point '", fun.entry_point.name, "'.")
       );
+
+      if (result != hipSuccess) {
+        status = bicudo::result::OK;
+        continue;
+      }
+
+      bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Entry-point '", fun.entry_point.name, "' was fetched.");
+
+      for (bicudo::gpu_rm_divine_fun_args_t &arg : fun.args) {
+        bicudo_hip_assert(
+          hipMalloc(
+            &arg.p_device,
+            arg.bytes
+          ),
+          hipSuccess,
+          bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to malloc DEVICE memory of argument '", arg.tag,"'")
+        );
+
+        bicudo_hip_assert(
+          hipMemcpy(
+            arg.p_device,
+            arg.p_host,
+            arg.bytes,
+            hipMemcpyHostToDevice
+          ),
+          hipSuccess,
+          bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to memory copy from HOST to DEVICE of argument '", arg.tag,"'")
+        );
+
+        bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Argument '", arg.tag, "' is atomic sacred now.");
+      }
     }
+  }
+
+  switch (status) {
+  case bicudo::result::SUCCESS:
+    bicudo::log(bicudo::logtp(pipeline), "Pipeline is created.");
+    break;
+  case bicudo::result::OK:
+    bicudo::logw(bicudo::logtp(pipeline), "Some modules has failed to be instanced in pipeline creation - but pipeline is created.");
+    break;
+  default:
+    break;
   }
 
   return bicudo::result::SUCCESS;
 }
 
-bicudo::result_t bicudo::rocm::gpu_load_kernels(
-  bicudo::gpu_rm_divine_pipeline_t &pipeline,
-  bicudo::gpu_rm_divine_kernels_t &kernels
+bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline
 ) {
-  bicudo::log("Loading the ", kernels.size(), " kernels to pipeline '", pipeline.tag, "'...");
+  bicudo::log(bicudo::logtp(pipeline), "Loading ", pipeline.kernels.size(), " kernels...");
   
   std::string compile_program_log {};
-  for (bicudo::gpu_rm_divine_kernel_t &kernel : kernels) {
-    bicudo::log("Compiling kernel '" , kernel.tag, "'...");
+  for (bicudo::gpu_rm_divine_kernel_t &kernel : pipeline.kernels) {
+    if (kernel.status == bicudo::result::KERNEL_NOT_LOADED) {
+      continue;
+    }
+
+    bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Creating program...");
 
     kernel.status = bicudo::result::KERNEL_NOT_LOADED;
 
@@ -120,7 +170,7 @@ bicudo::result_t bicudo::rocm::gpu_load_kernels(
         0, nullptr, nullptr
       ),
       HIPRTC_SUCCESS,
-      bicudo::loge("Could not create program - may imortal Spirit of man failed.")
+      bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Could not create program");
     );
 
     bicudo_hip_assert(
@@ -129,7 +179,7 @@ bicudo::result_t bicudo::rocm::gpu_load_kernels(
         0, nullptr
       ),
       HIPRTC_SUCCESS,
-      bicudo::loge("Could not compile kernel source, program has failed to emerge.")
+      bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Could not compile program.")
     );
 
     std::size_t logsize {};
@@ -139,7 +189,7 @@ bicudo::result_t bicudo::rocm::gpu_load_kernels(
         &logsize
       ),
       HIPRTC_SUCCESS,
-      bicudo::loge("Could not get the length of the hypermachine error logs.")
+      bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Could not get program log length.")
     );
 
     if (logsize) {
@@ -152,18 +202,87 @@ bicudo::result_t bicudo::rocm::gpu_load_kernels(
           compile_program_log.data()
         ),
         HIPRTC_SUCCESS,
-        bicudo::loge("Could not get hypermachine logs to relate the failure of the kernel source Verb.")
+        bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Could not get program log.")
       );
 
-      bicudo::loge("Complete failure of Divine interaction.");
+      bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Failed to compile program.");
+      bicudo::loge(compile_program_log);
+
+      pipeline.kernels.emplace_back() = kernel;
       continue;
     }
 
-    bicudo::log("A program to interact with the kernel '", kernel.tag, "' source was created.");
-
     kernel.status = bicudo::result::KERNEL_LOADED;
-    pipeline.kernels.emplace_back() = kernel;
+    bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Loaded - program was created and sucessfully compiled.");
   }
 
   return bicudo::result::SUCCESS;
+}
+
+bicudo::result bicudo::rocm::gpu_pipeline_get_module_by_index(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline,
+  bicudo::gpu_rm_divine_module_t &kmodule,
+  std::size_t index
+) {
+  if (index >= pipeline.kernels.size()) {
+    bicudo::logw(
+      bicudo::logtp(pipeline), "Could not get module by index, invalid index '", index, "' - out of range (", pipeline.kernels.size(), ") "
+    );
+
+    return bicudo::COULD_NOT_GET_MODULE_BY_INDEX_OUT_OF_RANGE;
+  }
+
+  kmodule = pipeline.kernels.at(index);
+  return bicudo::SUCCESS;
+}
+
+bicudo::result bicudo::rocm::gpu_pipeline_get_module_by_tag(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline,
+  bicudo::gpu_rm_divine_module_t &kmodule,
+  const std::string &tag
+) {
+  for (bicudo::gpu_rm_divine_module_t &km : pipeline.kernels) {
+    if (km.tag == tag) {
+      kmodule = km;
+      return bicudo::result::SUCCESS;
+    }
+  }
+
+  bicudo::logw(bicudo::logtp(pipeline), "Could not get module by tag - not found.");
+  return bicudo::result::COULD_NOT_GET_MODULE_BY_TAG_NOT_FOUND;
+}
+
+bicudo::result bicudo::rocm::gpu_pipeline_get_function_by_index(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline,
+  bicudo::gpu_rm_divine_module_t &kmodule,
+  bicudo::gpu_rm_divine_fun_t &fun,
+  std::size_t index
+) {
+  if (index >= kmodule.functions.size()) {
+    bicudo::logw(
+      bicudo::logtp(pipeline), "Could not get function by index, invalid index '", index, "' - out of range (", kmodule.functions.size(), ") "
+    );
+
+    return bicudo::COULD_NOT_GET_MODULE_BY_INDEX_OUT_OF_RANGE;
+  }
+
+  fun = kmodule.functions.at(index);
+  return bicudo::SUCCESS;
+}
+
+bicudo::result bicudo::rocm::gpu_pipeline_get_function_by_name(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline,
+  bicudo::gpu_rm_divine_module_t &kmodule,
+  bicudo::gpu_rm_divine_fun_t &fun,
+  const std::string &name
+) {
+  for (bicudo::gpu_rm_divine_fun_t &f : kmodule.functions) {
+    if (f.entry_point.name == name) {
+      fun = f;
+      return bicudo::result::SUCCESS;
+    }
+  }
+
+  bicudo::logw(bicudo::logtp(pipeline), "Could not get function by name - not found.");
+  return bicudo::result::COULD_NOT_GET_FUNCTION_BY_NAME_NOT_FOUND;
 }

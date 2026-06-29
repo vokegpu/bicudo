@@ -25,13 +25,43 @@ namespace bicudo {
   public:
     bicudo::result_t init() override;
   public:
-    bicudo::result_t gpu_create_pipeline(
+    bicudo::result_t gpu_pipeline_create(
       bicudo::gpu_rm_divine_pipeline_t &pipeline
     );
 
-    bicudo::result_t gpu_load_kernels(
+    bicudo::result_t gpu_pipeline_load_kernels(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline
+    );
+
+    bicudo::result gpu_pipeline_get_module_by_index(
       bicudo::gpu_rm_divine_pipeline_t &pipeline,
-      bicudo::gpu_rm_divine_kernels_t &kernels
+      bicudo::gpu_rm_divine_module_t &kmodule,
+      std::size_t index
+    );
+
+    bicudo::result gpu_pipeline_get_module_by_tag(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline,
+      bicudo::gpu_rm_divine_module_t &kmodule,
+      const std::string &tag
+    );
+
+    bicudo::result gpu_pipeline_get_function_by_index(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline,
+      bicudo::gpu_rm_divine_module_t &kmodule,
+      bicudo::gpu_rm_divine_fun_t &fun,
+      std::size_t index
+    );
+
+    bicudo::result gpu_pipeline_get_function_by_name(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline,
+      bicudo::gpu_rm_divine_module_t &kmodule,
+      bicudo::gpu_rm_divine_fun_t &fun,
+      const std::string &name
+    );
+
+    bicudo::result_t gpu_pipeline_invoke_function(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline,
+      bicudo::gpu_rm_divine_fun_t &fun
     );
   };
 }

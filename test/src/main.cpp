@@ -13,6 +13,12 @@ int32_t main(int32_t, char**) {
   bicudo::core_t core {};
   bicudo::init(bicudo_init_core, core);
 
+  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
+
+  bicudo::gpu_rm_divine_pipeline_t pipeline52 {
+    .tag = "52", .description = "The divine kernel for Divine numbers assertation."
+  };
+
   bicudo::gpu_rm_sacred_atomic_memory_t<float, float> atomic {
     .host = {
       153.0f,  // should be 17.0f
@@ -25,7 +31,9 @@ int32_t main(int32_t, char**) {
     .bytes = sizeof(float)*5
   };
 
-  bicudo::gpu_rm_divine_kernel_t kernel_hip_runtime {
+  bicudo::gpu_rm_divine_kernel_t &kernel_hip_runtime = bicudo::as_kernel(pipeline52);
+
+  kernel_hip_runtime = {
     .tag = "hip-runtime-assert",
     .src = bicudo::gpu::rocm::hip_rocm_kernel_runtime_assert
   };
@@ -46,6 +54,7 @@ int32_t main(int32_t, char**) {
       },
       .args = {
         {
+          .tag = "assert-buf",
           .bytes = atomic.bytes,
           .p_host = atomic.host.data(),
           .p_device = atomic.device.data()
@@ -53,13 +62,9 @@ int32_t main(int32_t, char**) {
       }
     }
   };
-
-  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
-  bicudo::gpu_rm_divine_pipeline_t pipeline52 { .tag = "52", .description = "The divine kernel for Divine numbers assertation." };
-  bicudo::gpu_rm_divine_kernels_t kernels = { kernel_hip_runtime };
   
-  rocm.gpu_load_kernels(pipeline52, kernels);
-  rocm.gpu_create_pipeline(pipeline52);
+  rocm.gpu_pipeline_load_kernels(pipeline52);
+  rocm.gpu_pipeline_create(pipeline52);
 
   return bicudo::flush();
 }
