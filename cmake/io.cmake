@@ -1,4 +1,5 @@
 set(BICUDO_COMPILE_OPTIONS "")
+set(BICUDO_EXPORT_TARGETS "")
 
 if(
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
@@ -21,3 +22,39 @@ elseif(WIN32)
   file(GLOB ROCM_INCLUDE_DIR "${ROCM_HIP_DIR}/include")
   set(LIBRARY_OUTPUT_PATH "../lib/windows/")
 endif()
+
+function(
+  exclude_files_by_regex
+  src_files
+  regex
+)
+  foreach(PATH ${${src_files}})
+    if(${PATH} MATCHES ${regex})
+      message(STATUS "Removed: '${PATH}'")
+      list(REMOVE_ITEM ${src_files} ${PATH})
+    else()
+      message(STATUS "Keep: '${PATH}'")
+    endif()
+  endforeach()
+
+  return(
+    PROPAGATE
+    ${src_files}
+  )
+endfunction()
+
+file(
+  GLOB_RECURSE BICUDO_HIP_ROCM_SRC_FILES
+  "./src/pipeline/rocm.cpp"
+  "./src/gpu/rocm/*.cpp"
+)
+
+file(
+  GLOB_RECURSE BICUDO_SRC_FILES
+  "./src/*.cpp"
+)
+
+## #
+## Excludes the GPUs driver implementation due shareable pipeline. 
+## #
+exclude_files_by_regex(BICUDO_SRC_FILES "bicudo/gpu/rocm/|rocm.cpp")

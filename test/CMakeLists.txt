@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
-
+cmake_minimum_required(VERSION 3.30)
 include(cmake/io.cmake)
 
 project(
@@ -13,13 +12,20 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Bicudo REQUIRED)
+
 include(cmake/install-ekg.cmake)
+include(cmake/fetch-hip.cmake)
 
 file(GLOB_RECURSE BICUDO_TESTS_SRC_FILES "./src/*.cpp")
 
 add_executable(
   bicudo-tests
   ${BICUDO_TESTS_SRC_FILES}
+)
+
+target_include_directories(
+  bicudo-tests PRIVATE
+  ${ROCM_INCLUDE_DIR}
 )
 
 set_target_properties(
@@ -35,6 +41,8 @@ target_link_libraries(
   GLEW::GLEW
   Freetype::Freetype
   Bicudo::bicudo
+  Bicudo::bicudo-hip-rocm
   ekg
+  ${ROCM_NATIVE_LIBRARY_PATH}
   -static-libgcc -static-libstdc++
 )

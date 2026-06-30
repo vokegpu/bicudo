@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(
+  VERSION 3.30
+)
 
-message(STATUS "Starting to preare Bicudo make-files...")
-
-include(cmake/io.cmake)
+message(STATUS "Starting to prepare Bicudo cmake-building-files...")
 
 set(BICUDO_VERSION 0.1.0)
+set(ROCM_VERSION rocm-7.2.2)
+
+include(cmake/io.cmake)
+include(cmake/fetch-hip.cmake)
 
 project(
   Bicudo
@@ -12,51 +16,30 @@ project(
   DESCRIPTION "gpu-accelerated physics library"
 )
 
-file(GLOB_RECURSE BICUDO_SRC_FILES "./src/*.cpp")
+include(cmake/bicudo.cmake)
 
-add_library(
-  bicudo ${BICUDO_SRC_FILES}
-)
-
-target_include_directories(
-  bicudo PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-
-target_compile_options(
-  bicudo PRIVATE
-  ${BICUDO_COMPILE_OPTIONS}
-)
-
-target_compile_definitions(
-  bicudo PRIVATE
-  BICUDO_VERSION="v${BICUDO_VERSION}"
-)
-
-set_target_properties(
-  bicudo PROPERTIES
-  CXX_STANDARD 17
-)
-
-message(STATUS "Successfully generated Bicudo build-make files!")
+if(BICUDO_HIP_ROCM)
+  include(cmake/bicudo-hip-rocm.cmake)
+endif()
 
 install(
-  TARGETS bicudo
-  EXPORT bicudo
+  TARGETS ${BICUDO_EXPORT_TARGETS}
+  EXPORT bicudo-targets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
 
 install(
-  DIRECTORY ./include/
-  DESTINATION include/bicudo
+  DIRECTORY ./include/bicudo
+  DESTINATION include
 )
 
 install(
-  EXPORT bicudo
+  EXPORT bicudo-targets
   FILE BicudoConfig.cmake
   NAMESPACE Bicudo::
   DESTINATION lib/cmake/bicudo
 )
+
+message(STATUS "Successfully generated Bicudo cmake-building-files!")
