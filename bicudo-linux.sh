@@ -41,7 +41,7 @@ if [ $install = 1 ]; then
 fi
 
 if [ $runtest = 1 ]; then
-  cd ./test/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cmake --build ./cmake-build && cd ./bin/ && ./bicudo-tests
+  cd ./test/ && cmake -S . -B ./cmake-build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBICUDO_HIP_ROCM=$amd && cmake --build ./cmake-build && cd ./bin/ && ./bicudo-tests
 fi
 
 echo "meow 52~"

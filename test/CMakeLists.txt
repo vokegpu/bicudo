@@ -34,6 +34,17 @@ set_target_properties(
   CXX_STANDARD 17
 )
 
+set(BICUDO_LINK Bicudo::bicudo)
+
+if(BICUDO_HIP_ROCM)
+  list(APPEND BICUDO_LINK Bicudo::bicudo-hip-rocm)
+
+  target_compile_definitions(
+    bicudo-tests PRIVATE
+    BICUDO_HIP_ROCM
+  )
+endif()
+
 target_link_libraries(
   bicudo-tests PRIVATE
   SDL2::SDL2
@@ -41,9 +52,8 @@ target_link_libraries(
   OpenGL::GL
   GLEW::GLEW
   Freetype::Freetype
-  Bicudo::bicudo
-  Bicudo::bicudo-hip-rocm
-  ekg
+  ${BICUDO_LINK}
   ${ROCM_NATIVE_LIBRARY_PATH}
+  ekg
   -static-libgcc -static-libstdc++
 )

@@ -435,12 +435,12 @@ namespace bicudo {
     angle = bicudo_deg2rad(angle);
 
     if (axis.z > 0.0f) {
-      bicudo::mat4_t<t> rotate = {
-        cosf(angle), sinf(angle), 0.0f, 0.0f,
+      bicudo::mat4_t<t> rotate(
+        cosf(angle),  sinf(angle), 0.0f, 0.0f,
         -sinf(angle), cosf(angle), 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-      };
+        0.0f,         0.0f,        1.0f, 0.0f,
+        0.0f,         0.0f,        0.0f, 1.0f
+      );
 
       return mat * rotate;
     }

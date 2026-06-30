@@ -8,13 +8,13 @@ The project is simple, but not done yet, so, wait for new commits and updates. B
 
 Building and installing:
 ```
-sudo chmod u+rwx ./bicudo-linux.sh
-./bicudo-linux --build --install --hip-rocm
+chmod u+x ./bicudo-linux.sh
+./bicudo-linux.sh --build --install --hip-rocm
 ```
 
 To be sure if it is running property, you can run tests:
 ```
-./bicudo-linux .. --test
+./bicudo-linux.sh .. --test
 ```
 
 Soon should have `--hip-cuda`, `--opencl`, `--vulkan`, `--opengl4`.

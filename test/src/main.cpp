@@ -1,7 +1,14 @@
-#include <cstdint>
 #include "meow.hpp"
 
 meow::application_t meow::app {}; 
+
+#if defined(BICUDO_HIP_ROCM)
+  #include <bicudo/pipeline/rocm.hpp>
+  #define BASE bicudo::as_rocm()
+#else
+  #include <bicudo/pipeline/cpu.hpp>
+  #define BASE bicudo::as_cpu()
+#endif
 
 int32_t main(int32_t, char**) {
   SDL_Init(SDL_INIT_VIDEO);
@@ -44,7 +51,7 @@ int32_t main(int32_t, char**) {
   );
 
   bicudo::init_core_t bicudo_init_core = {
-    .p_base = bicudo::as_rocm()
+    .p_base = BASE
   };
 
   bicudo::init(
@@ -92,11 +99,13 @@ int32_t main(int32_t, char**) {
     glViewport(0.0f, 0.0f, ekg::dpi.viewport.w, ekg::dpi.viewport.h);   
 
     meow::app.immediate.invoke();
+
     meow::app.immediate.draw(
       {ekg::dpi.viewport.w / 2- 100.0f, ekg::dpi.viewport.h / 2 - 100.0f , 200.0f, 200.0f},
       {1.0f, 1.0f, 1.0f, 1.0f},
-      0.1f, 0
+      20.0f, 0
     );
+
     meow::app.immediate.revoke();
 
     ekg::render();

@@ -5,7 +5,6 @@
 #include "graphics/graphics.hpp"
 
 #include <bicudo/bicudo.hpp>
-#include <bicudo/pipeline/rocm.hpp>
 
 #include <ekg/ekg.hpp>
 #include <ekg/platform/sdl/sdl2.hpp>
