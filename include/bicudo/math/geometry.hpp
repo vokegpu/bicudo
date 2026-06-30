@@ -4,6 +4,9 @@
 #include <cfloat>
 #include <cstdint>
 #include <math.h>
+#include <iostream>
+
+#define bicudo_deg2rad(x) ((x) * 0.0174533f)
 
 namespace bicudo {
   extern float dt;
@@ -429,7 +432,18 @@ namespace bicudo {
     bicudo::vec3_t<t> axis,
     t angle
   ) {
+    angle = bicudo_deg2rad(angle);
 
+    if (axis.z > 0.0f) {
+      bicudo::mat4_t<t> rotate = {
+        cosf(angle), sinf(angle), 0.0f, 0.0f,
+        -sinf(angle), cosf(angle), 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+      };
+
+      return mat * rotate;
+    }
   }
 
   template<typename t>
@@ -437,7 +451,10 @@ namespace bicudo {
     bicudo::mat4_t<t> mat,
     bicudo::vec3_t<t> scale
   ) {
-
+    mat._11 *= scale.x;
+    mat._22 *= scale.y;
+    mat._33 *= scale.z;
+    return mat;
   }
 
   template<typename t>
@@ -445,7 +462,11 @@ namespace bicudo {
     bicudo::mat4_t<t> mat,
     bicudo::vec2_t<t> pos
   ) {
-
+    bicudo::mat4_t<float> translate(1.0f);
+    translate._41 = pos.x;
+    translate._42 = pos.y;
+    translate._43 = 0.0f;
+    return mat * translate;
   }
 
   template<typename t>

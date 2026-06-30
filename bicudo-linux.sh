@@ -37,7 +37,7 @@ if [ $build = 1 ]; then
 fi
 
 if [ $install = 1 ]; then
-  cmake --install ./cmake-build
+  sudo cmake --install ./cmake-build
 fi
 
 if [ $runtest = 1 ]; then

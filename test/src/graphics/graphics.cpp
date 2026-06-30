@@ -97,7 +97,7 @@ void meow::immediate_graphics::create() {
 }
 
 void meow::immediate_graphics::set_viewport(int32_t w, int32_t h) {
-  this->mat4x4_projection = bicudo::ortho(
+  this->mat4x4_projection = bicudo::ortho<float>(
     0.0f,
     static_cast<float>(w),
     static_cast<float>(h),
@@ -116,7 +116,10 @@ void meow::immediate_graphics::set_viewport(int32_t w, int32_t h) {
   this->current_zoom = camera.zoom;
   camera.rect.pos = delta - (center / this->current_zoom);
 
-  this->mat4x4_projection = bicudo::scale(this->mat4x4_projection, {this->current_zoom, this->current_zoom, 1.0f});
+  this->mat4x4_projection = bicudo::scale<float>(
+    this->mat4x4_projection,
+    {this->current_zoom, this->current_zoom, 1.0f}
+  );  
 
   glProgramUniformMatrix4fv(
     this->program,
@@ -150,7 +153,7 @@ void meow::immediate_graphics::draw(
     };
 
     this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, center);
-    this->mat4x4_rotate = bicudo::rotate(this->mat4x4_rotate, {0.0f, 0.0f, 1.0f}, -angle);
+    this->mat4x4_rotate = bicudo::rotate(this->mat4x4_rotate, {0.0f, 0.0f, 1.0f}, -45.0f);
     this->mat4x4_rotate = bicudo::translate(this->mat4x4_rotate, -center);
   }
 

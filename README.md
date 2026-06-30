@@ -8,7 +8,7 @@ The project is simple, but not done yet, so, wait for new commits and updates. B
 
 Building and installing:
 ```
-sudo chmod +x ./bicudo-linux.sh
+sudo chmod u+rwx ./bicudo-linux.sh
 ./bicudo-linux --build --install --hip-rocm
 ```
 
