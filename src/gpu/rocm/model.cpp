@@ -1,4 +1,7 @@
 #include <bicudo/gpu/rocm/model.hpp>
+#include <bicudo/pipeline/rocm.hpp>
+#include <bicudo/gpu/rocm/programs.hpp>
+#include <bicudo/gpu/gpu.hpp>
 
 bicudo::gpu_rm_divine_pipeline_t &bicudo::rocm::gpu_pipeline_new() {
   return *(this->pipelines.emplace_back() = new bicudo::gpu_rm_divine_pipeline_t {});
@@ -29,6 +32,96 @@ bicudo::result_t bicudo::rocm::init() {
   }
 
   bicudo::log("Bicudo selected device ID ", pipeline_config.set_order);
+
+  /* testing purpose */
+
+  bicudo::result_t assert_testing_result {bicudo::result::OK};
+
+  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
+  bicudo::gpu_rm_divine_pipeline_t &pipeline52 = rocm.gpu_pipeline_new();
+
+  pipeline52 = {
+    .tag = "52", .description = "The divine kernel for Divine numbers assertation."
+  };
+
+  bicudo::gpu_rm_sacred_atomic_memory_t atomic(sizeof(float)*5);
+  bicudo::gpu_allocate_sacred_atomic(atomic, hipHostMallocMapped, 0);;
+
+  bicudo::gpu_rm_divine_kernel_t &kernel_hip_runtime = bicudo::as_kernel(pipeline52);
+
+  kernel_hip_runtime = {
+    .tag = "hip-runtime-assert",
+    .src = bicudo::gpu::rocm::hip_rocm_kernel_runtime_assert
+  };
+
+  kernel_hip_runtime.functions = {
+    {
+      .entry_point = {
+        .name = "runtime_assert_entry_point"
+      },
+      .memory = {
+        .h_stream = nullptr
+      },
+      .dimension = {
+        .grid = bicudo::vec3_t<uint32_t>(1, 1, 1),
+        .block = bicudo::vec3_t<uint32_t>(1, 1, 1)
+      },
+      .args = {
+        {
+          .tag = "assert-buf",
+          .bytes = atomic.bytes,
+          .p_device = atomic.p_device
+        }
+      }
+    }
+  };
+
+  rocm.gpu_pipeline_load_kernels(pipeline52);
+  rocm.gpu_pipeline_create(pipeline52);
+
+  bicudo::gpu_rm_divine_module_t &module_hip_runtime_assert {
+    bicudo::as_module(pipeline52, "hip-runtime-assert")
+  };
+
+  bicudo::gpu_rm_divine_fun_t &fun_entry_point_hip_runtime_assert {
+    bicudo::as_function(module_hip_runtime_assert, "runtime_assert_entry_point")
+  };
+
+  if (module_hip_runtime_assert != bicudo::found || fun_entry_point_hip_runtime_assert != bicudo::found) {
+    assert_testing_result = bicudo::result::FAILED;
+    bicudo::loge("Unknown reason to: hip-runtime-module or hip-runtime-entry-point be not found");
+  }
+
+  switch (assert_testing_result) {
+  case bicudo::result::FAILED:
+    break;
+  case bicudo::result::OK:
+    float *p = static_cast<float*>(atomic.p_host);
+
+    p[0] = 153.0f;  // should be 17.0f
+    p[1] = 26.0f;   // should be 27.0f
+    p[2] = 24.0f;   // should be 37.0f
+    p[3] = 6.0f;    // should be 47.0f
+    p[4] = 1977.0f; // should be 52.0f
+
+    bicudo::gpu_sacred_call(
+      module_hip_runtime_assert,
+      fun_entry_point_hip_runtime_assert
+    );
+
+    bicudo::gpu_sacred_async_fetch(
+      fun_entry_point_hip_runtime_assert,
+      atomic.p_host,
+      atomic.p_device,
+      atomic.bytes
+    );
+
+    for (std::size_t i = 0; i < 5; i++) {
+      bicudo::log("Checking assertations -> ", p[i]);
+    }
+
+    break;
+  }
 
   return bicudo::result::SUCCESS;
 }
@@ -114,57 +207,6 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Entry-point '", fun.entry_point.name, "' was fetched.");
 
       for (bicudo::gpu_rm_divine_fun_args_t &arg : fun.args) {
-        //bicudo_hip_assert(
-        //  hipHostAlloc(
-        //    &arg.p_pined_host,
-        //    arg.bytes,
-        //    0
-        //  ),
-        //  hipSuccess,
-        //  bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to malloc DEVICE memory of argument '", arg.tag,"'")
-        //);
-
-      //  hipHostMalloc(
-        //  &arg.p_pinned_host,
-        //  arg.bytes,
-        //  0
-        //);
-//
-  //      auto r = hipHostGetDevicePointer(
-        //  &arg.p_pinned_device,
-        //  arg.p_pinned_host,
-        //  0
-        //);
-//
-        //bicudo_trace_log(r == hipErrorOutOfMemory);
-
-        //hipMemcpy(
-        //  arg.p_pined_host,
-        //  arg.p_host,
-        //  arg.bytes,
-        //  hipMemcpyHostToHost
-        //);
-
-        //hipMemcpy(
-        //  arg.p_pined_device,
-        //  arg.p_host,
-        //  arg.bytes,
-        //  hipMemcpyHostToDevice
-        //);
-
-        //bicudo_hip_assert(
-        //  hipMemcpy(
-        //    arg.p_pined_host,
-        //    arg.p_host,
-        //    arg.bytes,
-        //    hipMemcpyHostToHost
-        //  ),
-        //  hipSuccess,
-        //  bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to memory copy from HOST to DEVICE of argument '", arg.tag,"'")
-        //);
-
-        bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Argument '", arg.tag, "' is atomic sacred now.");
-
         fun.memory.sacred_pointers.push_back(arg.p_device);
         fun.memory.sacred_pointers_mem_bytes_length += arg.bytes;
       }

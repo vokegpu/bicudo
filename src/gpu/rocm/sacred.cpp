@@ -1,6 +1,23 @@
 #include <bicudo/gpu/rocm/sacred.hpp>
 #include <bicudo/log/log.hpp>
 
+bicudo::result_t bicudo::gpu_free_sacred_atomic(
+  bicudo::gpu_rm_sacred_atomic_memory_t &atomic
+) {
+  hipError_t e {};
+  bicudo_hip_assert(
+    (
+      e = hipHostFree(
+        atomic.p_host
+      )
+    ),
+    hipSuccess,
+    bicudo::loge("Failed to free sacred atomic memory.")
+  );
+
+  return e == hipSuccess ? bicudo::result::SUCCESS : bicudo::result::FAILED_TO_FREE_ATOMIC_MEMORY;
+}
+
 bicudo::result_t bicudo::gpu_sacred_async_fetch(
   bicudo::gpu_rm_divine_fun_t &fun,
   void *p_host,
