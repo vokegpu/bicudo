@@ -4,7 +4,35 @@
 #include <bicudo/gpu/gpu.hpp>
 
 bicudo::gpu_rm_divine_pipeline_t &bicudo::rocm::gpu_pipeline_new() {
-  return *(this->pipelines.emplace_back() = new bicudo::gpu_rm_divine_pipeline_t {});
+  return *(this->pipelines.emplace_back() = new bicudo::gpu_rm_divine_pipeline_t { .unique_id = this->infspirit++ });
+}
+
+bicudo::result_t bicudo::rocm::gpu_pipeline_free(
+  bicudo::gpu_rm_divine_pipeline_t &pipeline
+) {
+  for (std::size_t i {}; i < this->pipelines.size(); i++) {
+    bicudo::gpu_rm_divine_pipeline_t &p = *this->pipelines.at(i);
+    if (p == pipeline) {
+      for (bicudo::gpu_rm_divine_module_t kmodule : p.kernels) {
+        bicudo_assert(
+          hipModuleUnload(
+            kmodule.hip_module
+          ),
+          hipSuccess,
+          bicudo::loge(bicudo::logtp(p), bicudo::logtk(kmodule), "Could not unload from divine memory.");
+        );
+
+        bicudo::log(bicudo::logtp(p), bicudo::logtk(kmodule), "Module was unload from divine memory.");
+      }
+
+      bicudo::log(bicudo::logtp(p), "Pipeline was free to the eternity.");
+      this->pipelines.erase(this->pipelines.begin() + i);
+
+      return bicudo::result::SUCCESS;
+    }
+  }
+
+  return bicudo::result::PIPELINE_NOT_FOUND;
 }
 
 bicudo::result_t bicudo::rocm::init() {
@@ -35,9 +63,31 @@ bicudo::result_t bicudo::rocm::init() {
 
   /* testing purpose */
 
+  bicudo::log("Starting HIP ROCm assertation tests...");
+
   bicudo::result_t assert_testing_result {bicudo::result::OK};
 
-  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
+  char* hip_rocm_kernel_runtime_assert {
+    R"(
+      /**
+       * This hip runtime should perform memory-access assert
+       * to ROCm runtime initialization.
+       **/
+      
+      extern "C" __global__
+      void runtime_assert_entry_point(
+        float *__restrict__ p_assert_buffer
+      ) {
+        p_assert_buffer[0] = 17.0f; // from 153.0f
+        p_assert_buffer[1] = 27.0f; // from 26.0f
+        p_assert_buffer[2] = 37.0f; // from 24.0f
+        p_assert_buffer[3] = 47.0f; // from 6.0f
+        p_assert_buffer[4] = 52.0f; // from 1977.0f
+      }
+    )"
+  };
+
+  bicudo::rocm &rocm = *this;
   bicudo::gpu_rm_divine_pipeline_t &pipeline52 = rocm.gpu_pipeline_new();
 
   pipeline52 = {
@@ -51,7 +101,7 @@ bicudo::result_t bicudo::rocm::init() {
 
   kernel_hip_runtime = {
     .tag = "hip-runtime-assert",
-    .src = bicudo::gpu::rocm::hip_rocm_kernel_runtime_assert
+    .src = hip_rocm_kernel_runtime_assert
   };
 
   kernel_hip_runtime.functions = {
@@ -60,7 +110,7 @@ bicudo::result_t bicudo::rocm::init() {
         .name = "runtime_assert_entry_point"
       },
       .memory = {
-        .h_stream = nullptr
+        .hip_stream = nullptr
       },
       .dimension = {
         .grid = bicudo::vec3_t<uint32_t>(1, 1, 1),
@@ -120,10 +170,19 @@ bicudo::result_t bicudo::rocm::init() {
       bicudo::log("Checking assertations -> ", p[i]);
     }
 
+    bicudo_assert(p[0], 17.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[0], " but MUST be 17.0f."));
+    bicudo_assert(p[1], 27.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[1], " but MUST be 27.0f."));
+    bicudo_assert(p[2], 37.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[2], " but MUST be 37.0f."));
+    bicudo_assert(p[3], 47.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[3], " but MUST be 47.0f."));
+    bicudo_assert(p[4], 52.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[4], " but MUST be 52.0f."));
+
     break;
   }
 
-  return bicudo::result::SUCCESS;
+  bicudo::gpu_free_sacred_atomic(atomic);
+  rocm.gpu_pipeline_free(pipeline52);
+
+  return assert_testing_result;
 }
 
 bicudo::result_t bicudo::rocm::gpu_pipeline_create(
@@ -144,7 +203,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
     bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Fetching kernel...");
 
     std::size_t kernel_binary_size {};
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcGetCodeSize(
         kernel.hip_program,
         &kernel_binary_size
@@ -154,7 +213,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
     );
 
     kernel_binary.resize(kernel_binary_size);
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcGetCode(
         kernel.hip_program,
         kernel_binary.data()
@@ -163,7 +222,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Could not get compiled program binary.")
     );
 
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcDestroyProgram(
         &kernel.hip_program
       ),
@@ -171,7 +230,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Could not destroy program from memory!")
     );
 
-    bicudo_hip_assert(
+    bicudo_assert(
       hipModuleLoadData(
         &kernel.hip_module,
         kernel_binary.data()
@@ -186,7 +245,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       fun.unique_id = this->infspirit++;
 
       hipError_t result {};
-      bicudo_hip_assert(
+      bicudo_assert(
         (
           result =
             hipModuleGetFunction(
@@ -243,7 +302,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
     kernel.unique_id = this->infspirit++;
     kernel.status = bicudo::result::KERNEL_NOT_LOADED;
 
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcCreateProgram(
         &kernel.hip_program,
         kernel.src.c_str(),
@@ -254,7 +313,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
       bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Not loaded - Could not create program");
     );
 
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcCompileProgram(
         kernel.hip_program,
         0, nullptr
@@ -264,7 +323,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
     );
 
     std::size_t logsize {};
-    bicudo_hip_assert(
+    bicudo_assert(
       hiprtcGetProgramLogSize(
         kernel.hip_program,
         &logsize
@@ -277,7 +336,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
       kernel.status = bicudo::result::FAILED_TO_COMPILE_KERNEL;
       compile_program_log.resize(logsize);
      
-      bicudo_hip_assert(
+      bicudo_assert(
         hiprtcGetProgramLog(
           kernel.hip_program,
           compile_program_log.data()
