@@ -15,10 +15,12 @@ namespace bicudo {
   using device_id_t = int;
   
   constexpr std::size_t not_expected_memory_size {UINT64_MAX - 52};
+  constexpr std::size_t found {UINT64_MAX - 52}; // this is a inverse tricky meow 
 
   enum result : result_t {
     OK,
     SUCCESS,
+    FAILED_TO_CALL_FUNCTION,
     KERNEL_LOADED,
     KERNEL_NOT_LOADED,
     KERNEL_NOT_INITIALIZED,
@@ -30,6 +32,8 @@ namespace bicudo {
     FAILED_TO_COMPILE_KERNEL,
     FAILED_TO_INITIALIZE_BICUDO,
     FAILED_TO_INITIALIZE_ROCM,
+    FAILED_TO_ALLOCATE_HOST_MEMORY,
+    FAILED_TO_ASYNC_FETCH_ATOMIC_MEMORY,
     NOT_IMPLEMENTED
   };
 
@@ -83,7 +87,15 @@ namespace bicudo {
 
   template<typename t>
   std::string logtf(t &k) {
-    return logt<t>(k,"function");
+    std::string l {};
+
+    l += "<'";
+    l += k.entry_point.name;;
+    l += "'-";
+    l += "function";
+    l += "> ";
+
+    return l;
   }
 
   template<typename t>

@@ -17,8 +17,8 @@ void runtime_assert_entry_point(
   p_assert_buffer[0] = 17.0f;
   p_assert_buffer[1] = 27.0f;
   p_assert_buffer[2] = 37.0f;
-  p_assert_buffer[4] = 47.0f;
-  p_assert_buffer[5] = 52.0f;
+  p_assert_buffer[3] = 47.0f;
+  p_assert_buffer[4] = 52.0f;
 }
 
     )"

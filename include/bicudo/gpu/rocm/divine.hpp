@@ -3,18 +3,21 @@
 
 #include <bicudo/gpu/rocm/header.hpp>
 #include <bicudo/math/geometry.hpp>
-#include <bicudo/log/log.hpp>
+#include <bicudo/io/signature.hpp>
 
 #include <string>
 #include <vector>
 
 namespace bicudo {
+  using gpu_rm_sacred_pointers_t = std::vector<void*>;
+
   struct gpu_rm_divine_fun_memory_properties_t {
   public:
     std::size_t shared_mem_bytes {};
-    std::size_t mem_size {};
+    bicudo::gpu_rm_sacred_pointers_t sacred_pointers {};
+    std::size_t sacred_pointers_mem_bytes_length {};
   public:
-    hipStream_t stream {};
+    hipStream_t h_stream {};
   };
   
   struct gpu_rm_divine_fun_dimension_t {
@@ -34,7 +37,6 @@ namespace bicudo {
   public:
     std::string tag {};
     std::size_t bytes {};
-    void *p_host {};
     void *p_device {};
   };
 
@@ -46,6 +48,8 @@ namespace bicudo {
     bicudo::gpu_rm_divine_fun_memory_properties_t memory {};
     bicudo::gpu_rm_divine_fun_dimension_t dimension {};
     bicudo::gpu_rm_divine_fun_arguments_t args {};
+  public:
+    bicudo_as_signed(bicudo::gpu_rm_divine_fun_t);
   };
 
   using gpu_rm_divine_functions_t = std::vector<bicudo::gpu_rm_divine_fun_t>;
@@ -59,6 +63,8 @@ namespace bicudo {
   public:
     hipModule_t hip_module {};
     hiprtcProgram hip_program {};
+  public:
+    bicudo_as_signed(bicudo::gpu_rm_divine_kernel_t);
   };
 
   using gpu_rm_divine_kernels_t = std::vector<bicudo::gpu_rm_divine_kernel_t>;
@@ -73,7 +79,31 @@ namespace bicudo {
 }
 
 namespace bicudo {
-  bicudo::gpu_rm_divine_kernel_t &as_kernel(bicudo::gpu_rm_divine_pipeline_t &pipeline);
+  bicudo::gpu_rm_divine_pipeline_t &as_new_pipeline();
+
+  bicudo::gpu_rm_divine_kernel_t &as_kernel(
+    bicudo::gpu_rm_divine_pipeline_t &pipeline
+  );
+
+  bicudo::gpu_rm_divine_module_t &as_module(
+    bicudo::gpu_rm_divine_pipeline_t &pipeline,
+    std::size_t index
+  );
+
+  bicudo::gpu_rm_divine_module_t &as_module(
+    bicudo::gpu_rm_divine_pipeline_t &pipeline,
+    const std::string &tag
+  );
+
+  bicudo::gpu_rm_divine_fun_t &as_function(
+    bicudo::gpu_rm_divine_module_t &kmodule,
+    std::size_t index
+  );
+
+  bicudo::gpu_rm_divine_fun_t &as_function(
+    bicudo::gpu_rm_divine_module_t &kmodule,
+    const std::string &name
+  );
 }
 
 #endif

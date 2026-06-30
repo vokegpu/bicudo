@@ -1,5 +1,9 @@
 #include <bicudo/gpu/rocm/model.hpp>
 
+bicudo::gpu_rm_divine_pipeline_t &bicudo::rocm::gpu_pipeline_new() {
+  return *(this->pipelines.emplace_back() = new bicudo::gpu_rm_divine_pipeline_t {});
+}
+
 bicudo::result_t bicudo::rocm::init() {
   bicudo::device_id_t device_count {};
   if (hipGetDeviceCount(&device_count) != hipSuccess) {
@@ -86,6 +90,8 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
     bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Module was loaded.");
 
     for (bicudo::gpu_rm_divine_fun_t &fun : kernel.functions) {
+      fun.unique_id = this->infspirit++;
+
       hipError_t result {};
       bicudo_hip_assert(
         (
@@ -108,27 +114,59 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Entry-point '", fun.entry_point.name, "' was fetched.");
 
       for (bicudo::gpu_rm_divine_fun_args_t &arg : fun.args) {
-        bicudo_hip_assert(
-          hipMalloc(
-            &arg.p_device,
-            arg.bytes
-          ),
-          hipSuccess,
-          bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to malloc DEVICE memory of argument '", arg.tag,"'")
-        );
+        //bicudo_hip_assert(
+        //  hipHostAlloc(
+        //    &arg.p_pined_host,
+        //    arg.bytes,
+        //    0
+        //  ),
+        //  hipSuccess,
+        //  bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to malloc DEVICE memory of argument '", arg.tag,"'")
+        //);
 
-        bicudo_hip_assert(
-          hipMemcpy(
-            arg.p_device,
-            arg.p_host,
-            arg.bytes,
-            hipMemcpyHostToDevice
-          ),
-          hipSuccess,
-          bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to memory copy from HOST to DEVICE of argument '", arg.tag,"'")
-        );
+      //  hipHostMalloc(
+        //  &arg.p_pinned_host,
+        //  arg.bytes,
+        //  0
+        //);
+//
+  //      auto r = hipHostGetDevicePointer(
+        //  &arg.p_pinned_device,
+        //  arg.p_pinned_host,
+        //  0
+        //);
+//
+        //bicudo_trace_log(r == hipErrorOutOfMemory);
+
+        //hipMemcpy(
+        //  arg.p_pined_host,
+        //  arg.p_host,
+        //  arg.bytes,
+        //  hipMemcpyHostToHost
+        //);
+
+        //hipMemcpy(
+        //  arg.p_pined_device,
+        //  arg.p_host,
+        //  arg.bytes,
+        //  hipMemcpyHostToDevice
+        //);
+
+        //bicudo_hip_assert(
+        //  hipMemcpy(
+        //    arg.p_pined_host,
+        //    arg.p_host,
+        //    arg.bytes,
+        //    hipMemcpyHostToHost
+        //  ),
+        //  hipSuccess,
+        //  bicudo::loge(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Failed to memory copy from HOST to DEVICE of argument '", arg.tag,"'")
+        //);
 
         bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Argument '", arg.tag, "' is atomic sacred now.");
+
+        fun.memory.sacred_pointers.push_back(arg.p_device);
+        fun.memory.sacred_pointers_mem_bytes_length += arg.bytes;
       }
     }
   }
@@ -151,7 +189,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
   bicudo::gpu_rm_divine_pipeline_t &pipeline
 ) {
   bicudo::log(bicudo::logtp(pipeline), "Loading ", pipeline.kernels.size(), " kernels...");
-  
+
   std::string compile_program_log {};
   for (bicudo::gpu_rm_divine_kernel_t &kernel : pipeline.kernels) {
     if (kernel.status == bicudo::result::KERNEL_NOT_LOADED) {
@@ -160,6 +198,7 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
 
     bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Creating program...");
 
+    kernel.unique_id = this->infspirit++;
     kernel.status = bicudo::result::KERNEL_NOT_LOADED;
 
     bicudo_hip_assert(
@@ -217,72 +256,4 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
   }
 
   return bicudo::result::SUCCESS;
-}
-
-bicudo::result bicudo::rocm::gpu_pipeline_get_module_by_index(
-  bicudo::gpu_rm_divine_pipeline_t &pipeline,
-  bicudo::gpu_rm_divine_module_t &kmodule,
-  std::size_t index
-) {
-  if (index >= pipeline.kernels.size()) {
-    bicudo::logw(
-      bicudo::logtp(pipeline), "Could not get module by index, invalid index '", index, "' - out of range (", pipeline.kernels.size(), ") "
-    );
-
-    return bicudo::COULD_NOT_GET_MODULE_BY_INDEX_OUT_OF_RANGE;
-  }
-
-  kmodule = pipeline.kernels.at(index);
-  return bicudo::SUCCESS;
-}
-
-bicudo::result bicudo::rocm::gpu_pipeline_get_module_by_tag(
-  bicudo::gpu_rm_divine_pipeline_t &pipeline,
-  bicudo::gpu_rm_divine_module_t &kmodule,
-  const std::string &tag
-) {
-  for (bicudo::gpu_rm_divine_module_t &km : pipeline.kernels) {
-    if (km.tag == tag) {
-      kmodule = km;
-      return bicudo::result::SUCCESS;
-    }
-  }
-
-  bicudo::logw(bicudo::logtp(pipeline), "Could not get module by tag - not found.");
-  return bicudo::result::COULD_NOT_GET_MODULE_BY_TAG_NOT_FOUND;
-}
-
-bicudo::result bicudo::rocm::gpu_pipeline_get_function_by_index(
-  bicudo::gpu_rm_divine_pipeline_t &pipeline,
-  bicudo::gpu_rm_divine_module_t &kmodule,
-  bicudo::gpu_rm_divine_fun_t &fun,
-  std::size_t index
-) {
-  if (index >= kmodule.functions.size()) {
-    bicudo::logw(
-      bicudo::logtp(pipeline), "Could not get function by index, invalid index '", index, "' - out of range (", kmodule.functions.size(), ") "
-    );
-
-    return bicudo::COULD_NOT_GET_MODULE_BY_INDEX_OUT_OF_RANGE;
-  }
-
-  fun = kmodule.functions.at(index);
-  return bicudo::SUCCESS;
-}
-
-bicudo::result bicudo::rocm::gpu_pipeline_get_function_by_name(
-  bicudo::gpu_rm_divine_pipeline_t &pipeline,
-  bicudo::gpu_rm_divine_module_t &kmodule,
-  bicudo::gpu_rm_divine_fun_t &fun,
-  const std::string &name
-) {
-  for (bicudo::gpu_rm_divine_fun_t &f : kmodule.functions) {
-    if (f.entry_point.name == name) {
-      fun = f;
-      return bicudo::result::SUCCESS;
-    }
-  }
-
-  bicudo::logw(bicudo::logtp(pipeline), "Could not get function by name - not found.");
-  return bicudo::result::COULD_NOT_GET_FUNCTION_BY_NAME_NOT_FOUND;
 }
