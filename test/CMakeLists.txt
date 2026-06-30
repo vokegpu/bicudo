@@ -25,6 +25,7 @@ add_executable(
 
 target_include_directories(
   bicudo-tests PRIVATE
+  "./src"
   ${ROCM_INCLUDE_DIR}
 )
 
