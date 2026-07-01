@@ -65,9 +65,33 @@ int32_t main(int32_t, char**) {
 
   meow::app.immediate.create();
 
+  std::vector<bicudo::body_t> bodies {
+    {.pos = {420, 400}, .size = {100, 100}, .angle = 0.0, .unique_id = 1},
+    {.pos = {570, 417}, .size = {100, 100}, .unique_id = 2}
+  };
+
+  bicudo::vec4_t<float> body_color {};
+  ekg::input_info_t &input = ekg::input();
+
   while (meow::app.running) {
     while (SDL_PollEvent(&sdl_event)) {  
       ekg::sdl2_poll_event(sdl_event);
+
+      bool is_up {};
+      if (ekg::input("mouse-1") || (is_up = ekg::input("mouse-1-up")) ) {
+        for (bicudo::body_t &body : bodies) {
+          body.flags = 0;
+
+          if (is_up) continue;
+
+          if (bicudo::vec4_collide_with_vec2(body.rect, {input.interact.x, input.interact.y})) {
+            body.delta.x = body.pos.x - input.interact.x;
+            body.delta.y = body.pos.y - input.interact.y;
+            body.flags = 1;
+            break;
+          }
+        }
+      }
 
       if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
         meow::app.immediate.set_viewport(sdl_event.window.data1, sdl_event.window.data2);
@@ -100,11 +124,35 @@ int32_t main(int32_t, char**) {
 
     meow::app.immediate.invoke();
 
-    meow::app.immediate.draw(
-      {ekg::dpi.viewport.w / 2- 100.0f, ekg::dpi.viewport.h / 2 - 100.0f , 200.0f, 200.0f},
-      {1.0f, 1.0f, 1.0f, 1.0f},
-      20.0f, 0
-    );
+    bool collided = false;
+    bool j = false;
+
+    for (bicudo::body_t &b1 : bodies) {
+      if (b1.flags == 1) {
+        b1.pos.x = input.interact.x + b1.delta.x;
+        b1.pos.y = input.interact.y + b1.delta.y;
+
+        if (input.was_wheel) {
+          b1.angle += input.interact.w;
+        }
+      }
+
+      bicudo::update(b1);
+
+      body_color = {1.0f, 0.6f, 0.8f, 1.0f};
+      for (bicudo::body_t &b2 : bodies) {
+        if (b1 == b2) continue;
+        if (!(bicudo::detect(b1, b2) && bicudo::detect(b2, b1))) continue;
+        body_color = {1.0f, 0.0f, 0.8f, 1.0f};
+        break;
+      }
+
+      meow::app.immediate.draw(
+        b1.rect,
+        body_color,
+        b1.angle, 0
+      );
+    }
 
     meow::app.immediate.revoke();
 

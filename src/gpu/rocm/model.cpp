@@ -95,7 +95,7 @@ bicudo::result_t bicudo::rocm::init() {
   };
 
   bicudo::gpu_rm_sacred_atomic_memory_t atomic(sizeof(float)*5);
-  bicudo::gpu_allocate_sacred_atomic(atomic, hipHostMallocMapped, 0);;
+  bicudo::gpu_allocate_sacred_atomic(atomic, hipHostMallocMapped, 0);
 
   bicudo::gpu_rm_divine_kernel_t &kernel_hip_runtime = bicudo::as_kernel(pipeline52);
 

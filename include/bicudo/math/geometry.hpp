@@ -236,6 +236,7 @@ namespace bicudo {
 
     template<typename s>
     inline bicudo::vec2_t<t> rotate(s a) {
+      a = bicudo_deg2rad(a);
       return bicudo::vec2_t<t> {
         this->x * cosf(a) - this->y * sinf(a),
         this->x * sinf(a) + this->y * cosf(a)
@@ -352,7 +353,14 @@ namespace bicudo {
         r[12] * this->x + r[13] * this->y + r[14] * this->z + r[15] * this->w
       };
     }
-   };
+  };
+
+  template<typename t>
+  struct edge_t {
+  public:
+    bicudo::vec2_t<t> a {};
+    bicudo::vec2_t<t> b {};
+  };
 
   template<typename t>
   void splash_vertices(
@@ -480,7 +488,7 @@ namespace bicudo {
     const bicudo::vec2_t<t> &b,
     t dt
   ) {
-
+    return a;
   }
 
   template<typename t>
@@ -489,7 +497,7 @@ namespace bicudo {
     t b,
     t dt
   ) {
-
+    return a;
   }
 
   template<typename t>
@@ -497,7 +505,7 @@ namespace bicudo {
     const bicudo::vec4_t<t> &a,
     const bicudo::vec4_t<t> &b
   ) {
-
+    return true;
   }
 
   template<typename t>
@@ -506,7 +514,7 @@ namespace bicudo {
     const bicudo::vec2_t<t> &max,
     const bicudo::vec2_t<t> &vec2
   ) {
-
+    return true;
   }
 
   template<typename t>
@@ -514,7 +522,11 @@ namespace bicudo {
     const bicudo::vec4_t<t> &vec4,
     const bicudo::vec2_t<t> &vec2
   ) {
-
+    return (
+      vec2.x > vec4.x && vec2.x < vec4.x + vec4.z
+      &&
+      vec2.y > vec4.y && vec2.y < vec4.y + vec4.w
+    );
   }
 
   template<typename t>
@@ -522,7 +534,7 @@ namespace bicudo {
     const bicudo::vec4_t<t> &a,
     const bicudo::vec4_t<t> &b
   ) {
-
+    return true;
   }
 }
 

@@ -2,6 +2,7 @@
 #define BICUDO_HPP
 
 #include <bicudo/core/core.hpp>
+#include <bicudo/physics/physics.hpp>
 #include <bicudo/log/log.hpp>
 
 namespace bicudo {
