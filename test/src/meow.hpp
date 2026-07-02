@@ -2,6 +2,7 @@
 #define MEOW_HPP
 
 #include "world/camera.hpp"
+#include "world/pickup.hpp"
 #include "graphics/graphics.hpp"
 
 #include <bicudo/bicudo.hpp>
@@ -18,6 +19,8 @@ namespace meow {
   public:
     meow::camera camera {};
     meow::immediate_graphics immediate {};
+    meow::pickup_info_t global_body_pickup {};
+    meow::pickup_info_t camera_pickup {};
   public:
     ekg::ft_library ft_library {};
     SDL_Window *p_sdl_win {};

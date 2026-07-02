@@ -1,4 +1,5 @@
 #include "meow.hpp"
+#include "world/pickup.hpp"
 
 meow::application_t meow::app {}; 
 
@@ -9,6 +10,14 @@ meow::application_t meow::app {};
   #include <bicudo/pipeline/cpu.hpp>
   #define BASE bicudo::as_cpu()
 #endif
+
+void init_ekg() {
+  ekg::bind("click-on-object", "mouse-1");
+  ekg::bind("drop-object", "mouse-1-up");
+  ekg::bind("click-on-camera", "mouse-2");
+  ekg::bind("drop-camera", "mouse-2-up");
+  ekg::bind("zoom-camera", "mouse-wheel");
+}
 
 int32_t main(int32_t, char**) {
   SDL_Init(SDL_INIT_VIDEO);
@@ -50,6 +59,8 @@ int32_t main(int32_t, char**) {
     meow::app.ekg
   );
 
+  init_ekg();
+
   bicudo::init_core_t bicudo_init_core = {
     .p_base = BASE
   };
@@ -81,21 +92,14 @@ int32_t main(int32_t, char**) {
     while (SDL_PollEvent(&sdl_event)) {  
       ekg::sdl2_poll_event(sdl_event);
 
-      bool is_up {};
-      if (ekg::input("mouse-1") || (is_up = ekg::input("mouse-1-up")) ) {
-        for (bicudo::body_t *p_body : hypergroup.bodies) {
-          p_body->flags = 0;
+      meow::tools_pick_camera(
+        meow::app.camera_pickup
+      );
 
-          if (is_up) continue;
-
-          if (bicudo::vec4_collide_with_vec2(p_body->rect, {input.interact.x, input.interact.y})) {
-            p_body->delta.x = p_body->pos.x - input.interact.x;
-            p_body->delta.y = p_body->pos.y - input.interact.y;
-            p_body->flags = 1;
-            break;
-          }
-        }
-      }
+      meow::tools_pick_object_from_world(
+        hypergroup,
+        meow::app.global_body_pickup
+      );
 
       if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
         meow::app.immediate.set_viewport(sdl_event.window.data1, sdl_event.window.data2);
@@ -122,31 +126,38 @@ int32_t main(int32_t, char**) {
     ekg::gui.ui.dt = bicudo::dt;
     ekg::update();
 
+    meow::tools_update_picked_camera(
+      meow::app.camera_pickup
+    );
+
+    meow::tools_update_picked_object(
+      hypergroup,
+      meow::app.global_body_pickup
+    );
+
+    bicudo::update(bicudo::physics_update_mode::EVERYTHING);
+
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0.0f, 0.0f, ekg::dpi.viewport.w, ekg::dpi.viewport.h);   
 
     meow::app.immediate.invoke();
 
-    bicudo::update(bicudo::physics_update_mode::EVERYTHING);
-
     for (bicudo::body_t *p_body : hypergroup.bodies) {
-      if (p_body->flags == 1) {
-        p_body->pos.x = input.interact.x + p_body->delta.x;
-        p_body->pos.y = input.interact.y + p_body->delta.y;
-
-        if (input.was_wheel) {
-          p_body->angle += input.interact.w;
-        }
-      }
-
       bicudo::update(
         &hypergroup,
         p_body
       );
 
+      bicudo::vec4_t<float> rect_on_camera {
+        p_body->rect
+      };
+
+      rect_on_camera.x -= meow::app.camera.rect.pos.x;
+      rect_on_camera.y -= meow::app.camera.rect.pos.y;
+
       meow::app.immediate.draw(
-        p_body->rect,
+        rect_on_camera,
         p_body->has_collide ? bicudo::vec4_t<float>(0.8f, 0.7, 0.8f, 1.0f) : bicudo::vec4_t<float>(0.8f, 0.7, 0.8f, 0.5f),
         p_body->angle, 0
       );

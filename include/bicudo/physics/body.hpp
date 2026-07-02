@@ -13,21 +13,30 @@ namespace bicudo {
     bicudo::vec2_t<float> velocity {};
     bicudo::vec2_t<float> acceleration {};
 
+    float angle {};
+    float angle_velocity {};
+    float angle_acceleration {};
+
+    float mass {};
+    uint64_t flags {};
+    bool has_collide {};
+    bool no_gravity {false};
+
     std::vector<bicudo::vec2_t<float>> edges {};
     std::vector<bicudo::vec2_t<float>> vertices {};
 
     bicudo::vec4_t<float> rect {};
     bicudo::vec2_t<float> delta {};
-
-    float angle {};
-    float angle_velocity {};
-    float angle_acceleration {};
-
-    uint64_t flags {};
-    bool has_collide {};
+    bicudo::vec2_t<float> min {};
+    bicudo::vec2_t<float> max {};
   public:
     bicudo_as_signed(bicudo::body_t);
   };
+}
+
+namespace bicudo {
+  void size(bicudo::vec2_t<float> size);
+  void move(bicudo::vec2_t<float> direction);
 }
 
 #endif

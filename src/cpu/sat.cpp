@@ -100,30 +100,116 @@ void bicudo::cpu_sat_update_body(
     body.vertices.resize(4);
   }
 
-  bicudo::vec2_t<float> &pos = body.pos;
-  bicudo::vec2_t<float> &size = body.size;
-  bicudo::vec4_t<float> &rect = body.rect;
+  body.min.x = 99999.0f;
+  body.min.y = 99999.0f;
+  body.max.x = -99999.0f;
+  body.max.y = -99999.0f;
+
+  body.velocity += body.acceleration * bicudo::dt;
+  body.pos += body.velocity;
+
+  body.angle_velocity += body.angle_acceleration * bicudo::dt;
+  body.angle += body.angle_velocity;
+
+  float midw = body.size.x / 2;
+  float midh = body.size.y / 2;
+
+  body.vertices.at(0) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y - midh);
+  body.vertices.at(1) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y - midh);
+  body.vertices.at(2) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y + midh);
+  body.vertices.at(3) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y + midh);
+
+  for (bicudo::vec2_t<float> &vertex : body.vertices) {
+    vertex = vertex.rotate(body.angle_velocity, body.pos);
+
+    body.min.x = std::min(body.min.x, vertex.x);
+    body.min.y = std::min(body.min.y, vertex.y);
+    body.max.x = std::max(body.max.x, vertex.x);
+    body.max.y = std::max(body.max.y, vertex.y);    
+  }
 
   bicudo::vec2_t<float> &up = body.edges.at(0);
   bicudo::vec2_t<float> &right = body.edges.at(1);
   bicudo::vec2_t<float> &down = body.edges.at(2);
   bicudo::vec2_t<float> &left = body.edges.at(3);
 
+  up = (body.vertices.at(1) - body.vertices.at(2)).normalize();
+  right = (body.vertices.at(2) - body.vertices.at(3)).normalize();
+  down = (body.vertices.at(3) - body.vertices.at(0)).normalize();
+  left = (body.vertices.at(0) - body.vertices.at(1)).normalize();
+
+  body.rect.x = body.pos.x - midw;
+  body.rect.y = body.pos.y - midh;
+  body.rect.z = body.size.x;
+  body.rect.w = body.size.y;
+}
+
+void bicudo::cpu_sat_size(
+  bicudo::body_t &body,
+  bicudo::vec2_t<float> size
+) {
+  if (body.edges.empty()) {
+    body.edges.resize(4);
+  }
+
+  if (body.vertices.empty()) {
+    body.vertices.resize(4);
+  }
+
   float midw = size.x / 2;
   float midh = size.y / 2;
 
-  body.vertices.at(0) = bicudo::vec2_t<float>(pos.x - midw, pos.y - midh).rotate(body.angle, pos);
-  body.vertices.at(1) = bicudo::vec2_t<float>(pos.x + midw, pos.y - midh).rotate(body.angle, pos);
-  body.vertices.at(2) = bicudo::vec2_t<float>(pos.x + midw, pos.y + midh).rotate(body.angle, pos);
-  body.vertices.at(3) = bicudo::vec2_t<float>(pos.x - midw, pos.y + midh).rotate(body.angle, pos);
+  body.vertices.at(0) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y - midh);
+  body.vertices.at(1) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y - midh);
+  body.vertices.at(2) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y + midh);
+  body.vertices.at(3) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y + midh);
+
+  bicudo::vec2_t<float> &up = body.edges.at(0);
+  bicudo::vec2_t<float> &right = body.edges.at(1);
+  bicudo::vec2_t<float> &down = body.edges.at(2);
+  bicudo::vec2_t<float> &left = body.edges.at(3);
+
+  up = (body.vertices.at(1) - body.vertices.at(2)).normalize();
+  right = (body.vertices.at(2) - body.vertices.at(3)).normalize();
+  down = (body.vertices.at(3) - body.vertices.at(0)).normalize();
+  left = (body.vertices.at(0) - body.vertices.at(1)).normalize();
+}
+
+void bicudo::cpu_sat_move(
+  bicudo::body_t &body,
+  bicudo::vec2_t<float> direction
+) {
+  body.min.x = 99999.0f;
+  body.min.y = 99999.0f;
+  body.max.x = -99999.0f;
+  body.max.y = -99999.0f;
+
+  float midw = body.size.x / 2;
+  float midh = body.size.y / 2;
+
+  body.vertices.at(0) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y - midh);
+  body.vertices.at(1) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y - midh);
+  body.vertices.at(2) = bicudo::vec2_t<float>(body.pos.x + midw, body.pos.y + midh);
+  body.vertices.at(3) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y + midh);
+
+  for (bicudo::vec2_t<float> &vertex : body.vertices) {
+    vertex += direction;
+
+    body.min.x = std::min(body.min.x, vertex.x);
+    body.min.y = std::min(body.min.y, vertex.y);
+    body.max.x = std::max(body.max.x, vertex.x);
+    body.max.y = std::max(body.max.y, vertex.y);
+  }
+
+  bicudo::vec2_t<float> &up = body.edges.at(0);
+  bicudo::vec2_t<float> &right = body.edges.at(1);
+  bicudo::vec2_t<float> &down = body.edges.at(2);
+  bicudo::vec2_t<float> &left = body.edges.at(3);
 
   up = (body.vertices.at(1) - body.vertices.at(2)).normalize();
   right = (body.vertices.at(2) - body.vertices.at(3)).normalize();
   down = (body.vertices.at(3) - body.vertices.at(0)).normalize();
   left = (body.vertices.at(0) - body.vertices.at(1)).normalize();
 
-  rect.x = pos.x - midw;
-  rect.y = pos.y - midh;
-  rect.z = size.x;
-  rect.w = size.y;
+  body.pos += direction;
 }

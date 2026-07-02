@@ -32,6 +32,16 @@ namespace bicudo {
   void cpu_sat_update_body(
     bicudo::body_t &body
   );
+
+  void cpu_sat_size(
+    bicudo::body_t &body,
+    bicudo::vec2_t<float> size
+  );
+
+  void cpu_sat_move(
+    bicudo::body_t &body,
+    bicudo::vec2_t<float> direction
+  );
 }
 
 #endif

@@ -10,6 +10,7 @@ bicudo::result_t bicudo::cpu::init() {
 }
 
 bicudo::result_t bicudo::cpu::registry_hypergroup(bicudo::hypergroup_t *p_hypergroup) {
+  p_hypergroup->unique_id = this->infspirit++;
   this->hypergroups.push_back(p_hypergroup);
   return bicudo::result::OK;
 }
@@ -18,6 +19,7 @@ bicudo::result_t bicudo::cpu::registry_body(
   bicudo::hypergroup_t *p_hypergroup,
   bicudo::body_t *p_body
 ) {
+  p_body->unique_id = this->infspirit++;
   p_hypergroup->bodies.push_back(p_body);
   return bicudo::result::OK;
 }
@@ -77,6 +79,32 @@ bicudo::result_t bicudo::cpu::update(
       }
     }
   }
+
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::cpu::size_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> size
+) {
+  bicudo::cpu_sat_size(
+    *p_body,
+    size
+  );
+
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::cpu::move_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> direction
+) {
+  bicudo::cpu_sat_move(
+    *p_body,
+    direction
+  );
 
   return bicudo::result::OK;
 }

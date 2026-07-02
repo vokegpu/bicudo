@@ -37,3 +37,19 @@ bicudo::result_t bicudo::update(
 bicudo::result_t bicudo::update(bicudo::physics_update_mode mode) {
   return bicudo::p_core->p_base->update(mode);
 }
+
+bicudo::result_t bicudo::size(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> size
+) {
+  return bicudo::p_core->p_base->size_body(p_hypergroup, p_body, size);
+}
+
+bicudo::result_t bicudo::move(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> direction
+) {
+  return bicudo::p_core->p_base->move_body(p_hypergroup, p_body, direction);
+}

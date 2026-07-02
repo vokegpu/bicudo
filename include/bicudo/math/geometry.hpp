@@ -6,6 +6,8 @@
 #include <math.h>
 #include <iostream>
 
+#define bicudo_clamp_min(a, b) ((a) < (b) ? (b) : (a))
+#define bicudo_clamp_max(a, b) ((a) > (b) ? (b) : (a))
 #define bicudo_deg2rad(x) ((x) * 0.0174533f)
 
 namespace bicudo {
@@ -514,7 +516,9 @@ namespace bicudo {
     const bicudo::vec2_t<t> &max,
     const bicudo::vec2_t<t> &vec2
   ) {
-    return true;
+    return (
+      vec2.x > min.x && vec2.y > min.y && vec2.x < max.x && vec2.y < max.y
+    );
   }
 
   template<typename t>
@@ -534,7 +538,11 @@ namespace bicudo {
     const bicudo::vec4_t<t> &a,
     const bicudo::vec4_t<t> &b
   ) {
-    return true;
+    return (
+      (a.x < b.x + b.z && a.x + a.z > b.x)
+      &&
+      (a.y < b.y + b.w && a.y + a.w > b.y)
+    );
   }
 }
 
