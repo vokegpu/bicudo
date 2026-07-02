@@ -12,8 +12,9 @@ meow::application_t meow::app {};
 #endif
 
 void init_ekg() {
-  ekg::bind("click-on-object", "mouse-1");
+  ekg::bind("move-object", "mouse-1");
   ekg::bind("drop-object", "mouse-1-up");
+  ekg::bind("options-object", "mouse-3");
   ekg::bind("click-on-camera", "mouse-1");
   ekg::bind("world-popup", "mouse-3");
   ekg::bind("drop-camera", "mouse-1-up");
@@ -149,10 +150,6 @@ int32_t main(int32_t, char**) {
 
       if (sdl_event.type == SDL_QUIT) {
         meow::app.running = false;
-      }
-
-      if (ekg::fired("world-popup")) {
-        ekg::show(meow::app.gui.in_world_popup, input.interact);
       }
     }
 

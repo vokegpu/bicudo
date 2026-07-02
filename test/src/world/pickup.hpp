@@ -4,12 +4,19 @@
 #include <bicudo/physics/physics.hpp>
 
 namespace meow {
+  enum action {
+    NONE,
+    PICKUP_MOVE_OBJ,
+    PICKUP_OPTIONS_OBJ
+  };
+
   struct pickup_info_t {
   public:
     bicudo::vec2_t<float> delta {};
     bicudo::vec2_t<float> pick_pos {};
     bicudo::vec2_t<float> prev_pos {};
     bicudo::body_t *p_body {};
+    meow::action action {};
   };
 }
 

@@ -502,7 +502,6 @@ namespace bicudo {
     t b,
     t dt
   ) {
-      a.x + (b - a.x) * dt,
     return bicudo::vec2_t<t>(
       bicudo::lerp<t>(a.x, b, dt),
       bicudo::lerp<t>(a.y, b, dt)
