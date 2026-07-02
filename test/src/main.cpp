@@ -14,9 +14,9 @@ meow::application_t meow::app {};
 void init_ekg() {
   ekg::bind("click-on-object", "mouse-1");
   ekg::bind("drop-object", "mouse-1-up");
-  ekg::bind("click-on-camera", "mouse-2");
+  ekg::bind("click-on-camera", "mouse-1");
   ekg::bind("world-popup", "mouse-3");
-  ekg::bind("drop-camera", "mouse-2-up");
+  ekg::bind("drop-camera", "mouse-1-up");
   ekg::bind("zoom-camera", "mouse-wheel");
 
   ekg::make<ekg::stack_t>(

@@ -490,7 +490,10 @@ namespace bicudo {
     const bicudo::vec2_t<t> &b,
     t dt
   ) {
-    return a;
+    return bicudo::vec2_t<t>(
+      bicudo::lerp<t>(a.x, b.x, dt),
+      bicudo::lerp<t>(a.y, b.y, dt)
+    );
   }
 
   template<typename t>
@@ -499,7 +502,11 @@ namespace bicudo {
     t b,
     t dt
   ) {
-    return a;
+      a.x + (b - a.x) * dt,
+    return bicudo::vec2_t<t>(
+      bicudo::lerp<t>(a.x, b, dt),
+      bicudo::lerp<t>(a.y, b, dt)
+    );
   }
 
   template<typename t>

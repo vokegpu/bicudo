@@ -34,9 +34,11 @@ void meow::tools_pick_camera(
   ekg::vec4_t<float> &interact {ekg::input().interact};
 
   if (ekg::gui.ui.hovered_type == ekg::type::unknown && ekg::fired("zoom-camera")) {
-    meow::app.camera.interpolated_zoom = bicudo_clamp_min(
-      meow::app.camera.interpolated_zoom + interact.w * 0.09f,
-      0.000001f
+    meow::app.camera.set_zoom(
+      bicudo_clamp_min(
+        meow::app.camera.zoom + interact.w * 0.09f,
+        0.000001f
+      )
     );
   }
 
@@ -61,20 +63,14 @@ void meow::tools_pick_camera(
 void meow::tools_update_picked_camera(
   meow::pickup_info_t &pickup_info
 ) {
-  if (meow::app.camera.interpolated_zoom != meow::app.camera.zoom) {
-    meow::app.camera.zoom = bicudo::lerp<float>(
-      meow::app.camera.zoom,
-      meow::app.camera.interpolated_zoom,
-      bicudo::dt
-    );
+  meow::app.camera.on_update();
 
+  if (meow::app.camera.is_while_zoom) {
     meow::app.immediate.set_viewport(
       meow::app.immediate.viewport.z,
       meow::app.immediate.viewport.w
     );
   }
-
-  meow::app.camera.on_update();
 
   if (!pickup_info.p_body) {
     return;
