@@ -134,13 +134,13 @@ int32_t main(int32_t, char**) {
     while (SDL_PollEvent(&sdl_event)) {  
       ekg::sdl2_poll_event(sdl_event);
 
-      meow::tools_pick_camera(
-        meow::app.camera_pickup
-      );
-
       meow::tools_pick_object_from_world(
         hypergroup,
         meow::app.global_body_pickup
+      );
+
+      meow::tools_pick_camera(
+        meow::app.camera_pickup
       );
 
       if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {

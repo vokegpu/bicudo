@@ -17,9 +17,11 @@ bool meow::tools_pick_physics_body(
   float &zoom {meow::app.camera.zoom};
   pos = (pos / zoom) + cam;
 
+  meow::app.gui.has_some_body_click = false;
   for (bicudo::body_t *p_b : hypergroup.bodies) {
     if (bicudo::aabb_collide_with_vec2(p_b->min, p_b->max, pos)) {
       *p_body = p_b;
+      meow::app.gui.has_some_body_click = true;
       return true;
     }
   }
@@ -42,7 +44,15 @@ void meow::tools_pick_camera(
     );
   }
 
-  if (!pickup_info.p_body && ekg::gui.ui.hovered_type == ekg::type::unknown && ekg::fired("click-on-camera")) {
+  if (
+    !pickup_info.p_body
+    &&
+    ekg::gui.ui.hovered_type == ekg::type::unknown
+    &&
+    ekg::fired("click-on-camera")
+    &&
+    !meow::app.gui.has_some_body_click
+  ) {
     pickup_info.p_body = &camera.rect;    
 
     pickup_info.delta.x = interact.x - pickup_info.p_body->min.x;

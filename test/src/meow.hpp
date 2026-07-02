@@ -15,6 +15,7 @@ namespace meow {
   struct gui_t {
   public:
     ekg::at_t in_world_popup {};
+    bool has_some_body_click {};
   };
 
   extern struct application_t {
