@@ -12,6 +12,11 @@
 #include <ekg/gpu/opengl/gl.hpp>
 
 namespace meow {
+  struct gui_t {
+  public:
+    ekg::at_t in_world_popup {};
+  };
+
   extern struct application_t {
   public:
     bicudo::core_t bicudo {};
@@ -21,6 +26,7 @@ namespace meow {
     meow::immediate_graphics immediate {};
     meow::pickup_info_t global_body_pickup {};
     meow::pickup_info_t camera_pickup {};
+    meow::gui_t gui {};
   public:
     ekg::ft_library ft_library {};
     SDL_Window *p_sdl_win {};

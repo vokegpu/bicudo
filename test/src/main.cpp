@@ -15,8 +15,50 @@ void init_ekg() {
   ekg::bind("click-on-object", "mouse-1");
   ekg::bind("drop-object", "mouse-1-up");
   ekg::bind("click-on-camera", "mouse-2");
+  ekg::bind("world-popup", "mouse-3");
   ekg::bind("drop-camera", "mouse-2-up");
   ekg::bind("zoom-camera", "mouse-wheel");
+
+  ekg::make<ekg::stack_t>(
+    {
+      .tag = "in-world-UIs"
+    }
+  );
+
+  ekg::popup_t &in_world_popup = ekg::make<ekg::popup_t>({.tag = "in-world-popup"});
+  meow::app.gui.in_world_popup = in_world_popup;
+
+  ekg::button_t button {
+    .dock = ekg::dock::next | ekg::dock::fill
+  };
+
+  button.tag = "reset-camera";
+  ekg::button_t::check_t &content = button.checks.emplace_back();
+
+  content.text = "Reset Camera";
+  content.actions[ekg::action::press] = ekg::make<ekg::callback_t>(
+    {
+      .info = {.tag = "reset-camera"},
+      .lambda = [](ekg::info_t&) {
+        meow::app.camera.rect.pos.x = 0.0f;
+        meow::app.camera.interpolated_zoom = 1.0f;
+        meow::app.camera.rect.pos.y = 0.0f;
+        meow::app.camera.zoom = 1.0f;
+        meow::app.camera.rect.velocity = {};
+        meow::app.immediate.current_zoom = 1.0f;
+
+        meow::app.immediate.set_viewport(
+          meow::app.immediate.viewport.z,
+          meow::app.immediate.viewport.w
+        );
+      }
+    }
+  );
+
+  ekg::make<ekg::button_t>(button);
+
+  ekg::pop<ekg::popup_t>();
+  ekg::pop<ekg::stack_t>();
 }
 
 int32_t main(int32_t, char**) {
@@ -108,14 +150,18 @@ int32_t main(int32_t, char**) {
       if (sdl_event.type == SDL_QUIT) {
         meow::app.running = false;
       }
+
+      if (ekg::fired("world-popup")) {
+        ekg::show(meow::app.gui.in_world_popup, input.interact);
+      }
     }
 
     if (ekg::reset_if_reach(framerate, 1000)) {
       SDL_GL_SetSwapInterval(meow::app.vsync);
       last_frame_count = elapsed_frame_count;
       elapsed_frame_count = 0;
-      ekg::log() << last_frame_count;
-      
+      ekg::log() << last_frame_count << " " << ekg::metrics.gpu_data_count;
+
       bicudo::flush();
       ekg::log::flush();
 
@@ -166,6 +212,7 @@ int32_t main(int32_t, char**) {
     meow::app.immediate.revoke();
 
     ekg::render();
+
     SDL_GL_SwapWindow(meow::app.p_sdl_win);
 
     if (meow::app.vsync) {
