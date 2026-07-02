@@ -15,6 +15,7 @@ namespace bicudo {
 
     std::vector<bicudo::vec2_t<float>> edges {};
     std::vector<bicudo::vec2_t<float>> vertices {};
+
     bicudo::vec4_t<float> rect {};
     bicudo::vec2_t<float> delta {};
 
@@ -23,6 +24,7 @@ namespace bicudo {
     float angle_acceleration {};
 
     uint64_t flags {};
+    bool has_collide {};
   public:
     bicudo_as_signed(bicudo::body_t);
   };

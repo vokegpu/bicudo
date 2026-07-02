@@ -65,10 +65,14 @@ int32_t main(int32_t, char**) {
 
   meow::app.immediate.create();
 
-  std::vector<bicudo::body_t> bodies {
-    {.pos = {420, 400}, .size = {100, 100}, .angle = 0.0, .unique_id = 1},
-    {.pos = {570, 417}, .size = {100, 100}, .unique_id = 2}
-  };
+  bicudo::hypergroup_t hypergroup {};
+  bicudo::registry(&hypergroup);
+
+  bicudo::body_t a {.pos = {420, 400}, .size = {100, 100}, .angle = 0.0};
+  bicudo::registry(&hypergroup, &a);
+
+  bicudo::body_t b {.pos = {570, 417}, .size = {100, 100}, .unique_id = 2};
+  bicudo::registry(&hypergroup, &b);
 
   bicudo::vec4_t<float> body_color {};
   ekg::input_info_t &input = ekg::input();
@@ -79,15 +83,15 @@ int32_t main(int32_t, char**) {
 
       bool is_up {};
       if (ekg::input("mouse-1") || (is_up = ekg::input("mouse-1-up")) ) {
-        for (bicudo::body_t &body : bodies) {
-          body.flags = 0;
+        for (bicudo::body_t *p_body : hypergroup.bodies) {
+          p_body->flags = 0;
 
           if (is_up) continue;
 
-          if (bicudo::vec4_collide_with_vec2(body.rect, {input.interact.x, input.interact.y})) {
-            body.delta.x = body.pos.x - input.interact.x;
-            body.delta.y = body.pos.y - input.interact.y;
-            body.flags = 1;
+          if (bicudo::vec4_collide_with_vec2(p_body->rect, {input.interact.x, input.interact.y})) {
+            p_body->delta.x = p_body->pos.x - input.interact.x;
+            p_body->delta.y = p_body->pos.y - input.interact.y;
+            p_body->flags = 1;
             break;
           }
         }
@@ -124,33 +128,27 @@ int32_t main(int32_t, char**) {
 
     meow::app.immediate.invoke();
 
-    bool collided = false;
-    bool j = false;
+    bicudo::update(bicudo::physics_update_mode::EVERYTHING);
 
-    for (bicudo::body_t &b1 : bodies) {
-      if (b1.flags == 1) {
-        b1.pos.x = input.interact.x + b1.delta.x;
-        b1.pos.y = input.interact.y + b1.delta.y;
+    for (bicudo::body_t *p_body : hypergroup.bodies) {
+      if (p_body->flags == 1) {
+        p_body->pos.x = input.interact.x + p_body->delta.x;
+        p_body->pos.y = input.interact.y + p_body->delta.y;
 
         if (input.was_wheel) {
-          b1.angle += input.interact.w;
+          p_body->angle += input.interact.w;
         }
       }
 
-      bicudo::update(b1);
-
-      body_color = {1.0f, 0.6f, 0.8f, 1.0f};
-      for (bicudo::body_t &b2 : bodies) {
-        if (b1 == b2) continue;
-        if (!(bicudo::detect(b1, b2) && bicudo::detect(b2, b1))) continue;
-        body_color = {1.0f, 0.0f, 0.8f, 1.0f};
-        break;
-      }
+      bicudo::update(
+        &hypergroup,
+        p_body
+      );
 
       meow::app.immediate.draw(
-        b1.rect,
-        body_color,
-        b1.angle, 0
+        p_body->rect,
+        p_body->has_collide ? bicudo::vec4_t<float>(0.8f, 0.7, 0.8f, 1.0f) : bicudo::vec4_t<float>(0.8f, 0.7, 0.8f, 0.5f),
+        p_body->angle, 0
       );
     }
 

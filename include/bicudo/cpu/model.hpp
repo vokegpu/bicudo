@@ -12,8 +12,12 @@ namespace bicudo {
     cpu() : base() {};
   public:
     bicudo::result_t init() override;
-    bicudo::hypergroup_t &new_hypergroup() override;
-    bicudo::body_t &new_body(bicudo::hypergroup_t &hypergroup) override;
+    bicudo::result_t registry_hypergroup(bicudo::hypergroup_t *p_hypergroup) override;
+    bicudo::result_t registry_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body) override;
+    bicudo::result_t unregistry_hypergroup(bicudo::hypergroup_t *p_hypergroup) override;
+    bicudo::result_t unregistry_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body) override;
+    bicudo::result_t update_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body) override;
+    bicudo::result_t update(bicudo::physics_update_mode mode) override;
   };
 }
 

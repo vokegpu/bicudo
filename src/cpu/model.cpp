@@ -1,4 +1,5 @@
 #include <bicudo/cpu/model.hpp>
+#include <bicudo/cpu/sat.hpp>
  
 bicudo::result_t bicudo::cpu::init() {
   bicudo::log("No accelerated devices, using central processor unit (CPU).");
@@ -8,16 +9,74 @@ bicudo::result_t bicudo::cpu::init() {
   return bicudo::result::SUCCESS;
 }
 
-bicudo::hypergroup_t &bicudo::cpu::new_hypergroup() {
-  return *(this->hypergroups.emplace_back() = new bicudo::hypergroup_t { .unique_id = this->infspirit++ });
+bicudo::result_t bicudo::cpu::registry_hypergroup(bicudo::hypergroup_t *p_hypergroup) {
+  this->hypergroups.push_back(p_hypergroup);
+  return bicudo::result::OK;
 }
 
-bicudo::body_t &bicudo::cpu::new_body(bicudo::hypergroup_t &hypergroup) {
-  static bicudo::body_t not_found_body {};
-  if (hypergroup != bicudo::found) {
-    bicudo::loge("Invalid hypergroup, hypergroup must be property generated!");
-    return not_found_body;
+bicudo::result_t bicudo::cpu::registry_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body
+) {
+  p_hypergroup->bodies.push_back(p_body);
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::cpu::unregistry_hypergroup(
+  bicudo::hypergroup_t *p_hypergroup
+) {
+  for (std::size_t i {}; i < this->hypergroups.size(); i++) {
+    if (this->hypergroups.at(i) != p_hypergroup) continue;
+    this->hypergroups.erase(this->hypergroups.begin() + i);
+    return bicudo::result::SUCCESS;
   }
 
-  return *(hypergroup.bodies.emplace_back() = new bicudo::body_t { .unique_id = this->infspirit++ });
+  return bicudo::result::FAILED;
+}
+
+bicudo::result_t bicudo::cpu::unregistry_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body) {
+
+  for (bicudo::hypergroup_t *p_hp : this->hypergroups) {
+    if (p_hp != p_hypergroup) continue;
+    for (std::size_t i {}; i < p_hp->bodies.size(); i++) {
+      if (p_hp->bodies.at(i) != p_body) continue;
+      p_hp->bodies.erase(p_hp->bodies.begin() + i);
+      return bicudo::result::SUCCESS;
+    }
+  }
+
+  return bicudo::result::FAILED;
+}
+
+bicudo::result_t bicudo::cpu::update_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body
+) {
+  bicudo::cpu_sat_update_body(
+    *p_body
+  );
+
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::cpu::update(
+  bicudo::physics_update_mode mode
+) {
+
+  bicudo::cpu_sat_collide_info_t info {};
+  for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
+    for (bicudo::body_t *p_body_a : p_hypergroup->bodies) {
+      for (bicudo::body_t *p_body_b : p_hypergroup->bodies) {
+        if (p_body_a == p_body_b) continue;
+        info = bicudo::cpu_sat_collided(
+          *p_body_a,
+          *p_body_b
+        );
+      }
+    }
+  }
+
+  return bicudo::result::OK;
 }
