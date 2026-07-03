@@ -41,8 +41,8 @@ find_package(Bicudo REQUIRED)
 
 target_link_libraries(
   ...
-  Bicudo::bicudo ## this is the default library
-  Bicudo::bicudo-hip-rocm ## this is the DLL/shared-library to the ROCm support
+  Bicudo::bicudo ## library
+  Bicudo::bicudo-hip-rocm ## DLL/shared-library to ROCm support
   ...
 )
 ```
