@@ -1,20 +1,90 @@
 ## bicudo~
 
-This is an useless 2D physics engine to be used with ROCm or CUDA via HIP, soon should have support for Intel, OpenCL, OpenGL4, and Vulkan. But now it is focused to HPC GPGPU-APIs.
+This is a useless 2D physics engine to be used with ROCm or CUDA via HIP, and soon should have support for Intel, OpenCL, OpenGL4, and Vulkan. But now it is focused on HPC GPGPU-APIs.
 
-The project is simple, but not done yet, so, wait for new commits and updates. By the 52. 
+The project is simple but not done yet, so wait for new commits and updates.
 
-### Setuping, building etc.
+52.
 
-Building and installing:
+---
+
+### Installation
+
+The `bicudo` library has only these dependencies: `HIP/ROCm`.
+
+For AMD ROCm installation, check the official guides.
+
+#### Linux
+
+The development is under Arch Linux; make sure you know how to install dependencies by yourself.
+
+A file `bicudo-linux.sh` was made to help with the development and installation process. Make sure you `chmode u+x ./bicudo-linux.sh` before running.
+
+For building, you must pass the argument `--build` and complete it with your desired API model implementation: `--hip-rocm`.
+
+For example:
 ```
-chmod u+x ./bicudo-linux.sh
-./bicudo-linux.sh --build --install --hip-rocm
+./bicudo-linux.sh --build --hip-rocm
+sudo ./bicudo-linux.sh --install
 ```
 
-To be sure if it is running property, you can run tests:
-```
-./bicudo-linux.sh .. --test
+`--install` argument installs in your usr local directory.
+
+### Test
+
+#### Linux
+
+To test if everything is working properly, pass `--test`. Remember to complete with your desired API model; if no API model argument was passed, then the CPU model is used by default.
+
+---
+
+### Usage
+
+The usage of bicudo is a little different due to multi-GPU support, but VokeGPU made it easy for you.
+
+#### CMake
+
+```CMake
+find_package(Bicudo REQUIRED)
+
+## ...
+
+target_link_libraries(
+  ...
+  Bicudo::bicudo ## library
+  Bicudo::bicudo-hip-rocm ## DLL/shared-library to ROCm support
+  ...
+)
 ```
 
-Soon should have `--hip-cuda`, `--opencl`, `--vulkan`, `--opengl4`.
+As shown, there is `Bicudo::bicudo-hip-rocm` and later other implementations. This is required for cross-platform support. When using this library in your project, you must distribute the correct bicudo GPU-model implementation (for example, for AMD users, you should distribute the DLL/so `bicudo-hip-rocm.*`).
+
+If no GPU model implementation is linked to the project, only CPU acceleration is supported.
+
+#### Physics Body and Hypergroups
+
+not yet to show.
+
+#### Techniques, and Physics
+
+The project for CPU implementation uses SAT (separation axis theorem). This was implemented over the study of [the book (Michael Tanaya, Huaming Chen, Jebediah Pavleas, Kelvin Sung)](https://www.amazon.com/Building-Game-Physics-Engine-JavaScript/dp/1484225821).
+
+For GPU acceleration, check #6.
+
+---
+
+### Demo
+
+This is the `meow` test; the point is physics, but art above all dead geometry.
+
+https://github.com/user-attachments/assets/0c23dedd-1747-45cc-a0cb-fd9284afee9a
+
+---
+
+## 52~
+
+```
+'Eu vos invoco, pela minha inútil existência, não temerei uma bela batalha nem uma grande virtude de estar errada. Em fé em Deus, por Cristo e pelos 52.  
+Soberano Humano, ponha-se sobre todos os tijolos das suas lamentações e dê forma, vida. O princípio criador, derivado em vosso Soberano Humano pela sua Alma criadora.'  
+- Sabrina W. 16:37:47 03/07/2026
+```
