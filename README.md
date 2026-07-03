@@ -2,19 +2,49 @@
 
 This is an useless 2D physics engine to be used with ROCm or CUDA via HIP, soon should have support for Intel, OpenCL, OpenGL4, and Vulkan. But now it is focused to HPC GPGPU-APIs.
 
-The project is simple, but not done yet, so, wait for new commits and updates. By the 52. 
+The project is simple, but not done yet, so, wait for new commits and updates. By the 52.
 
-### Setuping, building etc.
+### Installation
 
-Building and installing:
+The `bicudo` library has only these dependencies: `HIP/ROCm`.
+
+For AMD ROCm installation check official guides.
+
+#### Linux
+
+The development is under Arch Linux, make sure you know how install dependencies by yourself.
+
+A file `bicudo-linux.sh` was made to help with development and installing process. Make sure you `chmode u+x ./bicudo-linux.sh` before running.
+
+Building process is simple, you should pass argument `--build` and complete with your desired API model implementation: `--hip-rocm`.
+
+For example:
 ```
-chmod u+x ./bicudo-linux.sh
-./bicudo-linux.sh --build --install --hip-rocm
+./bicudo-linux.sh --build --hip-rocm
+sudo ./bicudo-linux.sh --install
 ```
 
-To be sure if it is running property, you can run tests:
-```
-./bicudo-linux.sh .. --test
+### Test
+
+#### Linux
+
+On Linux you can just pass `--test` to check if all is right. Remember to complete with your desired API model, if no API model is passed, then the CPU-model is used by default.
+
+### CMake
+
+```CMake
+find_package(Bicudo REQUIRED)
+
+## ...
+
+target_link_libraries(
+  ...
+  Bicudo::bicudo ## this is the default library
+  Bicudo::bicudo-hip-rocm ## this is the DLL/shared-library to the ROCm support
+  ...
+)
 ```
 
-Soon should have `--hip-cuda`, `--opencl`, `--vulkan`, `--opengl4`.
+As shown, there is `Bicudo::bicudo-hip-rocm` and later others implementations. This is required for cross-multi-platform support. When using this library on your project, make sure you add to the installer of your game/software the properly GPU-API implementation.
+
+If no implementation is inserted you wont be able to use the GPU-acceleration, only CPU-acceleration with basic SAT implementation for physics body.
