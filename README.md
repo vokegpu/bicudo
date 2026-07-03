@@ -69,7 +69,7 @@ not yet to show.
 
 The project for CPU implementation uses SAT (separation axis theorem). This was implemented over the study of [the book (Michael Tanaya, Huaming Chen, Jebediah Pavleas, Kelvin Sung)](https://www.amazon.com/Building-Game-Physics-Engine-JavaScript/dp/1484225821).
 
-For GPU acceleration check #6.
+For GPU acceleration, check #6.
 
 ---
 
@@ -83,6 +83,8 @@ https://github.com/user-attachments/assets/0c23dedd-1747-45cc-a0cb-fd9284afee9a
 
 ## 52~
 
+```
 'Eu vos invoco, pela minha inútil existência, não temerei uma bela batalha nem uma grande virtude de estar errada. Em fé em Deus, por Cristo e pelos 52.  
 Soberano Humano, ponha-se sobre todos os tijolos das suas lamentações e dê forma, vida. O princípio criador, derivado em vosso Soberano Humano pela sua Alma criadora.'  
 - Sabrina W. 16:37:47 03/07/2026
+```
