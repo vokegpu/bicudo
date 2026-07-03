@@ -36,6 +36,10 @@ namespace bicudo {
     bicudo::result_t gpu_pipeline_load_kernels(
       bicudo::gpu_rm_divine_pipeline_t &pipeline
     );
+
+    bicudo::result_t gpu_pipeline_free(
+      bicudo::gpu_rm_divine_pipeline_t &pipeline
+    );
   };
 }
 

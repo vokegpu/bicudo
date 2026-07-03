@@ -24,6 +24,7 @@ namespace bicudo {
     KERNEL_LOADED,
     KERNEL_NOT_LOADED,
     KERNEL_NOT_INITIALIZED,
+    PIPELINE_NOT_FOUND,
     COULD_NOT_GET_MODULE_BY_INDEX_OUT_OF_RANGE,
     COULD_NOT_GET_MODULE_BY_TAG_NOT_FOUND,
     COULD_NOT_GET_FUNCTION_BY_INDEX_OUT_OF_RANGE,
@@ -34,6 +35,8 @@ namespace bicudo {
     FAILED_TO_INITIALIZE_ROCM,
     FAILED_TO_ALLOCATE_HOST_MEMORY,
     FAILED_TO_ASYNC_FETCH_ATOMIC_MEMORY,
+    FAILED_TO_FREE_ATOMIC_MEMORY,
+    FAILED,
     NOT_IMPLEMENTED
   };
 
@@ -107,6 +110,6 @@ namespace bicudo {
 }
 
 #define bicudo_trace_log(x) std::cout << x << std::endl;
-#define bicudo_hip_assert(result, expected, log) if (result != expected) log;
+#define bicudo_assert(result, expected, log) if (result != expected) log;
 
 #endif

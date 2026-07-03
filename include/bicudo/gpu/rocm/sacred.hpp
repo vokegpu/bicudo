@@ -34,6 +34,10 @@ namespace bicudo {
     std::size_t bytes
   );
 
+  bicudo::result_t gpu_free_sacred_atomic(
+    bicudo::gpu_rm_sacred_atomic_memory_t &atomic
+  );
+
   bicudo::result_t gpu_sacred_call(
     bicudo::gpu_rm_divine_module_t &kmodule,
     bicudo::gpu_rm_divine_fun_t &fun

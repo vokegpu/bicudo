@@ -1,6 +1,25 @@
 #include <bicudo/gpu/rocm/sacred.hpp>
 #include <bicudo/log/log.hpp>
 
+bicudo::result_t bicudo::gpu_free_sacred_atomic(
+  bicudo::gpu_rm_sacred_atomic_memory_t &atomic
+) {
+  hipError_t e {};
+  bicudo_assert(
+    (
+      e = hipHostFree(
+        atomic.p_host
+      )
+    ),
+    hipSuccess,
+    bicudo::loge("Failed to free sacred atomic memory.")
+  );
+
+  bicudo::log("Sacred atomic memory back to the Pleroma.");
+
+  return e == hipSuccess ? bicudo::result::SUCCESS : bicudo::result::FAILED_TO_FREE_ATOMIC_MEMORY;
+}
+
 bicudo::result_t bicudo::gpu_sacred_async_fetch(
   bicudo::gpu_rm_divine_fun_t &fun,
   void *p_host,
@@ -8,13 +27,13 @@ bicudo::result_t bicudo::gpu_sacred_async_fetch(
   std::size_t bytes
 ) {
   hipError_t e {};
-  bicudo_hip_assert(
+  bicudo_assert(
     (
       e = hipMemcpyDtoHAsync(
         p_host,
         p_device,
         bytes,
-        fun.memory.h_stream
+        fun.memory.hip_stream
       )
     ),
     hipSuccess,
@@ -29,7 +48,7 @@ bicudo::result_t bicudo::gpu_allocate_sacred_atomic(
   std::size_t hip_host_malloc_flags,
   std::size_t hip_host_get_device_pointer_flags
 ) {
-  bicudo_hip_assert(
+  bicudo_assert(
     hipHostMalloc(
       &atomic.p_host,
       atomic.bytes,
@@ -39,7 +58,7 @@ bicudo::result_t bicudo::gpu_allocate_sacred_atomic(
     bicudo::loge("Failed to allocate sagred atomic bytes ", atomic.bytes)
   );
 
-  bicudo_hip_assert(
+  bicudo_assert(
     hipHostGetDevicePointer(
       &atomic.p_device,
       atomic.p_host,
@@ -63,7 +82,7 @@ bicudo::result_t bicudo::gpu_sacred_call(
   };
 
   hipError_t result {};
-  bicudo_hip_assert(
+  bicudo_assert(
     (
       result = (
         hipModuleLaunchKernel(
@@ -75,7 +94,7 @@ bicudo::result_t bicudo::gpu_sacred_call(
           fun.dimension.block.y,
           fun.dimension.block.z,
           fun.memory.shared_mem_bytes,
-          fun.memory.h_stream,
+          fun.memory.hip_stream,
           nullptr,
           pv_configs
         )

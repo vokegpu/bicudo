@@ -17,7 +17,7 @@ namespace bicudo {
     bicudo::gpu_rm_sacred_pointers_t sacred_pointers {};
     std::size_t sacred_pointers_mem_bytes_length {};
   public:
-    hipStream_t h_stream {};
+    hipStream_t hip_stream {};
   };
   
   struct gpu_rm_divine_fun_dimension_t {
@@ -75,6 +75,8 @@ namespace bicudo {
     std::string tag {};
     std::string description {};
     bicudo::gpu_rm_divine_kernels_t kernels {};
+  public:
+    bicudo_as_signed(bicudo::gpu_rm_divine_pipeline_t);
   };
 }
 
