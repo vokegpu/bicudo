@@ -6,6 +6,8 @@ The project is simple but not done yet, so wait for new commits and updates.
 
 52.
 
+---
+
 ### Installation
 
 The `bicudo` library has only these dependencies: `HIP/ROCm`.
@@ -34,7 +36,11 @@ sudo ./bicudo-linux.sh --install
 
 To test if everything is working properly, pass `--test`. Remember to complete with your desired API model; if no API model argument was passed, then the CPU model is used by default.
 
+---
+
 ### Usage
+
+The usage of bicudo is a little different due to multi-GPU support, but VokeGPU made it easy for you.
 
 #### CMake
 
@@ -57,7 +63,7 @@ If no GPU model implementation is linked to the project, only CPU acceleration i
 
 #### Physics Body and Hypergroups
 
-* not yet to show.
+not yet to show.
 
 #### Techniques, and Physics
 
