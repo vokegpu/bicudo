@@ -1,5 +1,72 @@
 #include <bicudo/cpu/sat.hpp>
 
+void bicudo::cpu_sat_solve(
+  bicudo::cpu_sat_collide_info_t &info,
+  bicudo::body_t &a,
+  bicudo::body_t &b,
+  float correction_rate
+) {
+  float amass {1.0f / a.mass};
+  float bmass {1.0f / b.mass};
+
+  a.inertia = 1.0f / ((1.0f / amass) * (a.size.magnitude() / 12.0f));
+  b.inertia = 1.0f / ((1.0f / bmass) * (a.size.magnitude() / 12.0f));
+
+  float magnitude = info.depth / (amass + bmass) * correction_rate;
+  bicudo::vec2_t<float> correct_amount = info.dir * magnitude;
+
+  bicudo::cpu_sat_move(a, correct_amount * -amass);
+  bicudo::cpu_sat_move(b, correct_amount * bmass);
+
+  bicudo::vec2_t<float> start = info.start * (bmass / (amass + bmass));
+  bicudo::vec2_t<float> end = info.end * (bmass / (amass + bmass));
+  bicudo::vec2_t<float> p = start + end;
+
+  bicudo::vec2_t<float> r1 = p - a.pos;
+  bicudo::vec2_t<float> r2 = p - b.pos;
+
+  bicudo::vec2_t<float> v1 = a.velocity + bicudo::vec2_t<float>(-1 * a.angular_velocity * r1.y, a.angular_velocity * r1.x);
+  bicudo::vec2_t<float> v2 = b.velocity + bicudo::vec2_t<float>(-1 * b.angular_velocity * r2.y, b.angular_velocity * r2.x);
+
+  bicudo::vec2_t<float> rvel = v2 - v1;
+  float rvelproj = rvel.dot(info.dir);
+
+  if (rvelproj > 0.0f) return;
+
+  float r1xn = r1.cross(info.dir);
+  float r2xn = r2.cross(info.dir);
+
+  float rest = std::min(a.restitution, b.restitution);
+  float jn = (-(1 + rest) * rvelproj)
+    / (amass + bmass + r1xn * r1xn * a.inertia + r2xn * r2xn * b.inertia);
+
+  bicudo::vec2_t<float> impulse = info.dir * jn;
+
+  a.velocity -= impulse * amass;
+  b.velocity += impulse * bmass;
+
+  a.angular_velocity -= r1xn * jn * a.inertia;
+  b.angular_velocity += r2xn * jn * b.inertia;
+
+  bicudo::vec2_t<float> tan = (rvel - (info.dir * rvelproj)).normalize() * -1.0f;
+
+  float r1xt = r1.cross(tan);
+  float r2xt = r2.cross(tan);
+
+  float fric = std::min(a.friction, b.friction);
+  float jt = (-(1 + rest) * rvel.dot(tan) * fric)
+    / (amass + bmass + r1xt * r1xt * a.inertia + r2xt * r2xt * b.inertia);
+
+  jt = jt > jn ? jn : jt;
+  impulse = tan * jt;
+
+  a.velocity -= impulse * amass;
+  b.velocity += impulse * bmass;
+
+  a.angular_velocity -= r1xt * jt * a.inertia;
+  b.angular_velocity += r2xt * jt * b.inertia;
+}
+
 bicudo::cpu_sat_collide_info_t bicudo::cpu_sat_check_collide(
   bicudo::body_t &a,
   bicudo::body_t &b
@@ -108,8 +175,8 @@ void bicudo::cpu_sat_update_body(
   body.velocity += body.acceleration * bicudo::dt;
   body.pos += body.velocity;
 
-  body.angle_velocity += body.angle_acceleration * bicudo::dt;
-  body.angle += body.angle_velocity;
+  body.angular_velocity += body.angle_acceleration * bicudo::dt;
+  body.angle += body.angular_velocity;
 
   float midw = body.size.x / 2;
   float midh = body.size.y / 2;
@@ -120,7 +187,7 @@ void bicudo::cpu_sat_update_body(
   body.vertices.at(3) = bicudo::vec2_t<float>(body.pos.x - midw, body.pos.y + midh);
 
   for (bicudo::vec2_t<float> &vertex : body.vertices) {
-    vertex = vertex.rotate(body.angle_velocity, body.pos);
+    vertex = vertex.rotate(body.angular_velocity, body.pos);
 
     body.min.x = std::min(body.min.x, vertex.x);
     body.min.y = std::min(body.min.y, vertex.y);

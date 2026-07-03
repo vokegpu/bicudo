@@ -513,7 +513,11 @@ namespace bicudo {
     const bicudo::vec4_t<t> &a,
     const bicudo::vec4_t<t> &b
   ) {
-    return true;
+    return (
+      (a.x < b.z && a.z > b.x)
+      &&
+      (a.y < b.w && a.w > b.y)
+    );
   }
 
   template<typename t>

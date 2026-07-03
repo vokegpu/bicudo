@@ -97,6 +97,9 @@ void meow::tools_update_picked_camera(
     -((interact.y - pickup_info.delta.y) - (pickup_info.prev_pos.y - pickup_info.delta.y))
   };
 
+  bicudo::vec2_t<float> delta = {meow::app.immediate.viewport.z, meow::app.immediate.viewport.w};
+  pickup_info.p_body->velocity *= (pickup_info.p_body->size.magnitude() / delta.magnitude());
+
   pickup_info.prev_pos.x = interact.x;
   pickup_info.prev_pos.y = interact.y;
 }

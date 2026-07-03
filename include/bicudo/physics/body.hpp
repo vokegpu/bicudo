@@ -14,10 +14,14 @@ namespace bicudo {
     bicudo::vec2_t<float> acceleration {};
 
     float angle {};
-    float angle_velocity {};
+    float angular_velocity {};
     float angle_acceleration {};
 
-    float mass {};
+    float inertia {0.0f};
+    float mass {1.0f};
+    float friction {0.8f};
+    float restitution {0.2f};
+
     uint64_t flags {};
     bool has_collide {};
     bool no_gravity {false};

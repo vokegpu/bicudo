@@ -42,6 +42,13 @@ namespace bicudo {
     bicudo::body_t &body,
     bicudo::vec2_t<float> direction
   );
+
+  void cpu_sat_solve(
+    bicudo::cpu_sat_collide_info_t &info,
+    bicudo::body_t &a,
+    bicudo::body_t &b,
+    float correction_rate
+  );
 }
 
 #endif

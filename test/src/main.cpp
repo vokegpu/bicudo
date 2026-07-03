@@ -85,7 +85,7 @@ int32_t main(int32_t, char**) {
   SDL_GLContext sdl_gl_context {SDL_GL_CreateContext(meow::app.p_sdl_win)};
   glewInit();
 
-  ekg::rgba_t<float> clear_color(0.2f, 0.4f, 0.4f, 1.0f);
+  ekg::rgba_t<float> clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 
   FT_Init_FreeType(&meow::app.ft_library);
 
@@ -122,14 +122,34 @@ int32_t main(int32_t, char**) {
   bicudo::hypergroup_t hypergroup {};
   bicudo::registry(&hypergroup);
 
-  bicudo::body_t a {.pos = {420, 400}, .size = {100, 100}, .angle = 0.0};
-  bicudo::registry(&hypergroup, &a);
+  std::size_t bodies_in_scene {20};
+  std::vector<bicudo::body_t> bodies {};
+  bodies.resize(bodies_in_scene);
 
-  bicudo::body_t b {.pos = {570, 417}, .size = {100, 100}, .unique_id = 2};
+  for (std::size_t j {}; j < bodies_in_scene; j++) {
+    auto x = std::rand() % 100;
+    auto y = std::rand() % 100;
+
+    auto w = std::rand() % 500;
+    auto h = std::rand() % 500;
+
+    bicudo::body_t &body = bodies.emplace_back();
+    body.pos.x = x;
+    body.pos.y = y;
+    body.size.x = w;
+    body.size.y = h;
+    bicudo::registry(&hypergroup, &body);
+  }
+
+  bicudo::body_t b {.pos = {570, 417}, .size = {100, 100}, .mass = 2.0f};
   bicudo::registry(&hypergroup, &b);
 
   bicudo::vec4_t<float> body_color {};
   ekg::input_info_t &input = ekg::input();
+
+  float vel {};
+
+  meow::app.immediate.uinf = 372.0f;
 
   while (meow::app.running) {
     while (SDL_PollEvent(&sdl_event)) {  
@@ -186,11 +206,62 @@ int32_t main(int32_t, char**) {
 
     meow::app.immediate.invoke();
 
+    meow::app.immediate.draw(
+      bicudo::vec4_t<float>(0.0f, 0.0f, meow::app.camera.view.z, meow::app.camera.view.w),
+      bicudo::vec4_t<float>(0.052f, 0.052f, 0.052f, 0.052f),
+      0, 1
+    );
+    
+    auto hex = bicudo::vec4_t<float>(0.0f, 0.0f, meow::app.camera.view.z, meow::app.camera.view.w);
+    hex.z /= (3 * meow::app.camera.zoom);
+    hex.w = hex.z;
+
+    //hex.z += (sin(vel) * (meow::app.camera.view.w / 3));
+    //hex.w += (cos(vel) * (meow::app.camera.view.w / 3));
+ 
+    hex.x = meow::app.camera.view.z / 2 - (hex.z / 2);
+    hex.y = meow::app.camera.view.w / 2 - (hex.w / 2);
+
+    meow::app.immediate.draw(
+      hex,
+      bicudo::vec4_t<float>(0.052f, 0.052f, 0.052f, 0.052f),
+      45.0f + meow::app.immediate.uinf + vel, 2
+    );
+
+    hex.z /= 3;
+    hex.w = hex.z;
+
+    hex.x = meow::app.camera.view.z / 2 - (hex.z / 2);
+    hex.y = meow::app.camera.view.w / 2 - (hex.w / 2);
+
+    meow::app.immediate.draw(
+      hex,
+      bicudo::vec4_t<float>(0.052f, 0.052f, 0.052f, 0.052f),
+      0.0f + meow::app.immediate.uinf + vel, 3
+    );
+
+    vel += 2.0f;
+
+
+    meow::app.immediate.viewport.z = ekg::dpi.viewport.w;
+    meow::app.immediate.viewport.w = ekg::dpi.viewport.h;
+
     for (bicudo::body_t *p_body : hypergroup.bodies) {
       bicudo::update(
         &hypergroup,
         p_body
       );
+
+      bicudo::vec4_t<float> frustum {
+        meow::app.camera.rect.pos.x,
+        meow::app.camera.rect.pos.y,
+        meow::app.immediate.viewport.z,
+        meow::app.immediate.viewport.w
+      };
+
+      if (!bicudo::aabb_collide_with_aabb(meow::app.camera.view, p_body->rect)) {
+        continue;
+      }
 
       bicudo::vec4_t<float> rect_on_camera {
         p_body->rect

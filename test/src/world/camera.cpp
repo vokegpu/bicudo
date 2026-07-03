@@ -11,7 +11,6 @@ void meow::camera::set_zoom(float zoom) {
 
 void meow::camera::on_update() {
   this->rect.velocity += this->rect.acceleration * bicudo::dt;
-  this->rect.velocity *= this->zoom;
   this->rect.velocity = bicudo::lerp(this->rect.velocity, 0.0f, 0.1f);
   this->rect.pos += this->rect.velocity;
 
@@ -24,4 +23,6 @@ void meow::camera::on_update() {
   this->view.y = this->rect.pos.y;
   this->view.z = meow::app.immediate.viewport.z / meow::app.camera.zoom;
   this->view.w = meow::app.immediate.viewport.w / meow::app.camera.zoom;
+  this->rect.size.x = this->view.z;
+  this->rect.size.y = this->view.w;
 }

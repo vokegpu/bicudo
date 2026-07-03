@@ -12,6 +12,7 @@ namespace meow {
     meow::gpu::draw_call_t draw_call {};
     bicudo::mat4_t<float> mat4x4_rotate {};
   public:
+    float uinf {};
     bicudo::mat4_t<float> mat4x4_projection {};
     bicudo::vec2_t<float> latest_pos_clicked {};
     bicudo::vec4_t<float> viewport {};
