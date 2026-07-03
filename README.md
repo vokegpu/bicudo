@@ -83,8 +83,6 @@ https://github.com/user-attachments/assets/0c23dedd-1747-45cc-a0cb-fd9284afee9a
 
 ## 52~
 
-```
 'Eu vos invoco, pela minha inútil existência, não temerei uma bela batalha nem uma grande virtude de estar errada. Em fé em Deus, por Cristo e pelos 52.  
 Soberano Humano, ponha-se sobre todos os tijolos das suas lamentações e dê forma, vida. O princípio criador, derivado em vosso Soberano Humano pela sua Alma criadora.'  
-- Sabrina W. 16:37:47 03/07/2026
-```
+`- Sabrina W. 16:37:47 03/07/2026`
