@@ -14,9 +14,9 @@ For AMD ROCm installation check official guides.
 
 The development is under Arch Linux, make sure you know how install dependencies by yourself.
 
-A file `bicudo-linux.sh` was made to help with development and installing process. Make sure you `chmode u+x ./bicudo-linux.sh` before running.
+A file `bicudo-linux.sh` was made to help with development and instalation process. Make sure you `chmode u+x ./bicudo-linux.sh` before running.
 
-Building process is simple, you should pass argument `--build` and complete with your desired API model implementation: `--hip-rocm`.
+For building process you must pass argument `--build` and complete with your desired API model implementation: `--hip-rocm`.
 
 For example:
 ```
@@ -24,13 +24,15 @@ For example:
 sudo ./bicudo-linux.sh --install
 ```
 
+`--install` argument installs on your usr local directory.
+
 ### Test
 
 #### Linux
 
 On Linux you can just pass `--test` to check if all is right. Remember to complete with your desired API model, if no API model is passed, then the CPU-model is used by default.
 
-### CMake
+#### CMake
 
 ```CMake
 find_package(Bicudo REQUIRED)
