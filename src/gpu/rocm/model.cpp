@@ -36,6 +36,8 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_free(
 }
 
 bicudo::result_t bicudo::rocm::init() {
+  /* GPU pick */
+
   bicudo::device_id_t device_count {};
   if (hipGetDeviceCount(&device_count) != hipSuccess) {
     bicudo::loge("Failed to initialize ROCm pipeline; no device found");
@@ -61,13 +63,13 @@ bicudo::result_t bicudo::rocm::init() {
 
   bicudo::log("Bicudo selected device ID ", pipeline_config.set_order);
 
-  /* testing purpose */
+  /* assert */
 
   bicudo::log("Starting HIP ROCm assertation tests...");
 
   bicudo::result_t assert_testing_result {bicudo::result::OK};
 
-  char* hip_rocm_kernel_runtime_assert {
+  const char* hip_rocm_kernel_runtime_assert {
     R"(
       /**
        * This hip runtime should perform memory-access assert
@@ -181,6 +183,13 @@ bicudo::result_t bicudo::rocm::init() {
 
   bicudo::gpu_free_sacred_atomic(atomic);
   rocm.gpu_pipeline_free(pipeline52);
+
+  /* detection */
+
+  bicudo::log("Initializing the detection pipeline.");
+
+  this->pipeline_collision_detection.unique_id = this->infspirit++;
+  this->pipelines.push_back(&this->pipeline_collision_detection);
 
   return assert_testing_result;
 }
@@ -357,4 +366,86 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_load_kernels(
   }
 
   return bicudo::result::SUCCESS;
+}
+
+bicudo::result_t bicudo::rocm::registry_hypergroup(bicudo::hypergroup_t *p_hypergroup) {
+  p_hypergroup->unique_id = this->infspirit++;
+  this->hypergroups.push_back(p_hypergroup);
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::rocm::registry_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body
+) {
+  p_body->unique_id = this->infspirit++;
+  p_hypergroup->bodies.push_back(p_body);
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::rocm::unregistry_hypergroup(
+  bicudo::hypergroup_t *p_hypergroup
+) {
+  for (std::size_t i {}; i < this->hypergroups.size(); i++) {
+    if (this->hypergroups.at(i) != p_hypergroup) continue;
+    this->hypergroups.erase(this->hypergroups.begin() + i);
+    return bicudo::result::SUCCESS;
+  }
+
+  return bicudo::result::FAILED;
+}
+
+bicudo::result_t bicudo::rocm::unregistry_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body) {
+
+  for (bicudo::hypergroup_t *p_hp : this->hypergroups) {
+    if (p_hp != p_hypergroup) continue;
+    for (std::size_t i {}; i < p_hp->bodies.size(); i++) {
+      if (p_hp->bodies.at(i) != p_body) continue;
+      p_hp->bodies.erase(p_hp->bodies.begin() + i);
+      return bicudo::result::SUCCESS;
+    }
+  }
+
+  return bicudo::result::FAILED;
+}
+
+bicudo::result_t bicudo::rocm::update_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body
+) {
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::rocm::update(
+  bicudo::physics_update_mode mode
+) {
+  std::size_t it_per_collide_solve {15};
+  float correction_rate {0.8f};
+  float bytes_per_all_bodies_vertices {};
+
+  for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
+    if (this->atomic_bodies_memory_region.bytes == 0) {
+      
+    }
+  }
+
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::rocm::size_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> size
+) {
+  return bicudo::result::OK;
+}
+
+bicudo::result_t bicudo::rocm::move_body(
+  bicudo::hypergroup_t *p_hypergroup,
+  bicudo::body_t *p_body,
+  bicudo::vec2_t<float> direction
+) {
+  return bicudo::result::OK;
 }

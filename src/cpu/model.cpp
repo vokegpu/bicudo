@@ -73,24 +73,26 @@ bicudo::result_t bicudo::cpu::update(
   float correction_rate {0.8f};
 
   for (std::size_t it {}; it < it_per_collide_solve; it++) {
-   for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
-     for (bicudo::body_t *p_body_a : p_hypergroup->bodies) {
-       for (bicudo::body_t *p_body_b : p_hypergroup->bodies) {
-         if (p_body_a == p_body_b) continue;
-         info = bicudo::cpu_sat_collided(
-           *p_body_a,
-           *p_body_b
-         );
+    for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
+      for (bicudo::body_t *p_body_a : p_hypergroup->bodies) {
+        for (bicudo::body_t *p_body_b : p_hypergroup->bodies) {
+          if (p_body_a == p_body_b) continue;
+          info = bicudo::cpu_sat_collided(
+            *p_body_a,
+            *p_body_b
+          );
 
-         if (!info.collided) continue;
-         bicudo::cpu_sat_solve(
-          info,
-          *p_body_a,
-          *p_body_b,
-          correction_rate
-        );
-       }
-     }
+          if (!info.collided) continue;
+          bicudo::cpu_sat_solve(
+            info,
+            *p_body_a,
+            *p_body_b,
+            correction_rate
+          );
+
+          break;
+        }
+      }
     }
   }
 

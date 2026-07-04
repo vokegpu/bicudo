@@ -122,7 +122,7 @@ int32_t main(int32_t, char**) {
   bicudo::hypergroup_t hypergroup {};
   bicudo::registry(&hypergroup);
 
-  std::size_t bodies_in_scene {20};
+  std::size_t bodies_in_scene {99};
   std::vector<bicudo::body_t> bodies {};
   bodies.resize(bodies_in_scene);
 
@@ -141,8 +141,8 @@ int32_t main(int32_t, char**) {
     bicudo::registry(&hypergroup, &body);
   }
 
-  bicudo::body_t b {.pos = {570, 417}, .size = {100, 100}, .mass = 2.0f};
-  bicudo::registry(&hypergroup, &b);
+  //bicudo::body_t b {.pos = {570, 417}, .size = {100, 100}, .mass = 2.0f};
+  //bicudo::registry(&hypergroup, &b);
 
   bicudo::vec4_t<float> body_color {};
   ekg::input_info_t &input = ekg::input();
