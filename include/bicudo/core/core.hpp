@@ -22,6 +22,8 @@ namespace bicudo {
   t &as_gpu() {
     return *dynamic_cast<t*>(bicudo::p_core->p_base);
   }
+
+  std::string device();
 }
 
 #endif

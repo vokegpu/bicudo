@@ -13,7 +13,7 @@ void bicudo::logr() {
 
 int32_t bicudo::flush() {
   if (bicudo::buffered) {
-    std::cout << bicudo::buffer.str() << std::flush;
+    //std::cout << bicudo::buffer.str() << std::flush;
     bicudo::buffer = {};
     bicudo::buffered = false;
   }

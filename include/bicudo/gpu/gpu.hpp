@@ -11,9 +11,9 @@ namespace bicudo {
     UNHANDLED,
     MUST_REFRESH_HOST,
     MUST_DISPATCH,
-    MUST_WAIT,
+    MUST_WAIT_TO_SYNC_COLLISIONS,
     MUST_ASYNC,
-    MUST_REFILL
+    MUST_SYNC_COLLISIONS
   };
 
   using hypergroup_state_t = hypergroup_state;

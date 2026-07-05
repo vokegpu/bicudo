@@ -20,11 +20,15 @@ namespace bicudo {
     bicudo::gpu_sacred_dispatch_params_t ref_params {};
     bicudo::gpu_sacred_param_pointers_t raw_params {}; 
 
-    std::size_t body_byte_index {};
-    bool has_memory_filled_once {};
-    std::size_t bodies_pass_count {};
+    bool has_host_memory_synced {};
+    bool should_host_memory_be_synced {};
+
+    std::size_t bytes_stride_gpu_pass {};
+    std::size_t body_count_per_gpu_wave_block {};
+    bicudo::vec3_t<uint32_t> block_runnings {};
+    bicudo::vec3_t<uint32_t> grid_runnings {};
+
     std::chrono::steady_clock::time_point elapsed {};
-    bool refresh {};
   public:
     std::string tag {};
     std::string description {};

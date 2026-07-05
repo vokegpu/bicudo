@@ -11,7 +11,7 @@ namespace bicudo {
    * The cost per body memory is 48 bytes.
    * It type-variable is reserved to GPU-acceleration. 
    **/
-  constexpr std::size_t body_rect_vertexes_unit = 12;
+  constexpr std::size_t body_rect_vertexes_unit = 10;
   using body_rect_memory_layout_t = std::array<float, bicudo::body_rect_vertexes_unit>;
 
   struct body_t {

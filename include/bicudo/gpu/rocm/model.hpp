@@ -23,7 +23,9 @@ namespace bicudo {
     std::vector<bicudo::hypergroup_t*> hypergroups {};
     bicudo::id_t infspirit {};
     bool is_sacred_context {};
-    int32_t gpu_sync {500};
+    int32_t gpu_sync {16};
+    bool debug {false};
+    std::string gpu_device_name {};
   protected:
     /* detection */
     bicudo::gpu_rm_divine_pipeline_t pipeline_collision_detection {
@@ -43,6 +45,7 @@ namespace bicudo {
     bicudo::result_t update(bicudo::physics_update_mode mode) override;
     bicudo::result_t size_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> size) override;
     bicudo::result_t move_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> direction) override;
+    std::string get_device_name() override;
   public:
     bicudo::gpu_rm_divine_pipeline_t &gpu_pipeline_new();
 

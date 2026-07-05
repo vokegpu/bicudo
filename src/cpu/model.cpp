@@ -1,6 +1,10 @@
 #include <bicudo/cpu/model.hpp>
 #include <bicudo/cpu/sat.hpp>
- 
+
+std::string bicudo::cpu::get_device_name() {
+  return "CPU-software";
+}
+
 bicudo::result_t bicudo::cpu::init() {
   bicudo::log("No accelerated devices, using central processor unit (CPU).");
   bicudo::logw("This is not software accelerated.");
@@ -82,7 +86,7 @@ bicudo::result_t bicudo::cpu::update(
             *p_body_b
           );
 
-          if (!info.collided) continue;
+          if (!info.collided || mode == bicudo::physics_update_mode::ONLY_COLLISION_CHECK) continue;
           bicudo::cpu_sat_solve(
             info,
             *p_body_a,

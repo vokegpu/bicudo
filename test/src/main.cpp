@@ -26,9 +26,14 @@ void init_ekg() {
     }
   );
 
-  ekg::make<ekg::frame_t>({.resize = ekg::dock::left | ekg::dock::bottom | ekg::dock::right});
-  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_framerate, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::frame_t>({.rect = {.w = 252, .h = 252}, .resize = ekg::dock::left | ekg::dock::bottom | ekg::dock::right});
+  ekg::make<ekg::label_t>({.text = "-- Bicudo Physics Engine v0.1", .dock = ekg::dock::fill | ekg::dock::next});
   ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_body_count, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = "-- " + bicudo::device(), .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_framerate, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_grid, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_block, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = "-- 52~", .dock = ekg::dock::fill | ekg::dock::bottom});
   ekg::pop<ekg::frame_t>();
 
   ekg::popup_t &in_world_popup = ekg::make<ekg::popup_t>({.tag = "in-world-popup"});
@@ -90,6 +95,15 @@ int32_t main(int32_t, char**) {
   SDL_GLContext sdl_gl_context {SDL_GL_CreateContext(meow::app.p_sdl_win)};
   glewInit();
 
+  bicudo::init_core_t bicudo_init_core = {
+    .p_base = BASE
+  };
+
+  bicudo::init(
+    bicudo_init_core,
+    meow::app.bicudo
+  );
+
   ekg::rgba_t<float> clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 
   FT_Init_FreeType(&meow::app.ft_library);
@@ -109,15 +123,6 @@ int32_t main(int32_t, char**) {
 
   init_ekg();
 
-  bicudo::init_core_t bicudo_init_core = {
-    .p_base = BASE
-  };
-
-  bicudo::init(
-    bicudo_init_core,
-    meow::app.bicudo
-  );
-
   ekg::timing_t framerate {};
   int32_t last_frame_count {1};
   int32_t elapsed_frame_count {};
@@ -127,18 +132,18 @@ int32_t main(int32_t, char**) {
   bicudo::hypergroup_t hypergroup {.tag = "in-editor-physics-hypergroup"};
   bicudo::registry(&hypergroup);
 
-  std::size_t bodies_in_scene {2};
+  std::size_t bodies_in_scene {256};
   std::vector<bicudo::body_t> bodies {};
   bodies.resize(bodies_in_scene);
 
-  std::srand(std::time({}));
+  //std::srand(std::time({}));
 
   for (std::size_t j {}; j < bodies_in_scene; j++) {
-    auto x = std::rand() % 500;
-    auto y = std::rand() % 500;
+    auto x = std::rand() % 2000;
+    auto y = std::rand() % 2000;
 
-    auto w = std::rand() % 500;
-    auto h = std::rand() % 500;
+    auto w = std::rand() % 300;
+    auto h = std::rand() % 300;
 
     bicudo::body_t &body = bodies.emplace_back();
     body.pos.x = x;
@@ -156,7 +161,7 @@ int32_t main(int32_t, char**) {
 
   float vel {};
 
-  meow::app.immediate.uinf = 52.0f + 1977.0f + 372.0f + 1999.0f + 153.0f;
+  meow::app.immediate.uinf = 0.000520f + 0.01977f + 0.0372f + 0.01999f + 0.0153f;
 
   while (meow::app.running) {
     while (SDL_PollEvent(&sdl_event)) {  
@@ -185,11 +190,37 @@ int32_t main(int32_t, char**) {
 
       last_frame_count = elapsed_frame_count;
       elapsed_frame_count = 0;
+
       meow::app.gui.stats_framerate = "fps: " + std::to_string(last_frame_count);
       meow::app.gui.stats_body_count = "body(s): " + std::to_string(hypergroup.bodies.size());
+      
+      meow::app.gui.stats_grid = (
+        "grid: "
+        +
+        (
+          std::to_string(hypergroup.grid_runnings.x)
+          + " , " +
+          std::to_string(hypergroup.grid_runnings.y)
+          + ", " +
+          std::to_string(hypergroup.grid_runnings.z)
+        )
+      );
+
+      meow::app.gui.stats_block = (
+        "block: "
+        +
+        (
+          std::to_string(hypergroup.block_runnings.x)
+          + " , " +
+          std::to_string(hypergroup.block_runnings.y)
+          + ", " +
+          std::to_string(hypergroup.block_runnings.z)
+        )
+      );
+      
       ekg::gui.ui.redraw = true;
 
-      ekg::log::flush();
+      //ekg::log::flush();
       bicudo::flush();
       std::cout << std::flush;
     }
@@ -222,7 +253,7 @@ int32_t main(int32_t, char**) {
     );
     
     auto hex = bicudo::vec4_t<float>(0.0f, 0.0f, meow::app.camera.view.z, meow::app.camera.view.w);
-    hex.z /= (3 * meow::app.camera.zoom);
+    hex.z /= (7 * meow::app.camera.zoom);
     hex.w = hex.z;
 
     //hex.z += (sin(vel) * (meow::app.camera.view.w / 3));
@@ -234,7 +265,7 @@ int32_t main(int32_t, char**) {
     meow::app.immediate.draw(
       hex,
       bicudo::vec4_t<float>(0.052f, 0.052f, 0.052f, 0.052f),
-      45.0f + meow::app.immediate.uinf + vel, 2
+      45.0f - meow::app.immediate.uinf - vel, 2
     );
 
     hex.z /= 3;
@@ -268,7 +299,7 @@ int32_t main(int32_t, char**) {
       };
 
       if (!bicudo::aabb_collide_with_aabb(meow::app.camera.view, p_body->rect)) {
-        continue;
+        //continue;
       }
 
       bicudo::vec4_t<float> rect_on_camera {
@@ -298,6 +329,5 @@ int32_t main(int32_t, char**) {
     ++elapsed_frame_count;
   }
 
-  ekg::log::flush();
   return bicudo::flush();
 }
