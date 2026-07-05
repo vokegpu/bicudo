@@ -61,15 +61,86 @@ As shown, there is `Bicudo::bicudo-hip-rocm` and later other implementations. Th
 
 If no GPU model implementation is linked to the project, only CPU acceleration is supported.
 
+#### Init
+
+For initializing the bicudo properly you need to specificy the base you wish to use.
+
+For AMD ROCm:
+```cpp
+#include <bicudo/pipeline/rocm.hpp>
+
+bicudo::init_core_t bicudo_init_core = {
+  .p_base = new bicudo::rocm()
+};
+```
+
+For software-accelerated (CPU):
+```cpp
+#include <bicudo/pipeline/cpu.hpp>
+
+bicudo::init_core_t bicudo_init_core = {
+  .p_base = new bicudo::cpu()
+};
+```
+
+Then init the core, you need to take care of `bicudo::core_t`.
+
+```cpp
+bicudo::core_t bicudo_core {};
+
+bicudo::init(
+  bicudo_init_core,
+  bicudo_core
+);
+```
+
 #### Physics Body and Hypergroups
 
-not yet to show.
+Bicudo works with two concepts: `hypergroup_t` and `body_t`.
+
+##### Hypergroup
+
+Hypergroups are groups of `bicudo::body_t`, you can multiples context of bodies using hypergroups, this can helpful for some parallel colliding thing.
+
+For registering:
+```cpp
+bicudo::hypergroup_t hypergroup {};
+bicudo::registry(&hypergroup);
+```
+
+##### Body
+
+Bodies are the moveable objects, where store position etc. I wont add documentation much for now, since it is not done yet. Just check the fields and use as how it works for you.
+
+```cpp
+bicudo::body_t my_body {};
+bicudo::registry(&hypergroup, &my_body);
+```
+
+#### Running
+
+You need to setup the delta-time by your self. Here hows I do.
+
+```cpp
+while (true) {
+  bicudo::dt = 1.0f / last_frame_count;
+
+  bicudo::update(
+    bicudo::physics_update_mode::EVERYTHING
+  );
+
+  // ...
+  // you also can update separetly by:
+  bicudo::update(&hypergroup, &my_body);
+    // this is useful for pickup
+}
+```
 
 #### Techniques, and Physics
 
 The project for CPU implementation uses SAT (separation axis theorem). This was implemented over the study of [the book (Michael Tanaya, Huaming Chen, Jebediah Pavleas, Kelvin Sung)](https://www.amazon.com/Building-Game-Physics-Engine-JavaScript/dp/1484225821).
 
-For GPU acceleration, check #6.
+For GPU acceleration, check [#7](https://github.com/vokegpu/bicudo/issues/7) discussion.
 
 ---
 
