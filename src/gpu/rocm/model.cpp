@@ -2,6 +2,8 @@
 #include <bicudo/pipeline/rocm.hpp>
 #include <bicudo/gpu/rocm/programs.hpp>
 #include <bicudo/gpu/gpu.hpp>
+#include <bicudo/gpu/rocm/divine.hpp>
+#include <bicudo/core/core.hpp>
 
 bicudo::gpu_rm_divine_pipeline_t &bicudo::rocm::gpu_pipeline_new() {
   return *(this->pipelines.emplace_back() = new bicudo::gpu_rm_divine_pipeline_t { .unique_id = this->infspirit++ });
@@ -65,65 +67,30 @@ bicudo::result_t bicudo::rocm::init() {
 
   /* assert */
 
+  bicudo::result_t assert_testing_result {bicudo::result::OK};
   bicudo::log("Starting HIP ROCm assertation tests...");
 
-  bicudo::result_t assert_testing_result {bicudo::result::OK};
-
-  const char* hip_rocm_kernel_runtime_assert {
-    R"(
-      /**
-       * This hip runtime should perform memory-access assert
-       * to ROCm runtime initialization.
-       **/
-      
-      extern "C" __global__
-      void runtime_assert_entry_point(
-        float *__restrict__ p_assert_buffer
-      ) {
-        p_assert_buffer[0] = 17.0f; // from 153.0f
-        p_assert_buffer[1] = 27.0f; // from 26.0f
-        p_assert_buffer[2] = 37.0f; // from 24.0f
-        p_assert_buffer[3] = 47.0f; // from 6.0f
-        p_assert_buffer[4] = 52.0f; // from 1977.0f
-      }
-    )"
-  };
-
-  bicudo::rocm &rocm = *this;
-  bicudo::gpu_rm_divine_pipeline_t &pipeline52 = rocm.gpu_pipeline_new();
+  bicudo::rocm &rocm = bicudo::as_gpu<bicudo::rocm>();
+  bicudo::gpu_rm_divine_pipeline_t &pipeline52 = bicudo::as_new_pipeline();
 
   pipeline52 = {
     .tag = "52", .description = "The divine kernel for Divine numbers assertation."
   };
 
-  bicudo::gpu_rm_sacred_atomic_memory_t atomic(sizeof(float)*5);
-  bicudo::gpu_allocate_sacred_atomic(atomic, hipHostMallocMapped, 0);
+  bicudo::gpu_sacred_atomic_memory_t atomic {.bytes = sizeof(float)*5};
+  bicudo::gpu_sacred_allocate_atomic(atomic, hipHostMallocMapped, 0);
 
   bicudo::gpu_rm_divine_kernel_t &kernel_hip_runtime = bicudo::as_kernel(pipeline52);
 
   kernel_hip_runtime = {
     .tag = "hip-runtime-assert",
-    .src = hip_rocm_kernel_runtime_assert
+    .src = bicudo::hip_rocm_kernel_runtime_assert
   };
 
   kernel_hip_runtime.functions = {
     {
       .entry_point = {
-        .name = "runtime_assert_entry_point"
-      },
-      .memory = {
-        .hip_stream = nullptr
-      },
-      .dimension = {
-        .grid = bicudo::vec3_t<uint32_t>(1, 1, 1),
-        .block = bicudo::vec3_t<uint32_t>(1, 1, 1)
-      },
-      .args = {
-        {
-          .tag = "assert-buf",
-          .bytes = atomic.bytes,
-          .p_device = atomic.p_device
-        }
+        .name = "gpu_divine_main"
       }
     }
   };
@@ -136,7 +103,7 @@ bicudo::result_t bicudo::rocm::init() {
   };
 
   bicudo::gpu_rm_divine_fun_t &fun_entry_point_hip_runtime_assert {
-    bicudo::as_function(module_hip_runtime_assert, "runtime_assert_entry_point")
+    bicudo::as_function(module_hip_runtime_assert, "gpu_divine_main")
   };
 
   if (module_hip_runtime_assert != bicudo::found || fun_entry_point_hip_runtime_assert != bicudo::found) {
@@ -156,13 +123,40 @@ bicudo::result_t bicudo::rocm::init() {
     p[3] = 6.0f;    // should be 47.0f
     p[4] = 1977.0f; // should be 52.0f
 
+    module_hip_runtime_assert.dispatch = {
+      .dimension = {
+        .grid = bicudo::vec3_t<uint32_t>(1, 1, 1),
+        .block = bicudo::vec3_t<uint32_t>(1, 1, 1)
+      }
+    };
+
+    bicudo::gpu_sacred_arguments_t arguments {
+      {
+        .tag = "p_assert_buffer",
+        .p_device = atomic.p_device,
+        .bytes = atomic.bytes
+      }
+    };
+
+
+    bicudo::gpu_sacred_dispatch_params_t params {};
+    bicudo::gpu_sacred_param_pointers_t points {};
+
+    bicudo::gpu_sacred_fetch_dispatch_params(
+      module_hip_runtime_assert.dispatch,
+      params,
+      arguments,
+      points
+    );
+
     bicudo::gpu_sacred_call(
       module_hip_runtime_assert,
-      fun_entry_point_hip_runtime_assert
+      fun_entry_point_hip_runtime_assert,
+      module_hip_runtime_assert.dispatch
     );
 
     bicudo::gpu_sacred_async_fetch(
-      fun_entry_point_hip_runtime_assert,
+      module_hip_runtime_assert.dispatch.memory,
       atomic.p_host,
       atomic.p_device,
       atomic.bytes
@@ -172,11 +166,30 @@ bicudo::result_t bicudo::rocm::init() {
       bicudo::log("Checking assertations -> ", p[i]);
     }
 
-    bicudo_assert(p[0], 17.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[0], " but MUST be 17.0f."));
-    bicudo_assert(p[1], 27.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[1], " but MUST be 27.0f."));
-    bicudo_assert(p[2], 37.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[2], " but MUST be 37.0f."));
-    bicudo_assert(p[3], 47.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[3], " but MUST be 47.0f."));
-    bicudo_assert(p[4], 52.0f, bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[4], " but MUST be 52.0f."));
+    bicudo_assert(
+      p[0], 17.0f,
+      bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[0], " but MUST be 17.0f.")
+    );
+
+    bicudo_assert(
+      p[1], 27.0f,
+      bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[1], " but MUST be 27.0f.")
+    );
+
+    bicudo_assert(
+      p[2], 37.0f,
+      bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[2], " but MUST be 37.0f.")
+    );
+
+    bicudo_assert(
+      p[3], 47.0f,
+      bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[3], " but MUST be 47.0f.")
+    );
+
+    bicudo_assert(
+      p[4], 52.0f,
+      bicudo::loge("Potentially issue with your GPU be careful, receveid ", p[4], " but MUST be 52.0f.")
+    );
 
     break;
   }
@@ -190,6 +203,22 @@ bicudo::result_t bicudo::rocm::init() {
 
   this->pipeline_collision_detection.unique_id = this->infspirit++;
   this->pipelines.push_back(&this->pipeline_collision_detection);
+
+  bicudo::gpu_rm_divine_kernel_t &collision_kernel = bicudo::as_kernel(this->pipeline_collision_detection);
+
+  collision_kernel.tag = "collision-detection";
+  collision_kernel.src = bicudo::hip_rocm_kernel_collision_detection;
+
+  collision_kernel.functions = {
+    {
+      .entry_point = {
+        .name = "gpu_divine_main"
+      }
+    }
+  };
+
+  rocm.gpu_pipeline_load_kernels(this->pipeline_collision_detection);
+  rocm.gpu_pipeline_create(this->pipeline_collision_detection);
 
   return assert_testing_result;
 }
@@ -273,11 +302,6 @@ bicudo::result_t bicudo::rocm::gpu_pipeline_create(
       }
 
       bicudo::log(bicudo::logtp(pipeline), bicudo::logtk(kernel), "Entry-point '", fun.entry_point.name, "' was fetched.");
-
-      for (bicudo::gpu_rm_divine_fun_args_t &arg : fun.args) {
-        fun.memory.sacred_pointers.push_back(arg.p_device);
-        fun.memory.sacred_pointers_mem_bytes_length += arg.bytes;
-      }
     }
   }
 
@@ -411,26 +435,286 @@ bicudo::result_t bicudo::rocm::unregistry_body(
   return bicudo::result::FAILED;
 }
 
+void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
+  bicudo::hypergroup_t &hypergroup
+) {
+  switch (hypergroup.state) {
+    case bicudo::hypergroup_state::UNHANDLED: {
+      hypergroup.state = bicudo::hypergroup_state::MUST_REFRESH_HOST;
+      break;
+    }
+    
+    case bicudo::hypergroup_state::MUST_REFRESH_HOST: {
+      std::size_t enough_bodies_bytes {
+        hypergroup.bodies.size()
+        *
+        sizeof(bicudo::body_rect_memory_layout_t)
+        *
+        this->vram_fraction_usage
+      };
+
+      bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "Refreshing HOST for memory region...");
+      
+      switch (bicudo::gpu_sacred_reallocate_atomic(hypergroup.atomic, enough_bodies_bytes, 0, 0)) {
+        case bicudo::result::SUCCESS: {
+          hypergroup.state = bicudo::hypergroup_state::MUST_DISPATCH;
+          hypergroup.has_memory_filled_once = false;
+
+          bicudo::gpu_sacred_arguments_t arguments {
+            {
+              .tag = "p_hd_hypergroup_bodies",
+              .p_device = hypergroup.atomic.p_device,
+              .bytes = hypergroup.atomic.bytes
+            }
+          };
+
+          bicudo::gpu_rm_divine_module_t &km {
+            bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+          };
+
+          bicudo::gpu_sacred_fetch_dispatch_params(
+            km.dispatch,
+            hypergroup.ref_params,
+            arguments,
+            hypergroup.raw_params
+          );
+
+          bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "HOST (", (enough_bodies_bytes), " bytes) memory region is safety now");
+          break;
+        }
+        default: {
+          bicudo::loge(bicudo::logt(hypergroup, "hypergroup"), "Could not refresh HOST for memory region!");
+          break;
+        }
+      }
+  
+      break;
+    }
+
+    case bicudo::hypergroup_state::MUST_DISPATCH: {
+      if (!hypergroup.has_memory_filled_once) {
+        bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "Waiting for memory be filled once.");
+        break;
+      }
+
+      bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "Dispatching detection module...");
+
+      bicudo::gpu_rm_divine_module_t &km {
+        bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+      };
+
+      bicudo::gpu_rm_divine_fun_t &fun {
+        bicudo::as_function(km, "gpu_divine_main")
+      };
+
+      km.dispatch.memory.params = hypergroup.ref_params;
+      km.dispatch.dimension.grid = bicudo::vec3_t<uint32_t>(1, 1, 1);
+      km.dispatch.dimension.block = bicudo::vec3_t<uint32_t>(hypergroup.bodies_pass_count, hypergroup.bodies_pass_count, 1);
+
+      bicudo::gpu_sacred_call(
+        km,
+        fun,
+        km.dispatch
+      );
+
+      hypergroup.elapsed = std::chrono::steady_clock::now();
+      hypergroup.state = bicudo::hypergroup_state::MUST_WAIT;
+
+      break;
+    }
+
+    case bicudo::hypergroup_state::MUST_WAIT: {
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      if (
+        (
+          std::chrono::duration_cast<std::chrono::milliseconds>(hypergroup.elapsed - now).count()
+        )
+        <
+        this->gpu_sync
+      ) {
+        break;
+      }
+
+      bicudo::log("Syncing memory...");
+
+      bicudo::gpu_rm_divine_module_t &km {
+        bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+      };
+
+      bicudo::gpu_sacred_async_fetch(
+        km.dispatch.memory,
+        hypergroup.atomic.p_host,
+        hypergroup.atomic.p_device,
+        hypergroup.atomic.bytes
+      );
+
+      break;
+    }
+
+    case bicudo::hypergroup_state::MUST_REFILL: {
+      if (!hypergroup.has_memory_filled_once) {
+        hypergroup.state = bicudo::hypergroup_state::MUST_DISPATCH;
+      }
+
+      break;
+    }
+
+    case bicudo::hypergroup_state::IDLE: {
+      if (!hypergroup.has_memory_filled_once) {
+        break;
+      }
+
+      bicudo::logw("... -> ", hypergroup.bodies_pass_count);
+
+      bicudo::gpu_rm_divine_module_t &km {
+        bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+      };
+
+      bicudo::gpu_sacred_async_fetch(
+        km.dispatch.memory,
+        hypergroup.atomic.p_host,
+        hypergroup.atomic.p_device,
+        hypergroup.atomic.bytes
+      );
+
+      float *p = static_cast<float*>(hypergroup.atomic.p_host);
+      hypergroup.has_memory_filled_once = false;
+
+      for (std::size_t i {}; i < hypergroup.bodies_pass_count; i++) {
+        bicudo::logw("-> [", i, "] -> ", p[i]);
+      }
+
+      bicudo::logw("IDLE mode...");
+
+      break;
+    }
+  }
+}
+
 bicudo::result_t bicudo::rocm::update_body(
   bicudo::hypergroup_t *p_hypergroup,
   bicudo::body_t *p_body
 ) {
+  if (p_hypergroup->state == bicudo::hypergroup_state::MUST_REFRESH_HOST) {
+    return bicudo::result::OK;
+  }
+
+  p_body->velocity += p_body->acceleration * bicudo::dt;
+  p_body->pos += p_body->velocity;
+
+  p_body->angular_velocity += p_body->angle_acceleration * bicudo::dt;
+  p_body->angle += p_body->angular_velocity;
+
+  float midw {p_body->size.x / 2};
+  float midh {p_body->size.y / 2};
+
+  switch (p_hypergroup->state) {
+    case bicudo::hypergroup_state::MUST_DISPATCH: {
+      if (p_body->vertices.empty()) {
+        p_body->vertices.resize(4);
+      }
+
+      p_body->vertices.at(0) = bicudo::vec2_t<float>(p_body->pos.x - midw, p_body->pos.y - midh);
+      p_body->vertices.at(1) = bicudo::vec2_t<float>(p_body->pos.x + midw, p_body->pos.y - midh);
+      p_body->vertices.at(2) = bicudo::vec2_t<float>(p_body->pos.x + midw, p_body->pos.y + midh);
+      p_body->vertices.at(3) = bicudo::vec2_t<float>(p_body->pos.x - midw, p_body->pos.y + midh);
+    
+      for (bicudo::vec2_t<float> &vertex : p_body->vertices) {
+        vertex = vertex.rotate(p_body->angular_velocity, p_body->pos);
+    
+        p_body->min.x = std::min(p_body->min.x, vertex.x);
+        p_body->min.y = std::min(p_body->min.y, vertex.y);
+        p_body->max.x = std::max(p_body->max.x, vertex.x);
+        p_body->max.y = std::max(p_body->max.y, vertex.y);
+
+        if (!this->is_sacred_context) continue;
+
+        /**
+         * We pass the vertex content to the HOST
+         * atomic before dispatching to GPU.
+         **/
+    
+        bicudo::pass_memory<float>(
+          p_hypergroup->atomic.p_host,
+          p_hypergroup->body_byte_index,
+          vertex
+        );
+
+        p_hypergroup->has_memory_filled_once = true;
+      }
+
+      /**
+       * Has collide flag.
+       **/
+
+      bicudo::pass_memory<float>(
+        p_hypergroup->atomic.p_host,
+        p_hypergroup->body_byte_index,
+        {0.0f, 0.0f}
+      );
+
+      break;
+    }
+
+    case bicudo::hypergroup_state::MUST_REFILL: {
+      p_hypergroup->body_byte_index += bicudo::body_rect_vertexes_unit;
+      float *p = static_cast<float*>(p_hypergroup->atomic.p_host);
+
+      float has_collided = p[p_hypergroup->body_byte_index];
+      if (has_collided != 0.0f) {
+        p_body->has_collide = true;
+      } else {
+        p_body->has_collide = false;
+      }
+
+      p_hypergroup->has_memory_filled_once = false;
+      break;
+    } 
+
+    default: {
+      break;
+    }
+  }
+
+  p_body->rect.x = p_body->pos.x - midw;
+  p_body->rect.y = p_body->pos.y - midh;
+  p_body->rect.z = p_body->size.x;
+  p_body->rect.w = p_body->size.y;
+
+  p_hypergroup->bodies_pass_count += bicudo::body_rect_vertexes_unit;
   return bicudo::result::OK;
 }
 
 bicudo::result_t bicudo::rocm::update(
   bicudo::physics_update_mode mode
 ) {
+  this->is_sacred_context = true;
+
+  if (mode != bicudo::physics_update_mode::EVERYTHING) {
+    bicudo::logw("For GPU-acceleration, physics mode only support EVERYTHING");
+  }
+
   std::size_t it_per_collide_solve {15};
   float correction_rate {0.8f};
   float bytes_per_all_bodies_vertices {};
 
   for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
-    if (this->atomic_bodies_memory_region.bytes == 0) {
-      
+    this->update_hypergroup_sacred_atomic_machine(
+      *p_hypergroup
+    );
+
+    p_hypergroup->bodies_pass_count = 0;
+    p_hypergroup->body_byte_index = 0;
+
+    for (bicudo::body_t *p_body : p_hypergroup->bodies) {
+      this->update_body(
+        p_hypergroup,
+        p_body
+      );
     }
   }
 
+  this->is_sacred_context = false;
   return bicudo::result::OK;
 }
 

@@ -1,5 +1,10 @@
 #include <bicudo/gpu/rocm/divine.hpp>
 #include <bicudo/core/core.hpp>
+#include <bicudo/pipeline/rocm.hpp>
+
+bicudo::gpu_rm_divine_pipeline_t &bicudo::as_new_pipeline() {
+  return bicudo::as_gpu<bicudo::rocm>().gpu_pipeline_new();
+}
 
 bicudo::gpu_rm_divine_kernel_t &bicudo::as_kernel(bicudo::gpu_rm_divine_pipeline_t &pipeline) {
  return pipeline.kernels.emplace_back();

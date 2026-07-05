@@ -135,18 +135,10 @@ void meow::immediate_graphics::create() {
               float f  = (1.0 / tan(uInf)) * noise(vec2(length((rand(vec2(-2.0f, 663.0f))) * (((gl_FragCoord.xy) - vec2(uSsize.x/2, uSsize.y/2))))));
               vFragColor = (vec4(fract(f), noise(vec2((vRect) - length(rand(vec2(663.0f, f))))), f, 1.0f));
             } else if (uSamplerEnabled == 0){
-              float f  = 
-                (
-                  1.0f
-                  -
-                  noise(vec2(length(
-                    (rand(vec2(-2.0f, 663.0f)))
-                    *
-                    ((gl_FragCoord.xy) - vec2(uSsize.x/2, uSsize.y/2) * tan(uInf) * sin(uInf) * fract(uInf)) * tan(uInf)) * 4.0f - vRect.xy * uColor.x))
-              );
+              float f  = 1.0f;
 
-              vFragColor = (vec4(fract(1.0f - f), noise(vec2((vec4(500, 500, 0, 1.0) + vRect) - fract(uInf) * length(rand(vec2(-uInf, f))))), j, 1.0f));
-              vFragColor = vFragColor / fract(uInf * 0.0004f);
+              vFragColor = mix(vFragColor, uColor, f);
+
             } else if (uSamplerEnabled == 3) {
               float f  = 0.5f - noise(vec2(length((rand(vec2(-2.0f, 30.0f))) * (((gl_FragCoord.xy) - vec2(uSsize.x/2, uSsize.y/2))) * 10.0f)));
               vFragColor = vec4(1.0f, 1.0f, 1.0f, f);

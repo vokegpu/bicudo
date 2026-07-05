@@ -26,6 +26,11 @@ void init_ekg() {
     }
   );
 
+  ekg::make<ekg::frame_t>({.resize = ekg::dock::left | ekg::dock::bottom | ekg::dock::right});
+  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_framerate, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::make<ekg::label_t>({.text = &meow::app.gui.stats_body_count, .dock = ekg::dock::fill | ekg::dock::next});
+  ekg::pop<ekg::frame_t>();
+
   ekg::popup_t &in_world_popup = ekg::make<ekg::popup_t>({.tag = "in-world-popup"});
   meow::app.gui.in_world_popup = in_world_popup;
 
@@ -119,10 +124,10 @@ int32_t main(int32_t, char**) {
 
   meow::app.immediate.create();
 
-  bicudo::hypergroup_t hypergroup {};
+  bicudo::hypergroup_t hypergroup {.tag = "in-editor-physics-hypergroup"};
   bicudo::registry(&hypergroup);
 
-  std::size_t bodies_in_scene {99};
+  std::size_t bodies_in_scene {2};
   std::vector<bicudo::body_t> bodies {};
   bodies.resize(bodies_in_scene);
 
@@ -149,7 +154,7 @@ int32_t main(int32_t, char**) {
 
   float vel {};
 
-  meow::app.immediate.uinf = 372.0f;
+  meow::app.immediate.uinf = 52.0f + 1977.0f + 372.0f + 1999.0f + 153.0f;
 
   while (meow::app.running) {
     while (SDL_PollEvent(&sdl_event)) {  
@@ -175,13 +180,15 @@ int32_t main(int32_t, char**) {
 
     if (ekg::reset_if_reach(framerate, 1000)) {
       SDL_GL_SetSwapInterval(meow::app.vsync);
+
       last_frame_count = elapsed_frame_count;
       elapsed_frame_count = 0;
-      ekg::log() << last_frame_count << " " << ekg::metrics.gpu_data_count;
+      meow::app.gui.stats_framerate = "fps: " + std::to_string(last_frame_count);
+      meow::app.gui.stats_body_count = "body(s): " + std::to_string(hypergroup.bodies.size());
+      ekg::gui.ui.redraw = true;
 
-      bicudo::flush();
       ekg::log::flush();
-
+      bicudo::flush();
       std::cout << std::flush;
     }
 
@@ -242,15 +249,14 @@ int32_t main(int32_t, char**) {
 
     vel += 2.0f;
 
-
     meow::app.immediate.viewport.z = ekg::dpi.viewport.w;
     meow::app.immediate.viewport.w = ekg::dpi.viewport.h;
 
     for (bicudo::body_t *p_body : hypergroup.bodies) {
-      bicudo::update(
-        &hypergroup,
-        p_body
-      );
+      //bicudo::update(
+      //  &hypergroup,
+      //  p_body
+      //);
 
       bicudo::vec4_t<float> frustum {
         meow::app.camera.rect.pos.x,

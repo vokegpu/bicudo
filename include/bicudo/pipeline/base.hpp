@@ -14,6 +14,8 @@ namespace bicudo {
 
 namespace bicudo::pipeline {
   class base {
+  protected:
+    uint8_t vram_fraction_usage {2};
   public:
     base() {};
   public:

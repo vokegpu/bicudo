@@ -72,8 +72,8 @@ bicudo::result_t bicudo::cpu::update(
   std::size_t it_per_collide_solve {15};
   float correction_rate {0.8f};
 
-  for (std::size_t it {}; it < it_per_collide_solve; it++) {
-    for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
+  for (bicudo::hypergroup_t *p_hypergroup : this->hypergroups) {
+    for (std::size_t it {}; it < it_per_collide_solve; it++) {
       for (bicudo::body_t *p_body_a : p_hypergroup->bodies) {
         for (bicudo::body_t *p_body_b : p_hypergroup->bodies) {
           if (p_body_a == p_body_b) continue;
@@ -93,6 +93,12 @@ bicudo::result_t bicudo::cpu::update(
           break;
         }
       }
+    }
+
+    if (mode == bicudo::physics_update_mode::ONLY_COLLISION) continue;
+
+    for (bicudo::body_t *p_body : p_hypergroup->bodies) {
+      this->update_body(p_hypergroup, p_body);
     }
   }
 

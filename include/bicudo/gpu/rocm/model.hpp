@@ -22,9 +22,10 @@ namespace bicudo {
     std::vector<bicudo::gpu_rm_divine_pipeline_t*> pipelines {};
     std::vector<bicudo::hypergroup_t*> hypergroups {};
     bicudo::id_t infspirit {};
+    bool is_sacred_context {};
+    int32_t gpu_sync {16};
   protected:
     /* detection */
-    bicudo::gpu_rm_sacred_atomic_memory_t atomic_bodies_memory_region {};
     bicudo::gpu_rm_divine_pipeline_t pipeline_collision_detection {
       .tag = "collision-detection", .description = "Where the collision detection is performed."
     };
@@ -55,6 +56,10 @@ namespace bicudo {
 
     bicudo::result_t gpu_pipeline_free(
       bicudo::gpu_rm_divine_pipeline_t &pipeline
+    );
+  protected:
+    void update_hypergroup_sacred_atomic_machine(
+      bicudo::hypergroup_t &hypergroup
     );
   };
 }
