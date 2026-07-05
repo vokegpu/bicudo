@@ -148,6 +148,12 @@ For GPU acceleration, check [#7](https://github.com/vokegpu/bicudo/issues/7) dis
 
 This is the `meow` test; the point is physics, but art above all dead geometry.
 
+#### GPU-acceleration
+
+https://github.com/user-attachments/assets/382aa230-d037-4228-a17c-7e04732402bc
+
+#### CPU-acceleration
+
 https://github.com/user-attachments/assets/0c23dedd-1747-45cc-a0cb-fd9284afee9a
 
 ---
