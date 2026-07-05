@@ -20,7 +20,7 @@ bicudo::result_t bicudo::gpu_free_sacred_atomic(
   return e == hipSuccess ? bicudo::result::SUCCESS : bicudo::result::FAILED_TO_FREE_ATOMIC_MEMORY;
 }
 
-bicudo::result_t bicudo::gpu_sacred_async_fetch(
+bicudo::result_t bicudo::gpu_sacred_async_DtoH_fetch(
   bicudo::gpu_rm_divine_memory_t &memory,
   void *p_host,
   void *p_device,
@@ -32,6 +32,29 @@ bicudo::result_t bicudo::gpu_sacred_async_fetch(
       e = hipMemcpyDtoHAsync(
         p_host,
         p_device,
+        bytes,
+        memory.hip_stream
+      )
+    ),
+    hipSuccess,
+    bicudo::loge("Failed to async fetch sacred atomic memory.")
+  );
+
+  return e == hipSuccess ? bicudo::result::SUCCESS : bicudo::result::FAILED_TO_ASYNC_FETCH_ATOMIC_MEMORY;
+}
+
+bicudo::result_t bicudo::gpu_sacred_async_HtoD_fetch(
+  bicudo::gpu_rm_divine_memory_t &memory,
+  void *p_host,
+  void *p_device,
+  std::size_t bytes
+) {
+  hipError_t e {};
+  bicudo_assert(
+    (
+      e = hipMemcpyHtoDAsync(
+        p_device,
+        p_host,
         bytes,
         memory.hip_stream
       )

@@ -21,7 +21,14 @@ namespace bicudo {
     std::size_t hip_host_get_device_pointer_flags
   );
 
-  bicudo::result_t gpu_sacred_async_fetch(
+  bicudo::result_t gpu_sacred_async_HtoD_fetch(
+    bicudo::gpu_rm_divine_memory_t &memory,
+    void *p_host,
+    void *p_device,
+    std::size_t bytes
+  );
+
+  bicudo::result_t gpu_sacred_async_DtoH_fetch(
     bicudo::gpu_rm_divine_memory_t &memory,
     void *p_host,
     void *p_device,

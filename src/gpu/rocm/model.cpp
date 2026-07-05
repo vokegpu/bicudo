@@ -155,7 +155,7 @@ bicudo::result_t bicudo::rocm::init() {
       module_hip_runtime_assert.dispatch
     );
 
-    bicudo::gpu_sacred_async_fetch(
+    bicudo::gpu_sacred_async_HtoD_fetch(
       module_hip_runtime_assert.dispatch.memory,
       atomic.p_host,
       atomic.p_device,
@@ -492,12 +492,36 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
     }
 
     case bicudo::hypergroup_state::MUST_DISPATCH: {
+      if (!hypergroup.refresh) {
+        bicudo::gpu_rm_divine_module_t &km {
+          bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+        };
+
+        bicudo::gpu_sacred_async_HtoD_fetch(
+          km.dispatch.memory,
+          hypergroup.atomic.p_host,
+          hypergroup.atomic.p_device,
+          hypergroup.atomic.bytes
+        );
+
+        hypergroup.refresh = true;
+      }
+
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      if (
+        (
+          std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
+          <
+          this->gpu_sync
+        )
+      ) {
+        break;
+      }
+
       if (!hypergroup.has_memory_filled_once) {
         bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "Waiting for memory be filled once.");
         break;
       }
-
-      bicudo::log(bicudo::logt(hypergroup, "hypergroup"), "Dispatching detection module...");
 
       bicudo::gpu_rm_divine_module_t &km {
         bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
@@ -527,7 +551,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
       std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
       if (
         (
-          std::chrono::duration_cast<std::chrono::milliseconds>(hypergroup.elapsed - now).count()
+          std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
         )
         <
         this->gpu_sync
@@ -535,25 +559,40 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
         break;
       }
 
-      bicudo::log("Syncing memory...");
-
       bicudo::gpu_rm_divine_module_t &km {
         bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
       };
 
-      bicudo::gpu_sacred_async_fetch(
+      bicudo::gpu_sacred_async_DtoH_fetch(
         km.dispatch.memory,
         hypergroup.atomic.p_host,
         hypergroup.atomic.p_device,
         hypergroup.atomic.bytes
       );
 
+      hypergroup.state = bicudo::hypergroup_state::MUST_REFILL;
+      hypergroup.elapsed = std::chrono::steady_clock::now();
+
       break;
     }
 
     case bicudo::hypergroup_state::MUST_REFILL: {
+      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      if (
+        (
+          std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
+        )
+        <
+        this->gpu_sync
+      ) {
+        break;
+      }
+
       if (!hypergroup.has_memory_filled_once) {
         hypergroup.state = bicudo::hypergroup_state::MUST_DISPATCH;
+        hypergroup.elapsed = std::chrono::steady_clock::now();
+        hypergroup.refresh = false;
+        break;
       }
 
       break;
@@ -570,7 +609,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
         bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
       };
 
-      bicudo::gpu_sacred_async_fetch(
+      bicudo::gpu_sacred_async_HtoD_fetch(
         km.dispatch.memory,
         hypergroup.atomic.p_host,
         hypergroup.atomic.p_device,
@@ -613,6 +652,11 @@ bicudo::result_t bicudo::rocm::update_body(
       if (p_body->vertices.empty()) {
         p_body->vertices.resize(4);
       }
+
+      p_body->min.x = 99999.0f;
+      p_body->min.y = 99999.0f;
+      p_body->max.x = -99999.0f;
+      p_body->max.y = -99999.0f;
 
       p_body->vertices.at(0) = bicudo::vec2_t<float>(p_body->pos.x - midw, p_body->pos.y - midh);
       p_body->vertices.at(1) = bicudo::vec2_t<float>(p_body->pos.x + midw, p_body->pos.y - midh);
@@ -657,7 +701,7 @@ bicudo::result_t bicudo::rocm::update_body(
     }
 
     case bicudo::hypergroup_state::MUST_REFILL: {
-      p_hypergroup->body_byte_index += bicudo::body_rect_vertexes_unit;
+      p_hypergroup->body_byte_index += (p_body->vertices.size() * 2) + 1;
       float *p = static_cast<float*>(p_hypergroup->atomic.p_host);
 
       float has_collided = p[p_hypergroup->body_byte_index];
@@ -666,6 +710,8 @@ bicudo::result_t bicudo::rocm::update_body(
       } else {
         p_body->has_collide = false;
       }
+
+      //bicudo::log(p[p_hypergroup->body_byte_index]);
 
       p_hypergroup->has_memory_filled_once = false;
       break;

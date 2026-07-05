@@ -53,8 +53,8 @@ namespace bicudo {
 
       #define bicudo_vec2_subtract(v1, v2) vec2_t {.x = v1.x - v2.x, .y = v1.y - v2.y}
       #define bicudo_vec2_sum(v1, v2) vec2_t {.x = v1.x + v2.x, .y = v1.y + v2.y}
-      #define bicudo_vec2_scale(v1, s) vec2_t {.x = v1.x * s, .y = v1.y + s}
-      #define bicudo_vec2_dot(v1, v2) v1.x * v2.x + v1.y * v2.y
+      #define bicudo_vec2_scale(v1, s) vec2_t {.x = v1.x * s, .y = v1.y * s}
+      #define bicudo_vec2_dot(v1, v2) (v1.x * v2.x + v1.y * v2.y)
 
       extern "C" __global__
       void gpu_divine_main(
@@ -68,63 +68,75 @@ namespace bicudo {
 
         float len {};
 
-        vec2_t normals[4] {
-          bicudo_vec2_at(body, 0),
-          bicudo_vec2_at(body, 1),
-          bicudo_vec2_at(body, 2),
-          bicudo_vec2_at(body, 3)
-        };
+        int f {};
+        for (f = 0; f < 2; f++) {
 
-        normals[0] = bicudo_vec2_subtract(normals[1], normals[2]);
-        normals[1] = bicudo_vec2_subtract(normals[2], normals[3]);
-        normals[2] = bicudo_vec2_subtract(normals[3], normals[0]);
-        normals[3] = bicudo_vec2_subtract(normals[0], normals[1]);
+          int a = f == 0 ? body : random;
+          int b = f == 0 ? random : body;
 
-        float bestdist {MAX_WORLD_DISTANCE};
-        float maxdist {};
-        bool has {};
+          vec2_t normals[4] {
+            bicudo_vec2_at(a, 0),
+            bicudo_vec2_at(a, 1),
+            bicudo_vec2_at(a, 2),
+            bicudo_vec2_at(a, 3)
+          };
 
-        int i {};
-        int j {};
-        int best {};
+          normals[0] = bicudo_vec2_subtract(normals[1], normals[2]);
+          normals[1] = bicudo_vec2_subtract(normals[2], normals[3]);
+          normals[2] = bicudo_vec2_subtract(normals[3], normals[0]);
+          normals[3] = bicudo_vec2_subtract(normals[0], normals[1]);
 
-        vec2_t point {};
-        vec2_t bestpoint {};
+          float bestdist {MAX_WORLD_DISTANCE};
+          float maxdist {};
+          bool has {true};
 
-        for (i = 0; i < 4; i++) {
-          vec2_t normal = normals[i];
-          bicudo_vec2_normalize(normal);
-          normal = bicudo_vec2_scale(normal, -1.0f);
-        
-          maxdist = -MAX_WORLD_DISTANCE;
-          has = false;
+          int i {};
+          int j {};
+          int best {};
 
-          for (j = 0; j < 4; j++) {
-            vec2_t vertex = bicudo_vec2_at(random, j);
-            vec2_t dir = 
-              bicudo_vec2_subtract(
-                vertex,
-                bicudo_vec2_at(body, i)
-              );
+          vec2_t point {};
+          vec2_t bestpoint {};
 
-            float proj = bicudo_vec2_dot(dir, normal);
-            if (proj > 0 && proj > maxdist) {
-              maxdist = proj;
-              point = vertex;
-              has = true;
+          for (i = 0; has && i < 4; i++) {
+            vec2_t normal = normals[i];
+            bicudo_vec2_normalize(normal);
+            normal = bicudo_vec2_scale(normal, -1.0f);
+          
+            maxdist = -MAX_WORLD_DISTANCE;
+            has = false;
+
+            for (j = 0; j < 4; j++) {
+              vec2_t vertex = bicudo_vec2_at(b, j);
+              vec2_t dir = 
+                bicudo_vec2_subtract(
+                  vertex,
+                  bicudo_vec2_at(body, i)
+                );
+
+              float proj = bicudo_vec2_dot(dir, normal);
+              if (proj > 0 && proj > maxdist) {
+                maxdist = proj;
+                point = vertex;
+                has = true;
+              }
+            }
+
+            if (has && maxdist < bestdist) {
+              bestdist = maxdist;
+              best = i;
+              bestpoint = point;
             }
           }
 
-          if (has && maxdist < bestdist) {
-            bestdist = maxdist;
-            best = i;
-            bestpoint = point;
+          if (has) {
+            continue;
           }
+
+          return;
         }
 
-        if (has) {
-          bicudo_vec2_set(body, 5, 0, 1.0f);
-        }
+        bicudo_vec2_set(body, 4, 0, 1.0f);
+        printf("hum! %i \n", f);
       }
     )"
   };

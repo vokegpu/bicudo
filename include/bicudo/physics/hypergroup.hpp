@@ -24,6 +24,7 @@ namespace bicudo {
     bool has_memory_filled_once {};
     std::size_t bodies_pass_count {};
     std::chrono::steady_clock::time_point elapsed {};
+    bool refresh {};
   public:
     std::string tag {};
     std::string description {};

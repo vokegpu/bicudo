@@ -131,9 +131,11 @@ int32_t main(int32_t, char**) {
   std::vector<bicudo::body_t> bodies {};
   bodies.resize(bodies_in_scene);
 
+  std::srand(std::time({}));
+
   for (std::size_t j {}; j < bodies_in_scene; j++) {
-    auto x = std::rand() % 100;
-    auto y = std::rand() % 100;
+    auto x = std::rand() % 500;
+    auto y = std::rand() % 500;
 
     auto w = std::rand() % 500;
     auto h = std::rand() % 500;

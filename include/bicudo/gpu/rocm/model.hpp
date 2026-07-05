@@ -23,7 +23,7 @@ namespace bicudo {
     std::vector<bicudo::hypergroup_t*> hypergroups {};
     bicudo::id_t infspirit {};
     bool is_sacred_context {};
-    int32_t gpu_sync {16};
+    int32_t gpu_sync {500};
   protected:
     /* detection */
     bicudo::gpu_rm_divine_pipeline_t pipeline_collision_detection {
