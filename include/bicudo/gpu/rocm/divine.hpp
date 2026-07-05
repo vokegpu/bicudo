@@ -4,28 +4,32 @@
 #include <bicudo/gpu/rocm/header.hpp>
 #include <bicudo/math/geometry.hpp>
 #include <bicudo/io/signature.hpp>
+#include <bicudo/gpu/gpu.hpp>
 
 #include <string>
 #include <vector>
 
 namespace bicudo {
-  using gpu_rm_sacred_pointers_t = std::vector<void*>;
-
-  struct gpu_rm_divine_fun_memory_properties_t {
+  struct gpu_rm_divine_waves_dimension_t {
   public:
+    bicudo::vec3_t<uint32_t> grid {}; 
+    bicudo::vec3_t<uint32_t> block {}; 
+  };
+
+  struct gpu_rm_divine_memory_t {
+  public:
+    bicudo::gpu_sacred_dispatch_params_t params {};
     std::size_t shared_mem_bytes {};
-    bicudo::gpu_rm_sacred_pointers_t sacred_pointers {};
-    std::size_t sacred_pointers_mem_bytes_length {};
   public:
     hipStream_t hip_stream {};
   };
-  
-  struct gpu_rm_divine_fun_dimension_t {
+
+  struct gpu_rm_divine_dispatch_properties_t {
   public:
-    bicudo::vec3_t<uint32_t> grid {};
-    bicudo::vec3_t<uint32_t> block {};
+    bicudo::gpu_rm_divine_memory_t memory {};
+    bicudo::gpu_rm_divine_waves_dimension_t dimension {};
   };
-  
+
   struct gpu_rm_divine_fun_entry_point_t {
   public:
     std::string name {};
@@ -33,21 +37,9 @@ namespace bicudo {
     hipFunction_t h_fun {};
   };
 
-  struct gpu_rm_divine_fun_args_t {
-  public:
-    std::string tag {};
-    std::size_t bytes {};
-    void *p_device {};
-  };
-
-  using gpu_rm_divine_fun_arguments_t = std::vector<bicudo::gpu_rm_divine_fun_args_t>;
-
   struct gpu_rm_divine_fun_t {
   public:
     bicudo::gpu_rm_divine_fun_entry_point_t entry_point {};
-    bicudo::gpu_rm_divine_fun_memory_properties_t memory {};
-    bicudo::gpu_rm_divine_fun_dimension_t dimension {};
-    bicudo::gpu_rm_divine_fun_arguments_t args {};
   public:
     bicudo_as_signed(bicudo::gpu_rm_divine_fun_t);
   };
@@ -58,6 +50,7 @@ namespace bicudo {
   public:
     std::string tag {};
     std::string src {};
+    bicudo::gpu_rm_divine_dispatch_properties_t dispatch {};
     bicudo::gpu_rm_divine_functions_t functions {};
     bicudo::result_t status {bicudo::result::KERNEL_NOT_INITIALIZED};
   public:

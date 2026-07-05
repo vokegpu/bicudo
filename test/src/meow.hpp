@@ -14,6 +14,11 @@
 namespace meow {
   struct gui_t {
   public:
+    std::string stats_framerate {"fps: ..."};
+    std::string stats_body_count {"body(s): ..."};
+    std::string stats_grid {"..."};
+    std::string stats_block {"..."};
+  public:
     ekg::at_t in_world_popup {};
     bool has_some_body_click {};
   };

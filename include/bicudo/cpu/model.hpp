@@ -20,6 +20,7 @@ namespace bicudo {
     bicudo::result_t update(bicudo::physics_update_mode mode) override;
     bicudo::result_t size_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> size) override;
     bicudo::result_t move_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> direction) override;
+    std::string get_device_name() override;
   };
 }
 

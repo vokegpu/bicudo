@@ -14,6 +14,8 @@ namespace bicudo {
 
 namespace bicudo::pipeline {
   class base {
+  protected:
+    uint8_t vram_fraction_usage {2};
   public:
     base() {};
   public:
@@ -27,6 +29,7 @@ namespace bicudo::pipeline {
     virtual bicudo::result_t update(bicudo::physics_update_mode mode) {return bicudo::result::NOT_IMPLEMENTED; };
     virtual bicudo::result_t size_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> size) {return bicudo::result::NOT_IMPLEMENTED; };
     virtual bicudo::result_t move_body(bicudo::hypergroup_t *p_hypergroup, bicudo::body_t *p_body, bicudo::vec2_t<float> direction) {return bicudo::result::NOT_IMPLEMENTED; };
+    virtual std::string get_device_name() { return "null"; };
   };
 }
 

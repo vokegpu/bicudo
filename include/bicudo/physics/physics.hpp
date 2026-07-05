@@ -6,7 +6,8 @@
 namespace bicudo {
   enum physics_update_mode {
     EVERYTHING,
-    ONLY_COLLISION
+    ONLY_COLLISION,
+    ONLY_COLLISION_CHECK
   };
 
   bicudo::result_t registry(
