@@ -132,7 +132,7 @@ int32_t main(int32_t, char**) {
   bicudo::hypergroup_t hypergroup {.tag = "in-editor-physics-hypergroup"};
   bicudo::registry(&hypergroup);
 
-  std::size_t bodies_in_scene {256};
+  std::size_t bodies_in_scene {0};
   std::vector<bicudo::body_t> bodies {};
   bodies.resize(bodies_in_scene);
 

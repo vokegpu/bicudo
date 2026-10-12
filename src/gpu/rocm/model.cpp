@@ -205,17 +205,17 @@ bicudo::result_t bicudo::rocm::init() {
   bicudo::gpu_free_sacred_atomic(atomic);
   rocm.gpu_pipeline_free(pipeline52);
 
-  /* detection */
+  /* collision */
 
-  bicudo::log("Initializing the detection pipeline.");
+  bicudo::log("Initializing the collision-solve pipeline.");
 
-  this->pipeline_collision_detection.unique_id = this->infspirit++;
-  this->pipelines.push_back(&this->pipeline_collision_detection);
+  this->pipeline_collision_solve.unique_id = this->infspirit++;
+  this->pipelines.push_back(&this->pipeline_collision_solve);
 
-  bicudo::gpu_rm_divine_kernel_t &collision_kernel = bicudo::as_kernel(this->pipeline_collision_detection);
+  bicudo::gpu_rm_divine_kernel_t &collision_kernel = bicudo::as_kernel(this->pipeline_collision_solve);
 
-  collision_kernel.tag = "collision-detection";
-  collision_kernel.src = bicudo::hip_rocm_kernel_collision_detection;
+  collision_kernel.tag = "collision-solve";
+  collision_kernel.src = bicudo::hip_rocm_kernel_collision_solve;
 
   collision_kernel.functions = {
     {
@@ -225,8 +225,8 @@ bicudo::result_t bicudo::rocm::init() {
     }
   };
 
-  rocm.gpu_pipeline_load_kernels(this->pipeline_collision_detection);
-  rocm.gpu_pipeline_create(this->pipeline_collision_detection);
+  rocm.gpu_pipeline_load_kernels(this->pipeline_collision_solve);
+  rocm.gpu_pipeline_create(this->pipeline_collision_solve);
 
   return assert_testing_result;
 }
@@ -477,7 +477,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
           };
 
           bicudo::gpu_rm_divine_module_t &km {
-            bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+            bicudo::as_module(this->pipeline_collision_solve, "collision-solve")
           };
 
           bicudo::gpu_sacred_fetch_dispatch_params(
@@ -505,7 +505,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
         (
           std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
           <
-          this->gpu_sync
+          this->interval_gpu_sync
         )
         ||
         hypergroup.body_count_per_gpu_wave_block == 1
@@ -513,7 +513,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
         break;
       }
 
-      bicudo::gpu_rm_divine_module_t &km = bicudo::as_module(this->pipeline_collision_detection, "collision-detection");
+      bicudo::gpu_rm_divine_module_t &km = bicudo::as_module(this->pipeline_collision_solve, "collision-solve");
       bicudo::gpu_rm_divine_fun_t &fun = bicudo::as_function(km, "gpu_divine_main");
 
       uint32_t mid = hypergroup.body_count_per_gpu_wave_block / 2;
@@ -554,13 +554,13 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
           std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
         )
         <
-        this->gpu_sync
+        this->interval_gpu_sync
       ) {
         break;
       }
 
       bicudo::gpu_rm_divine_module_t &km {
-        bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+        bicudo::as_module(this->pipeline_collision_solve, "collision-solve")
       };
 
       bicudo::gpu_sacred_async_DtoH_fetch(
@@ -586,8 +586,8 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
           std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
         )
         <
-        this->gpu_sync
-      ) {        
+        this->interval_gpu_sync
+      ) {
         hypergroup.has_host_memory_synced = false;
         break;
       }
@@ -609,7 +609,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
           std::chrono::duration_cast<std::chrono::milliseconds>(now - hypergroup.elapsed).count()
         )
         <
-        this->gpu_sync
+        this->interval_gpu_sync
       ) {
         break;
       }
@@ -627,7 +627,7 @@ void bicudo::rocm::update_hypergroup_sacred_atomic_machine(
       }
 
       bicudo::gpu_rm_divine_module_t &km {
-        bicudo::as_module(this->pipeline_collision_detection, "collision-detection")
+        bicudo::as_module(this->pipeline_collision_solve, "collision-solve")
       };
 
       bicudo::gpu_sacred_async_DtoH_fetch(

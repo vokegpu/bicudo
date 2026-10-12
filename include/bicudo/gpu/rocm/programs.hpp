@@ -27,7 +27,7 @@ namespace bicudo {
     )"
   };
 
-  const char* hip_rocm_kernel_collision_detection {
+  const char* hip_rocm_kernel_collision_solve {
     R"(
       /**
        * This hip runtime should perform collision detection.
